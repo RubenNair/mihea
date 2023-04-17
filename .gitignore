@@ -1,0 +1,17 @@
+.vscode/
+build/
+dist/
+gomea.egg-info/
+
+## gitignore cython generated files
+gomea/discrete.cpp
+gomea/discrete.h
+gomea/fitness.cpp
+gomea/fitness.h
+gomea/linkage.cpp
+gomea/output.cpp
+gomea/real_valued.cpp
+gomea/real_valued.h
+
+demos/cython_fitness_demo/CustomFitness.cpython-39-x86_64-linux-gnu.so
+demos/cython_fitness_demo/CustomFitness.c

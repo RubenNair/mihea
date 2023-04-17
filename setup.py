@@ -93,6 +93,7 @@ setup(
         include_path = ["."] + [np.get_include()],
         gdb_debug = debug_mode,
         language_level = "3"),
+    include_dirs=[np.get_include()],
     install_requires=["numpy>=1.19.0","tqdm"],
     zip_safe = False
 )

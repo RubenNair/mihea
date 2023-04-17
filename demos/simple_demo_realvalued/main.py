@@ -15,7 +15,7 @@ class CustomRosenbrockFunction(gomea.fitness.PythonFitnessFunctionRealValued):
         return 100*(y-x*x)*(y-x*x) + (1.0-x)*(1.0-x)
 
 frv = CustomRosenbrockFunction(20,value_to_reach=1e-10)
-lm = gomea.linkage.Univariate()
-rvgom = gomea.RealValuedGOMEA(fitness=frv, linkage_model=lm, lower_init_range=-115, upper_init_range=-100, maximum_number_of_populations=1, base_population_size=20, max_evals=100000)
+lm = gomea.linkage.LinkageTree()
+rvgom = gomea.RealValuedGOMEA(fitness=frv, linkage_model=lm, lower_init_range=-115, upper_init_range=-100, maximum_number_of_populations=1, base_population_size=20, max_evals=100000, verbose=True)
 result = rvgom.run()
 result.printFinalStatistics()
