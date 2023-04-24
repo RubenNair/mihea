@@ -14,3 +14,5 @@
 **/*.dat
 build/
 dist/
+.vscode/
+output/
