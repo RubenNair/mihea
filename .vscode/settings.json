@@ -1,3 +1,7 @@
 {
-    "python.terminal.executeInFileDir": true
+    "python.terminal.executeInFileDir": true,
+    "files.associations": {
+        "ostream": "cpp",
+        "iostream": "cpp"
+    }
 }

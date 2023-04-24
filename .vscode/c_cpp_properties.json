@@ -4,7 +4,7 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/usr/include/python3.10"
+                "/home/ruben/miniconda3/include/python3.9"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/g++",
