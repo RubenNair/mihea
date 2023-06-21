@@ -31,14 +31,18 @@ fitness_t *Config::getFitnessClassDiscrete( int problem_index, int number_of_var
 {
 	switch(problem_index) 
 	{
-		case 0: 
+		case 00: 
 		return new gomea::fitness::oneMax_t(number_of_variables);
-        case 1:
+        case 10:
         return new gomea::fitness::deceptiveTrap_t(number_of_variables, k);
+        case 1:
+        return new gomea::fitness::oneMaxSphere_t(number_of_variables, numberOfcVariables);
         case 2:
-        return NULL;
+        return new gomea::fitness::oneMaxRotEllip_t(number_of_variables, numberOfcVariables);
         case 3:
-        return NULL; //new gomea::fitness::maxCut_t(number_of_variables, problemInstancePath);
+        return new gomea::fitness::DT5Sphere_t(number_of_variables, numberOfcVariables);
+        case 4:
+        return new gomea::fitness::DT5RotEllip_t(number_of_variables, numberOfcVariables); //new gomea::fitness::maxCut_t(number_of_variables, problemInstancePath);
 		default:
 		return NULL;
 	}
@@ -62,6 +66,7 @@ bool Config::parseCommandLine(int argc, char **argv)
     {"L",           required_argument,   0, 'L'},  
     {"FOS",         required_argument,   0, 'F'},
     {"maximumFOSSetSize",required_argument, 0, 'm'},
+    {"maximumNumberOfGenerations", required_argument, 0, 'M'},
     {"seed",        required_argument,   0, 'S'},
     {"instance",    required_argument,   0, 'I'},
     {"vtr",         required_argument,   0, 'V'},
@@ -75,14 +80,9 @@ bool Config::parseCommandLine(int argc, char **argv)
     {0,             0,                   0,  0 }
   };
 
-  if(linkage_config == NULL)
-    {
-        linkage_config = new linkage_config_t();
-    }  
-    cout << "linkage_config: " << linkage_config << endl;
 
   int c, index;
-  while ((c = getopt_long(argc, argv, "h::n::p::X::Y::Q::g::w::e::s::f::P::F::m::L::O::T::S::V::I::B::Z::G::", longopts, &index)) != -1)
+  while ((c = getopt_long(argc, argv, "h::n::p::X::Y::Q::g::w::e::s::f::P::F::m::l::L::O::T::S::V::I::B::Z::G::M::", longopts, &index)) != -1)
   {
     switch (c)
     {
@@ -125,10 +125,13 @@ bool Config::parseCommandLine(int argc, char **argv)
                 {
                     vector<string> tmp;
                     splitString(optarg_str, tmp, '_');
-                
-                    problemIndex = atoi(tmp[0].c_str());
-                    k = atoi(tmp[1].c_str());
-                    s = atoi(tmp[2].c_str());
+                    
+                    if(tmp.size() == 3) 
+                    {
+                        problemIndex = atoi(tmp[0].c_str());
+                        k = atoi(tmp[1].c_str());
+                        s = atoi(tmp[2].c_str());
+                    }
                 }
             }
             break;
@@ -136,13 +139,63 @@ bool Config::parseCommandLine(int argc, char **argv)
             useParallelGOM = atoi(optarg);
             break;
         case 'F':
-            FOSIndex = atoi(optarg);
+        {
+            const string optarg_str = string(optarg);
+            if (isNumber(optarg_str)) 
+            {   
+                FOSIndex = atoi(optarg);
+                // Assume that if it is just a number, the FOS is the default one (0, univariate)
+                linkage_config = new linkage_config_t();
+            } 
+            else
+            {
+                vector<string> tmp;
+                splitString(optarg_str, tmp, '_');
+                FOSIndex = atoi(tmp[0].c_str());
+                
+                if(tmp.size() == 2 && FOSIndex == 1) { // MPM linkage
+                    size_t block_size = atoi(tmp[1].c_str());
+                    linkage_config = new linkage_config_t(block_size);
+                } else if(tmp.size() >= 5 && FOSIndex == 2) { // Linkage Tree
+                    int similarityMeasure = atoi(tmp[1].c_str());
+                    bool filtered = atoi(tmp[2].c_str()) == 1;
+                    int maximumSetSize = atoi(tmp[3].c_str());
+                    bool is_static = atoi(tmp[4].c_str()) == 1;
+                    linkage_config = new linkage_config_t(similarityMeasure, filtered, maximumSetSize, is_static); 
+                }
+            }
             break;
+        }
         case 'm':
             maximumFOSSetSize = atoi(optarg);
             break;
+        case 'M':
+            maximumNumberOfGenerations = atoi(optarg);
+            break;
+        case 'l':
+            logDebugInformation = 1;
+            break;
         case 'L':
-            numberOfVariables = atoi(optarg);
+            if(isNumber(string(optarg)))
+            {
+                numberOfVariables = atoi(optarg);
+                numberOfdVariables = numberOfVariables;
+                numberOfcVariables = numberOfVariables;
+            } else 
+            {
+                vector<string> tmp;
+                splitString(string(optarg), tmp, '_');
+                if(tmp.size() == 2) {
+                    numberOfdVariables = atoi(tmp[0].c_str());
+                    numberOfcVariables = atoi(tmp[1].c_str());
+                    // Default numberOfVariables to be equal to numberOfdVariables
+                    numberOfVariables = numberOfdVariables;
+                } else if(tmp.size() == 3) {
+                    numberOfVariables = atoi(tmp[0].c_str());
+                    numberOfdVariables = atoi(tmp[1].c_str());
+                    numberOfcVariables = atoi(tmp[2].c_str());
+                } 
+            }
             break;
         case 'O':
             folder= string(optarg);
@@ -164,8 +217,14 @@ bool Config::parseCommandLine(int argc, char **argv)
             cout << "problemInstancePath: " << problemInstancePath << endl;
             break;
         case 'Z':
+        {
+            if(linkage_config == NULL) {
+                cout << "Please specify FOS (F flag) before similarity measure" << endl;
+                exit(0);
+            }
             linkage_config->lt_similarity_measure = atoi(optarg);
             break;
+        }
         case 'G':
             GPUIndex = atoi(optarg);
             break;
@@ -180,13 +239,14 @@ bool Config::parseCommandLine(int argc, char **argv)
     exit(0);
   }
 
-    // fitness = fitness::getFitnessClassDiscrete(problemIndex, numberOfVariables);
-    // fitness = fitness_t::getFitnessClassDiscrete(problemIndex, numberOfVariables); // fitness_t::getFitnessClass(problemIndex, numberOfVariables, 0);
+   
+    if(linkage_config == NULL) {
+        linkage_config = new linkage_config_t();
+    }
     fitness = getFitnessClassDiscrete(problemIndex, numberOfVariables);
-    // cout << "fitness is: " << fitness << endl;
-  // TODO
-  // fitness = fitness::getFitnessClassDiscrete(problemIndex,numberOfVariables);
-//   assert(0);
+    // Override vtr if it was given as command line parameter
+    fitness->vtr = this->vtr != 1e+308 ? this->vtr : fitness->vtr; 
+    
 
   return 1;
 }
@@ -212,12 +272,13 @@ void Config::printUsage()
   cout << "    7: Concatenated Bimodal Deceptive Trap, specify k and s by writing 7_k_s\n";
   cout << endl;
   
-  cout << "  --L: Number of variables. Default: 10\n";
-  cout << "  --FOS: FOS type, 0 - Linkage Tree, 1 - Filtered Linkage Tree. Default: Linkage Tree\n";    
-  cout << "  --similarityMeasure: Measure to build Linkage Tree, 0 - Mutual Information, 1 - Normalized Mutual Information, 2 - Problem specific. Default: Mutual Information\n";      
-  cout << "  --folder: Folder where GOMEA runs. Default: \"test\"\n";
+  cout << "  -L: Number of variables. Default: 10\n";
+  cout << "  -F: FOS type, 0 - Univariate, 1 - MPM, 2 - Linkage Tree. Default: Linkage Tree\n";    
+  cout << "  -Z: Similarity Measure to build Linkage Tree, 0 - Mutual Information, 1 - Normalized Mutual Information, 2 - Problem specific. Default: Mutual Information\n";      
+  cout << "  -O: Output folder. Default: \"test\"\n";
+  cout << "  -M: maximumNumberOfGenerations. Default: -1\n";
   cout << "  --instance: Path to problem instance. Default: \"\"\n";
-  cout << "  --vtr: Value to reach. Default: inf\n";  
+  cout << "  -V: Value to reach. Default: problem dependent\n";  
   cout << "  --time: time limit for run in seconds. Default: 1\n";
   cout << "  --seed: Random seed. Default: Random timestamp\n";  
 }

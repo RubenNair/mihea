@@ -14,6 +14,7 @@ using namespace std;
 #include "gomea/src/common/linkage_model.hpp"
 #include "gomea/src/fitness/fitness.hpp"
 #include "gomea/src/fitness/benchmarks-discrete.hpp"
+#include "gomea/src/fitness/benchmarks-mixed.hpp"
 
 namespace gomea{
 namespace mixedinteger{
@@ -43,7 +44,8 @@ public:
         AnalyzeFOS                         = 0,
         writeElitists					   = 0,
         saveEvaluations                    = 0,
-        useForcedImprovements              = 1,
+        logDebugInformation                = 0,
+        useForcedImprovements              = 0,
         printHelp                          = 0,
 		maximumNumberOfEvaluations		   = -1,
 		maximumNumberOfGenerations		   = -1;
@@ -61,17 +63,21 @@ public:
 
     //long long timelimitMilliseconds = -1,
     bool fix_seed = false;
-    long long randomSeed;
+    long long randomSeed = 0;
     
     size_t alphabetSize = 2;
     size_t maxArchiveSize = 1000000;
-    int maximumNumberOfGOMEAs  = 10, // RUBEN was 100
+    int maximumNumberOfGOMEAs   = 10, // RUBEN was 100
+        maximumNumberOfGAMBITs  = 10, 
         IMSsubgenerationFactor = 4,
-        basePopulationSize     = 2;
-    linkage_config_t *linkage_config;
+        basePopulationSize     = 2,
+        numberOfVariables = 10,
+        numberOfdVariables = 10,
+        numberOfcVariables = 10;
+    linkage_config_t *linkage_config = NULL;
 
     private:
-        int problemIndex = 0, numberOfVariables = 10;
+        int problemIndex = 0;
 };
 
 }}

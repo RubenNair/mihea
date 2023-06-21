@@ -15,34 +15,19 @@ gomeaIMS::gomeaIMS()
 
 gomeaIMS::gomeaIMS(Config *config_): config(config_)
 {
-	cout << "[DEBUGGING] GomeaIMS config 1" << endl;
     maximumNumberOfGOMEAs   = config->maximumNumberOfGOMEAs;
-	cout << "[DEBUGGING] GomeaIMS config 2" << endl;
     IMSsubgenerationFactor  = config->IMSsubgenerationFactor;
-    cout << "[DEBUGGING] GomeaIMS config 3" << endl;
 	basePopulationSize      = config->basePopulationSize;
-	cout << "[DEBUGGING] GomeaIMS config 4" << endl;
 	problemInstance 		= config->fitness;
-	if(problemInstance == NULL) {
-		cout << "[DEBUGGING] GomeaIMS config 5, problemInstance is NULL" << endl;
-	} else {
-		cout << "[DEBUGGING] GomeaIMS config 5, problemInstance is NOT NULL" << endl;
-	}
 	
     problemInstance->maximum_number_of_evaluations = config->maximumNumberOfEvaluations;
-	cout << "[DEBUGGING] GomeaIMS config 6" << endl;
     problemInstance->maximum_number_of_seconds = config->maximumNumberOfSeconds;
-	cout << "[DEBUGGING] GomeaIMS config 7" << endl;
 	if( config->fix_seed )
 	{
-		cout << "[DEBUGGING] GomeaIMS config 8" << endl;
 		utils::initializeRandomNumberGenerator(config->randomSeed);
-		cout << "[DEBUGGING] GomeaIMS config 9" << endl;
 	} else 
 	{	
-		cout << "[DEBUGGING] GomeaIMS config 10" << endl;
 		utils::initializeRandomNumberGenerator();
-		cout << "[DEBUGGING] GomeaIMS config 11" << endl;
 	}
 }
 
@@ -51,7 +36,7 @@ gomeaIMS::~gomeaIMS()
 
 void gomeaIMS::ezilaitini()
 {
-	for (int i = 0; i < GOMEAs.size(); ++i)
+	for (size_t i = 0; i < GOMEAs.size(); ++i)
 		delete GOMEAs[i];
 	GOMEAs.clear();
 
@@ -93,10 +78,10 @@ void gomeaIMS::run()
 			generationalStepAllGOMEAs();
 
 			numberOfGenerationsIMS++;
+			cout << "[DEBUGGING] completed generation " << numberOfGenerationsIMS << endl;
 		}
 	}
 	catch( utils::customException const& ){}
-	cout << "[DEBUGGING] Run has terminated: checkTermination() is " << checkTermination() << endl;
 	hasTerminated = true;
 	writeStatistics(numberOfGOMEAs - 1);
 	output.writeToFile("output/output.txt");
@@ -237,7 +222,7 @@ void gomeaIMS::initializeNewGOMEA()
     if (numberOfGOMEAs == 0)
         newPopulation = new Population(config, problemInstance, sharedInformationInstance, numberOfGOMEAs, basePopulationSize);
     else
-        newPopulation = new Population(config, problemInstance, sharedInformationInstance, numberOfGOMEAs, 2 * GOMEAs[numberOfGOMEAs-1]->dPopulationSize, GOMEAs[0]->FOSInstance );
+        newPopulation = new Population(config, problemInstance, sharedInformationInstance, numberOfGOMEAs, 2 * GOMEAs[numberOfGOMEAs-1]->populationSize, GOMEAs[0]->FOSInstance );
     
     GOMEAs.push_back(newPopulation);
     numberOfGOMEAs++;
@@ -328,6 +313,7 @@ void gomeaIMS::writeStatistics( int population_index )
     double evals = problemInstance->number_of_evaluations;
     //double elitist_evals = sharedInformationInstance->elitistSolutionHittingTimeEvaluations;
     //double time_s = sharedInformationInstance->elitistSolutionHittingTimeMilliseconds/1000.0;
+
 	double best_fitness = sharedInformationInstance->elitistFitness;
     output.addMetricValue("generation",key,(int)GOMEAs[population_index]->numberOfGenerations);
     output.addMetricValue("evaluations",key,evals);
@@ -335,8 +321,8 @@ void gomeaIMS::writeStatistics( int population_index )
     output.addMetricValue("time",key,utils::getElapsedTimeSinceStartSeconds());
     output.addMetricValue("eval_time",key,utils::getTimer("eval_time"));
     output.addMetricValue("population_index",key,population_index);
-    output.addMetricValue("population_size",key,(int)GOMEAs[population_index]->dPopulationSize);
-    output.addMetricValue("best_obj_val",key,sharedInformationInstance->elitistFitness);
+    output.addMetricValue("population_size",key,(int)GOMEAs[population_index]->populationSize);
+    output.addMetricValue("best_obj_val",key,best_fitness);
     output.addMetricValue("best_cons_val",key,sharedInformationInstance->elitistConstraintValue);
     // output.addMetricValue("obj_val_avg",key,population_objective_avg);
     //output.addMetricValue("obj_val_var",key,population_objective_var);

@@ -5,6 +5,7 @@ using namespace std;
 
 #include "gomea/src/mixed_integer/utils.hpp"
 #include "gomea/src/utils/time.hpp"
+#include "gomea/src/common/solution_mixed.hpp"
 
 namespace gomea{
 namespace mixedinteger{
@@ -16,11 +17,11 @@ class sharedInformation
 		double elitistSolutionHittingTimeMilliseconds,
 			   elitistSolutionHittingTimeEvaluations;
 
-		solutionsArchive *evaluatedSolutions;
+		solutionsArchive *evaluatedSolutions; // RUBEN: ignoring for now, seems to be unused currently anyway
 		bool firstEvaluationEver;
 		double elitistFitness;
 		double elitistConstraintValue;
-		solution_t<char> elitist = solution_t<char>(1,2);
+		solution_mixed elitist = solution_mixed(1,2,1);
 
     sharedInformation(int maxArchiveSize)
     {

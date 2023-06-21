@@ -32,6 +32,7 @@ public:
 
     Config *config;
     vector<Population*> GOMEAs;
+    Population *currGAMBIT = NULL;
     fitness_t *problemInstance = NULL;
     sharedInformation *sharedInformationInstance = NULL;
 

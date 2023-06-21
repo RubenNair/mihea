@@ -21,3 +21,4 @@ dist/
 !.vscode/extensions.json
 !.vscode/*.code-snippets
 output/
+notes.md

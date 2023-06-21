@@ -6,11 +6,12 @@ namespace fitness{
 
 using namespace gomea;
 
-oneMax_t::oneMax_t( int number_of_variables ) : GBOFitnessFunction_t(number_of_variables)
+oneMax_t::oneMax_t( int number_of_variables ) : GBOFitnessFunction_t<char>(number_of_variables)
 {
 	this->name = "OneMax function";
 	this->vtr = number_of_variables;
 	this->use_vtr = true;
+	this->optimization_mode = opt_mode::MAX;
 	this->initialize();
 }
 		
@@ -28,7 +29,10 @@ vec_t<int> oneMax_t::inputsToSubfunction( int subfunction_index )
 		
 double oneMax_t::subfunction( int subfunction_index, vec_t<char> &variables )
 {
-	return( variables[subfunction_index] );
+	if(optimization_mode == opt_mode::MAX)
+		return( variables[subfunction_index] == '\001' ? 1.0 : 0.0 );
+	else
+		return( variables[subfunction_index] == '\001' ? 0.0 : 1.0 );
 }
 
 }}

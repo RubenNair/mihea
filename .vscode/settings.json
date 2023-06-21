@@ -2,6 +2,12 @@
     "python.terminal.executeInFileDir": true,
     "files.associations": {
         "ostream": "cpp",
-        "iostream": "cpp"
+        "iostream": "cpp",
+        "cmath": "cpp",
+        "new": "cpp",
+        "*.tcc": "cpp",
+        "string": "cpp",
+        "fstream": "cpp",
+        "iosfwd": "cpp"
     }
 }

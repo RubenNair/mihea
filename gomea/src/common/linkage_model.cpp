@@ -187,7 +187,7 @@ linkage_model_t::linkage_model_t( std::string filename )
     
 linkage_model_pt linkage_model_t::univariate(size_t numberOfVariables_)
 {
-	linkage_model_pt new_fos = std::shared_ptr<linkage_model_t>(new linkage_model_t(numberOfVariables_,0));
+	linkage_model_pt new_fos = std::shared_ptr<linkage_model_t>(new linkage_model_t(numberOfVariables_,1)); // RUBEN for univariate, block_size should be 1 (was 0)
 	return( new_fos );
 }
 

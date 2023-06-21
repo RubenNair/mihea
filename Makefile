@@ -6,7 +6,7 @@ OBJDIR=build/obj
 BINDIR=build
 
 # list of all source files
-SRCS=$(wildcard $(SRCDIR)/mixed_integer/*.cpp $(SRCDIR)/fitness/*.cpp $(SRCDIR)/fitness/benchmarks-discrete/*.cpp $(SRCDIR)/common/*.cpp $(SRCDIR)/utils/*.cpp)
+SRCS=$(wildcard $(SRCDIR)/mixed_integer/*.cpp $(SRCDIR)/fitness/*.cpp $(SRCDIR)/fitness/benchmarks-discrete/*.cpp $(SRCDIR)/fitness/benchmarks-mixed/*.cpp $(SRCDIR)/common/*.cpp $(SRCDIR)/utils/*.cpp)
 
 # generate a list of object files based on source files
 OBJS=$(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(SRCS))

@@ -15,6 +15,11 @@ void prepareFolder(string &folder)
 
 void initStatisticsFile(string &folder)
 {
+    if (!filesystem::exists(folder))
+    {
+        prepareFolder(folder);
+    }
+
     ofstream outFile(folder + "/statistics.txt", ofstream::out);
     if (outFile.fail())
     {
@@ -27,6 +32,11 @@ void initStatisticsFile(string &folder)
 
 void initElitistFile(string &folder)
 {
+    if (!filesystem::exists(folder))
+    {
+        prepareFolder(folder);
+    }
+
     ofstream outFile(folder + "/elitists.txt", ofstream::out);
     if (outFile.fail())
     {
@@ -34,6 +44,23 @@ void initElitistFile(string &folder)
         exit(0);
     }
     outFile << "#Evaluations " << "Time,sec. " << "Fitness " << "Solution" << endl;
+    outFile.close();
+}
+
+void initLogFile(string &folder)
+{
+    if (!filesystem::exists(folder))
+    {
+        prepareFolder(folder);
+    }
+
+    ofstream outFile(folder + "/log.txt", ofstream::out);
+    if (outFile.fail())
+    {
+        cerr << "Problems with opening file " << folder + "/log.txt!\n";
+        exit(0);
+    }
+    // outFile << "#Evaluations " << "Time,sec. " << "Fitness " << endl;
     outFile.close();
 }
 
@@ -46,13 +73,13 @@ void writeStatisticsToFile(string &folder, long long numberOfEvaluations, long l
         exit(0);
     }
 
-    outFile << (int)numberOfEvaluations << " " << fixed << setprecision(3) << time/1000.0 << " " <<  setprecision(6) << solution->getObjectiveValue();
+    outFile << (int)numberOfEvaluations << " " << fixed << setprecision(3) << time/1000.0 << " " <<  setprecision(11) << solution->getObjectiveValue();
     outFile << endl;
 
     outFile.close();
 }
 
-void writeElitistSolutionToFile(string &folder, long long numberOfEvaluations, long long time, solution_t<char> *solution)
+void writeElitistSolutionToFile(string &folder, long long numberOfEvaluations, long long time, solution_mixed *solution)
 {
     ofstream outFile(folder + "/elitists.txt", ofstream::app);
     if (outFile.fail())
@@ -64,9 +91,102 @@ void writeElitistSolutionToFile(string &folder, long long numberOfEvaluations, l
     outFile << (int)numberOfEvaluations << " " << fixed << setprecision(3) << time/1000.0 << " " <<  setprecision(6) << solution->getObjectiveValue() << " ";
     for (int i = 0; i < solution->getNumberOfVariables(); ++i)
         outFile << +solution->variables[i];
+    outFile << " ";
+    for (int i = 0; i < solution->getNumberOfCVariables(); ++i)
+        outFile << +solution->c_variables[i] << " ";
     outFile << endl;
 
     outFile.close();
+}
+
+void writePopulationToFile(string &folder, vec_t<solution_mixed*> population, string message)
+{
+    if(filesystem::exists(folder + "/log.txt"))
+    {
+        ofstream outFile(folder + "/log.txt", ofstream::app);
+        if (outFile.fail())
+        {
+            cerr << "Problems with opening file " << folder + "/log.txt!\n";
+            exit(0);
+        }
+        outFile << message << endl;
+
+        for (size_t i = 0; i < population.size(); ++i)
+        {
+            outFile << population[i]->getObjectiveValue() << "\t";
+            for (int j = 0; j < population[i]->getNumberOfVariables(); ++j)
+                outFile << +population[i]->variables[j] << " ";
+            outFile << "\t";
+            for(int j = 0; j < population[i]->getNumberOfCVariables(); ++j)
+                outFile << +population[i]->c_variables[j] << " ";
+            outFile << endl;
+        }
+        outFile << endl;
+
+        outFile.close();
+    }
+}
+
+void writeMatrixToFile(string &folder, double **matrix, int rows, int cols, string message)
+{
+    if(filesystem::exists(folder + "/log.txt"))
+    {
+        ofstream outFile(folder + "/log.txt", ofstream::app);
+        if (outFile.fail())
+        {
+            cerr << "Problems with opening file " << folder + "/log.txt!\n";
+            exit(0);
+        }
+        outFile << message << endl;
+
+        for (int i = 0; i < rows; ++i)
+        {
+            for (int j = 0; j < cols; ++j)
+                outFile << matrix[i][j] << " ";
+            outFile << endl;
+        }
+        outFile << endl;
+
+        outFile.close();
+    }
+}
+
+void writeVectorToFile(string &folder, double *vector, int length, string message)
+{
+    if(filesystem::exists(folder + "/log.txt"))
+    {
+        ofstream outFile(folder + "/log.txt", ofstream::app);
+        if (outFile.fail())
+        {
+            cerr << "Problems with opening file " << folder + "/log.txt!\n";
+            exit(0);
+        }
+        outFile << message << endl;
+
+        for (int i = 0; i < length; ++i)
+        {
+            outFile << vector[i] << " ";
+        }
+        outFile << endl;
+
+        outFile.close();
+    }
+}
+
+void writeMessageToLogFile(string &folder, string message)
+{
+    if(filesystem::exists(folder + "/log.txt")) 
+    {
+        ofstream outFile(folder + "/log.txt", ofstream::app);
+        if (outFile.fail())
+        {
+            cerr << "Problems with opening file " << folder + "/log.txt!\n";
+            exit(0);
+        }
+        outFile << message << endl;
+
+        outFile.close();
+    }
 }
 
 void solutionsArchive::checkAlreadyEvaluated(vector<char> &genotype, archiveRecord *result)
