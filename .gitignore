@@ -22,3 +22,4 @@ dist/
 !.vscode/*.code-snippets
 output/
 notes.md
+valgrind*
