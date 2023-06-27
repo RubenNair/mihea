@@ -106,7 +106,7 @@ void simpleGAMBIT::run()
         // assert((int) currGAMBIT->FOSInstance->size() == 2 * config->numberOfdVariables - 1);
         for(size_t i = 0; i < currGAMBIT->FOSInstance->size(); ++i)
         {
-            writeMessageToLogFile(config->folder, "####### FOS element " + to_string(i) + " of " + to_string(currGAMBIT->FOSInstance->size()) + " #######");
+            writeMessageToLogFile(config->folder, "####### [GEN " + to_string(gen) + "] FOS element " + to_string(i) + " of " + to_string(currGAMBIT->FOSInstance->size()) + " #######");
             // cout << "[DEBUGGING] \tFOS element: " << i << endl;
             // // Perform truncation selection -> only learn continuous model based on top tau percent of solutions.
             // // Maybe easier to just do that in iamalgam.cpp instead of creating selection here?
@@ -115,7 +115,10 @@ void simpleGAMBIT::run()
             // Learn continuous model
             //  Also generates new (continuous part of) population, evaluates all solutions and adapts distribution multipliers
             //  Basically does what "makePopulations()" does in iAMaLGaM C code.
-            currGAMBIT->learnContinuousModel();
+            if(config->numberOfcVariables > 0) 
+            {
+                currGAMBIT->learnContinuousModel();
+            }
 
             // Generate new population: replace whole continuous part of population with samples from (updated) continuous model,
             // use discrete model to find donors for each individual (and then replace only elements in current FOS element).

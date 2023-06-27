@@ -780,6 +780,7 @@ void Population::generateDiscretePopulation(int FOS_index)
 {
     checkForDuplicate("START OF DISCRETE");
     generateSingleOffspring(FOS_index);
+    checkIndividualSolvedDiscrete();
     writePopulationToFile(config->folder, population, "POPULATION After generating DISCRETE population ----------------------------------");
     checkForDuplicate("DISCRETE");
 }
@@ -789,7 +790,7 @@ void Population::learnContinuousModel()
 {
     checkForDuplicate("CONTINUOUS 1");
     iamalgamInstance->learnContinuousModel();
-    checkForDuplicate("CONTINUOUS 2");
+    // checkForDuplicate("CONTINUOUS 2");
 
     iamalgamInstance->generateNewPopulation();
     writePopulationToFile(config->folder, population, "POPULATION After generating CONTINUOUS population ----------------------------------");
@@ -809,35 +810,36 @@ void Population::learnContinuousModel()
 
 void Population::checkForDuplicate(string message)
 {
-    cout << setprecision(15);
-    for(size_t i = 0; i < populationSize; i++)
-    {
-        for(size_t j = i+1; j < populationSize; j++)
-        {
-            if(population[i]->getObjectiveValue() == population[j]->getObjectiveValue())
-            {
-                cout << "[" + message + "] Duplicate found: " << population[i]->getObjectiveValue() << ", " << population[j]->getObjectiveValue() << "\t(" << i << "," << j << ")" << endl;
-                cout << "[" + message + "] i: \tc_variables: ";
-                for(double val : population[i]->c_variables)
-                    cout << val << " ";
-                cout << "\t variables: ";
-                for(int dval : population[i]->variables)
-                    cout << dval << " ";
-                cout << endl;
-                cout << "[" + message + "] j: \tc_variables: ";
-                for(double val : population[j]->c_variables)
-                    cout << val << " ";
-                cout << "\t variables: ";
-                for(int dval : population[j]->variables)
-                    cout << dval << " ";
-                cout << endl;
-            }
-            else if(allContinuousEqual(population[i], population[j]))
-            {
-                cout << "[ " << message << "] Two solutions with same continuous variables found: " << "(" << i << "," << j << ")\t i: " << population[i]->getObjectiveValue() << ", j: " << population[j]->getObjectiveValue() << endl;
-            }
-        }
-    }
+    // cout << setprecision(15);
+    // for(size_t i = 0; i < populationSize; i++)
+    // {
+    //     for(size_t j = i+1; j < populationSize; j++)
+    //     {
+    //         if(population[i]->getObjectiveValue() == population[j]->getObjectiveValue())
+    //         {
+    //             cout << "[" + message + "] Duplicate found: " << population[i]->getObjectiveValue() << ", " << population[j]->getObjectiveValue() << "\t(" << i << "," << j << ")" << endl;
+    //             cout << "[" + message + "] i: \tc_variables: ";
+    //             for(double val : population[i]->c_variables)
+    //                 cout << val << " ";
+    //             cout << "\t variables: ";
+    //             for(int dval : population[i]->variables)
+    //                 cout << dval << " ";
+    //             cout << endl;
+    //             cout << "[" + message + "] j: \tc_variables: ";
+    //             for(double val : population[j]->c_variables)
+    //                 cout << val << " ";
+    //             cout << "\t variables: ";
+    //             for(int dval : population[j]->variables)
+    //                 cout << dval << " ";
+    //             cout << endl;
+    //             // exit(0);
+    //         }
+    //         else if(allContinuousEqual(population[i], population[j]))
+    //         {
+    //             cout << "[ " << message << "] Two solutions with same continuous variables found: " << "(" << i << "," << j << ")\t i: " << population[i]->getObjectiveValue() << ", j: " << population[j]->getObjectiveValue() << endl;
+    //         }
+    //     }
+    // }
 }
 
 bool Population::allContinuousEqual(solution_mixed *a, solution_mixed *b)
@@ -848,6 +850,27 @@ bool Population::allContinuousEqual(solution_mixed *a, solution_mixed *b)
             return false;
     }
     return true;
+}
+
+void Population::checkIndividualSolvedDiscrete()
+{
+    // for(size_t i = 0; i < populationSize; i++)
+    // {
+    //     bool all_one = true;
+    //     for(size_t j = 0; j < population[i]->variables.size(); j++)
+    //     {
+    //         if(population[i]->variables[j] == '\000')
+    //         {
+    //             all_one = false;
+    //             break;
+    //         }
+    //     }
+    //     if(all_one)
+    //     {
+    //         cout << "Found individual that solved discrete part. i: " << i << ", gen: " << numberOfGenerations << endl;
+    //         exit(0);
+    //     }
+    // }
 }
 
 }}

@@ -1626,23 +1626,26 @@ void iamalgam::learnContinuousModel(int population_index)
   assert(number_of_populations == 1 && population_index == 0);
   checkForDuplicate("IAMALGAM 1");
   computeRanksForOnePopulation(population_index); // Moved from where comment // computeRanks(); is.
-  checkForDuplicate("IAMALGAM 2");
+  // checkForDuplicate("IAMALGAM 2");
   // TODO figure out if this is correct placement for making selections
   makeSelectionsForOnePopulation(population_index);
   writePopulationToFile(config->folder, selections, "SELECTIONS in iamalgam ----------------------------------");  checkForDuplicate("IAMALGAM 3");
   // estimateParametersAllPopulations();
   estimateParameters(population_index);
+
   writeMatrixToFile(config->folder, covariance_matrices[population_index], number_of_parameters, number_of_parameters,  "COVARIANCE MATRIX in iamalgam ----------------------------------");
   writeMatrixToFile(config->folder, aggregated_covariance_matrices[population_index], number_of_parameters, number_of_parameters,  "AGGREGATED COVARIANCE MATRIX in iamalgam ----------------------------------");
   writeMatrixToFile(config->folder, generational_covariance_matrices[population_index], number_of_parameters, number_of_parameters,  "GENERATIONAL COVARIANCE MATRIX in iamalgam ----------------------------------");
   writeVectorToFile(config->folder, ams_vectors[population_index], number_of_parameters, "AMS VECTOR in iamalgam ----------------------------------");
   writeMessageToLogFile(config->folder, "distribution multiplier: " + to_string(distribution_multipliers[population_index]) + "\n");
-  checkForDuplicate("IAMALGAM 4");
+
+  // checkForDuplicate("IAMALGAM 4");
+
   copyBestSolutionsToPopulations(); 
-  checkForDuplicate("IAMALGAM 5");
+
   applyDistributionMultipliers();
-  checkForDuplicate("IAMALGAM 6"); 
-  // The rest of this code (from "makePopulations"|in original iAMaLGaM code ) is done / called in Population.cpp, in function with the same name (learnContinuousModel).
+   
+  // The rest of this code (from "makePopulations" in original iAMaLGaM code ) is done / called in Population.cpp, in function with the same name (learnContinuousModel).
   
   // generateAndEvaluateNewSolutionsToFillPopulations(); 
 
@@ -1742,30 +1745,32 @@ void iamalgam::generateNewPopulation(int population_index)
 
 void iamalgam::checkForDuplicate(string message)
 {
-    for(int i = 0; i < population_size; i++)
-    {
-        for(int j = i+1; j < population_size; j++)
-        {
-            if(population[i]->getObjectiveValue() == population[j]->getObjectiveValue())
-            {
-                cout << "[" + message + "] Duplicate found: " << population[i]->getObjectiveValue() << ", " << population[j]->getObjectiveValue() << "\t(" << i << "," << j << ")" << endl;
-                cout << "[" + message + "] i: \tc_variables: ";
-                for(double val : population[i]->c_variables)
-                    cout << val << " ";
-                cout << "\t variables: ";
-                for(int dval : population[i]->variables)
-                    cout << dval << " ";
-                cout << endl;
-                cout << "[" + message + "] j: \tc_variables: ";
-                for(double val : population[j]->c_variables)
-                    cout << val << " ";
-                cout << "\t variables: ";
-                for(int dval : population[j]->variables)
-                    cout << dval << " ";
-                cout << endl;
-            }
-        }
-    }
+    // for(int i = 0; i < population_size; i++)
+    // {
+    //     for(int j = i+1; j < population_size; j++)
+    //     {
+    //         if(population[i]->getObjectiveValue() == population[j]->getObjectiveValue())
+    //         {
+    //             cout << "[" + message + "] Duplicate found: " << population[i]->getObjectiveValue() << ", " << population[j]->getObjectiveValue() << "\t(" << i << "," << j << ")" << endl;
+    //             cout << "[" + message + "] i: \tc_variables: ";
+    //             for(double val : population[i]->c_variables)
+    //                 cout << val << " ";
+    //             cout << "\t variables: ";
+    //             for(int dval : population[i]->variables)
+    //                 cout << dval << " ";
+    //             cout << endl;
+    //             cout << "[" + message + "] j: \tc_variables: ";
+    //             for(double val : population[j]->c_variables)
+    //                 cout << val << " ";
+    //             cout << "\t variables: ";
+    //             for(int dval : population[j]->variables)
+    //                 cout << dval << " ";
+    //             cout << endl;
+    //             // exit(0);
+    //         }
+    //     }
+    // }
 }
+
 
 }}

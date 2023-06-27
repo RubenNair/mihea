@@ -75,6 +75,7 @@ public:
     void learnContinuousModel();
     void generateDiscretePopulation(int FOS_index);
     void checkForDuplicate(string message);
+    void checkIndividualSolvedDiscrete();
     bool allContinuousEqual(solution_mixed *a, solution_mixed *b);
     // void generateNewContinuousPopulation();
 
