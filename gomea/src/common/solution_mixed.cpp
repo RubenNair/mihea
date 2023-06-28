@@ -57,6 +57,9 @@ void solution_mixed::insertSolution( solution_mixed *solution )
 	setObjectiveValues( solution->getObjectiveValues() );
 	setConstraintValue( solution->getConstraintValue() );
 	setFitnessBuffers( solution->fitness_buffers );
+
+	d_objective_value = solution->d_objective_value;
+	c_objective_value = solution->c_objective_value;
 }
 
 void solution_mixed::print()

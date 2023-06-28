@@ -401,7 +401,7 @@ void Population::generateSingleOffspring(int FOS_index)
             }
         }
         
-        if (!(offspringPopulation[i]->getObjectiveValue() < population[i]->getObjectiveValue())) // RUBEN doesn't this assume maximization?
+        if (!(offspringPopulation[i]->d_objective_value < population[i]->d_objective_value)) // RUBEN doesn't this assume maximization?
             noImprovementStretches[i]++;
         else
             noImprovementStretches[i] = 0;
@@ -557,8 +557,8 @@ bool Population::GOMSingleFOS(size_t offspringIndex, size_t FOSIndex)
             // accept the change if this solution is not the elitist and the fitness is at least equally good (allows random walk in neutral fitness landscape)
             // however, if this is the elitist solution, only accept strict improvements, to avoid convergence problems
             // RUBEN changed > to <, since I am assuming minimization. TODO: more elegant solution, maybe using optimization_mode of problemInstance
-            if ((!thisIsTheElitistSolution && (offspring->getObjectiveValue() <= offspringPopulation[offspringIndex]->getObjectiveValue())) || 
-                    (thisIsTheElitistSolution && (offspring->getObjectiveValue() < offspringPopulation[offspringIndex]->getObjectiveValue())))     
+            if ((!thisIsTheElitistSolution && (offspring->d_objective_value <= offspringPopulation[offspringIndex]->d_objective_value)) || 
+                    (thisIsTheElitistSolution && (offspring->d_objective_value < offspringPopulation[offspringIndex]->d_objective_value)))     
             {
                 // offspringPopulation[offspringIndex]->insertPartialSolution(partial_offspring);
                 // offspringPopulation[offspringIndex]->variables[variableFromFOS] = population[donorIndex]->variables[variableFromFOS];
@@ -653,7 +653,7 @@ bool Population::FISingleFOS(size_t offspringIndex, size_t FOSIndex)
         problemInstance->evaluate(offspring);
         // problemInstance->evaluatePartialSolution(offspringPopulation[offspringIndex], partial_offspring );
 
-        if (offspring->getObjectiveValue() < offspringPopulation[offspringIndex]->getObjectiveValue() ) // RUBEN this was assuming maximization (>), changed to assume minimization. TODO: more elegant solution, maybe using optimization_mode of problemInstance
+        if (offspring->d_objective_value < offspringPopulation[offspringIndex]->d_objective_value ) // RUBEN this was assuming maximization (>), changed to assume minimization. TODO: more elegant solution, maybe using optimization_mode of problemInstance
         {
             offspringPopulation[offspringIndex] = offspring;
             updateElitistAndCheckVTR(offspringPopulation[offspringIndex]);
@@ -744,7 +744,7 @@ void Population::updateElitistAndCheckVTR(solution_mixed *solution)
     //if (sharedInformationPointer->firstEvaluationEver || (solution->getObjectiveValue() > sharedInformationPointer->elitist.getObjectiveValue()))
     if (sharedInformationPointer->firstEvaluationEver || problemInstance->betterFitness(solution,&sharedInformationPointer->elitist) )
     {
-        cout << "New elitist solution found: " << solution->getObjectiveValue() << ", c_variables: ";
+        cout << "New elitist solution found: " << solution->getObjectiveValue() << " (" << solution->d_objective_value << ", " << solution->c_objective_value << "), c_variables: ";
         for(auto const& val : solution->c_variables)
             cout << val << " ";
         cout << "\t variables: ";

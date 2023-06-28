@@ -170,7 +170,7 @@ void iamalgam::computeRanksForOnePopulation(int population_index)
 
   for( i = 0; i < population_size; i++)
   {
-    objective_values[i] = population[i]->getObjectiveValue();
+    objective_values[i] = population[i]->c_objective_value;
     constraint_values[i] = population[i]->getConstraintValue();
   }
 
@@ -182,7 +182,7 @@ void iamalgam::computeRanksForOnePopulation(int population_index)
   for( i = 1; i < population_size; i++ )
   {
     // if( objective_values[population_index][sorted[i]] != objective_values[population_index][sorted[i-1]] )
-    if( population[sorted[i]]->getObjectiveValue() != population[sorted[i-1]]->getObjectiveValue() )
+    if( population[sorted[i]]->c_objective_value != population[sorted[i-1]]->c_objective_value )
       rank++;
 
     ranks[population_index][sorted[i]] = rank;
@@ -363,12 +363,12 @@ bool iamalgam::checkFitnessVarianceTerminationSinglePopulation( int population_i
   
   objective_avg = 0.0;
   for( i = 0; i < population_size; i++ )
-    objective_avg  += population[i]->getObjectiveValue();
+    objective_avg  += population[i]->c_objective_value;
   objective_avg = objective_avg / ((double) population_size);
 
   objective_var = 0.0;
   for( i = 0; i < population_size; i++ )
-    objective_var  += (population[i]->getObjectiveValue()-objective_avg)*(population[i]->getObjectiveValue()-objective_avg);
+    objective_var  += (population[i]->c_objective_value-objective_avg)*(population[i]->c_objective_value-objective_avg);
   objective_var = objective_var / ((double) population_size);
 
   if( objective_var <= 0.0 )
@@ -452,14 +452,14 @@ void iamalgam::makeSelectionsForOnePopulationUsingDiversityOnRank0(int populatio
   }
 
   index_of_farthest    = 0;
-  distance_of_farthest = population[preselection_indices[0]]->getObjectiveValue(); //objective_values[population_index][preselection_indices[0]];
+  distance_of_farthest = population[preselection_indices[0]]->c_objective_value; //objective_values[population_index][preselection_indices[0]];
   for( i = 1; i < number_of_rank0_solutions; i++ )
   {
     // if( objective_values[population_index][preselection_indices[i]] > distance_of_farthest )
-    if( population[preselection_indices[i]]->getObjectiveValue() > distance_of_farthest )
+    if( population[preselection_indices[i]]->c_objective_value > distance_of_farthest )
     {
       index_of_farthest    = i;
-      distance_of_farthest = population[preselection_indices[i]]->getObjectiveValue(); //objective_values[population_index][preselection_indices[i]];
+      distance_of_farthest = population[preselection_indices[i]]->c_objective_value; //objective_values[population_index][preselection_indices[i]];
     }
   }
 
@@ -1268,8 +1268,8 @@ bool iamalgam::generationalImprovementForOnePopulation( int population_index, do
   {
     // if( betterFitness( objective_values_selections[population_index][i], constraint_values_selections[population_index][i],
     //                    objective_values_selections[population_index][index_best_selected], constraint_values_selections[population_index][index_best_selected] ) )
-    if( betterFitness(selections[i]->getObjectiveValue(), selections[i]->getConstraintValue(),
-                      selections[index_best_selected]->getObjectiveValue(), selections[index_best_selected]->getConstraintValue()) )
+    if( betterFitness(selections[i]->c_objective_value, selections[i]->getConstraintValue(),
+                      selections[index_best_selected]->c_objective_value, selections[index_best_selected]->getConstraintValue()) )
       index_best_selected = i;
   }
 
@@ -1284,14 +1284,14 @@ bool iamalgam::generationalImprovementForOnePopulation( int population_index, do
   {
     // if( betterFitness( objective_values[population_index][i], constraint_values[population_index][i],
     //                    objective_values[population_index][index_best_population], constraint_values[population_index][index_best_population] ) )
-    if( betterFitness( population[i]->getObjectiveValue(), population[i]->getConstraintValue(),
-                       population[index_best_population]->getObjectiveValue(), population[index_best_population]->getConstraintValue()) )
+    if( betterFitness( population[i]->c_objective_value, population[i]->getConstraintValue(),
+                       population[index_best_population]->c_objective_value, population[index_best_population]->getConstraintValue()) )
       index_best_population = i;
 
     // if( betterFitness( objective_values[population_index][i], constraint_values[population_index][i],
     //                    objective_values_selections[population_index][index_best_selected], constraint_values_selections[population_index][index_best_selected] ) )
-    if( betterFitness( population[i]->getObjectiveValue(), population[i]->getConstraintValue(),
-                       selections[index_best_selected]->getObjectiveValue(), selections[index_best_selected]->getConstraintValue()) )
+    if( betterFitness( population[i]->c_objective_value, population[i]->getConstraintValue(),
+                       selections[index_best_selected]->c_objective_value, selections[index_best_selected]->getConstraintValue()) )
     {
       number_of_improvements++;
       for( j = 0; j < number_of_parameters; j++ )
@@ -1315,7 +1315,7 @@ bool iamalgam::generationalImprovementForOnePopulation( int population_index, do
   free( average_parameters_of_improvements );
 
   // if( fabs( objective_values_selections[population_index][index_best_selected] - objective_values[population_index][index_best_population] ) == 0.0 )
-  if( fabs( selections[index_best_selected]->getObjectiveValue() - population[index_best_population]->getObjectiveValue() ) == 0.0 )
+  if( fabs( selections[index_best_selected]->c_objective_value - population[index_best_population]->c_objective_value ) == 0.0 )
     return( false );
 
   return( true );
@@ -1475,12 +1475,12 @@ void iamalgam::determineBestSolutionSoFar()
   //                    best_so_far_objective_value,
   //                    best_so_far_constraint_value ) )
   if( number_of_starts == 1 ||
-      betterFitness( population[index_of_best]->getObjectiveValue(),
+      betterFitness( population[index_of_best]->c_objective_value,
                      population[index_of_best]->getConstraintValue(),
                      best_so_far_objective_value,
                      best_so_far_constraint_value ) )                     
   {
-    best_so_far_objective_value  = population[index_of_best]->getObjectiveValue(); //objective_values[population_of_best][index_of_best];
+    best_so_far_objective_value  = population[index_of_best]->c_objective_value; //objective_values[population_of_best][index_of_best];
     best_so_far_constraint_value = population[index_of_best]->getConstraintValue(); //constraint_values[population_of_best][index_of_best];
     for( i = 0; i < number_of_parameters; i++ )
       best_so_far_solution[i] = population[index_of_best]->c_variables[i]; //populations[population_of_best][index_of_best][i];
@@ -1499,8 +1499,8 @@ void iamalgam::determineBestSolutionInCurrentPopulations(int *population_of_best
     {
       // if( betterFitness( objective_values[i][j], constraint_values[i][j],
       //                    objective_values[(*population_of_best)][(*index_of_best)], constraint_values[(*population_of_best)][(*index_of_best)] ) )
-      if( betterFitness( population[j]->getObjectiveValue(), population[j]->getConstraintValue(),
-                         population[(*index_of_best)]->getObjectiveValue(), population[(*index_of_best)]->getConstraintValue() ) )
+      if( betterFitness( population[j]->c_objective_value, population[j]->getConstraintValue(),
+                         population[(*index_of_best)]->c_objective_value, population[(*index_of_best)]->getConstraintValue() ) )
       {
         (*population_of_best) = i;
         (*index_of_best)      = j;

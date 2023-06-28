@@ -16,6 +16,8 @@ class solution_mixed : public solution_t<char>
     // laat variables discrete, voeg real_variables toe als doubles
 	public:
     vec_t<double> c_variables;
+	double d_objective_value;
+	double c_objective_value;
     solution_mixed( int number_of_variables_, size_t alphabetSize_, int number_of_c_variables_ );
     solution_mixed (vec_t<char> &variables, vec_t<double> &c_variables);
     solution_mixed( size_t numberOfVariables_, size_t alphabetSize_, size_t numberOfCVariables_, fitness_t<char> *problemInstance_ );

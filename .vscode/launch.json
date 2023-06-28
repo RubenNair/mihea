@@ -6,7 +6,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/MixedIntegerGOMEA",
-            "args":  ["-n100", "-P3", "-L30_5", "-V1e-10", "-Ooutput/test/test2", "-F2_0_0_-1_0", "-l"],//["-n20", "-P2", "-L10_10", "-M100", "-Ooutput/test/test2"],
+            "args":  ["-n15", "-P1", "-L30_0", "-V1e-10", "-Ooutput/test/test2", "-F2_0_0_-1_0", "-l"],//["-n20", "-P2", "-L10_10", "-M100", "-Ooutput/test/test2"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

@@ -68,11 +68,16 @@ void oneMaxSphere_t::evaluationFunction( solution_t<char> *solution )
 	// solution_m->getNumberOfCVariables();
     solution_mix->initFitnessBuffers(getNumberOfFitnessBuffers());
 	solution_mix->clearFitnessBuffers();
+	
+    solution_mix->d_objective_value = 0.0;
+    solution_mix->c_objective_value = 0.0;
+
 	for( int i = 0; i < solution_mix->getNumberOfVariables(); i++ )
 	{
 		int buffer_index = this->getIndexOfFitnessBuffer(i);
 		double fsub = discrete_subfunction(i, solution_mix->variables);
 		solution_mix->addToFitnessBuffer(buffer_index, fsub);
+		solution_mix->d_objective_value += fsub;
 	}
 
     for( int i = 0; i < solution_mix->getNumberOfCVariables(); i++ )
@@ -80,6 +85,7 @@ void oneMaxSphere_t::evaluationFunction( solution_t<char> *solution )
         int buffer_index = this->getIndexOfFitnessBuffer(i);
         double fsub = continuous_subfunction(i, solution_mix->c_variables);
         solution_mix->addToFitnessBuffer(buffer_index, fsub);
+		solution_mix->c_objective_value += fsub;
     }
 
 	for( int i = 0; i < this->number_of_objectives; i++ )
