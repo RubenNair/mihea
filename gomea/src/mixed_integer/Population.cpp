@@ -763,7 +763,7 @@ void Population::updateElitistAndCheckVTR(solution_mixed *solution)
         {
             writeStatisticsToFile(config->folder, sharedInformationPointer->elitistSolutionHittingTimeEvaluations, sharedInformationPointer->elitistSolutionHittingTimeMilliseconds, solution);
             writeElitistSolutionToFile(config->folder, sharedInformationPointer->elitistSolutionHittingTimeEvaluations, sharedInformationPointer->elitistSolutionHittingTimeMilliseconds, solution);
-            cout << "VTR HIT!\n";
+            cout << "VTR HIT! (popsize: " << populationSize << ")\n";
             terminated = true;
             throw utils::customException("vtr");
         }
