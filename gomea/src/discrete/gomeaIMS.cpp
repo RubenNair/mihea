@@ -50,11 +50,15 @@ void gomeaIMS::initialize()
     problemInstance->initializeRun();
     output = output_statistics_t();
 
-	if( config->AnalyzeFOS )
-	{
+	// if( config->AnalyzeFOS )
+	// {
 		prepareFolder(config->folder);
-	}
-    //initElitistFile(config->folder);
+	// }
+    initElitistFile(config->folder);
+    if(config->logDebugInformation)
+    {
+        initLogFile(config->folder);
+    }
 
     sharedInformationInstance = new sharedInformation(config->maxArchiveSize);
 	isInitialized = true;
@@ -120,17 +124,60 @@ void gomeaIMS::runGeneration()
 
 void gomeaIMS::runGeneration( int GOMEAIndex )
 {
+	writeMessageToLogFile(config->folder, "\n\n\n############## Generation " + to_string(GOMEAs[GOMEAIndex]->numberOfGenerations) + " ##############", config->logDebugInformation);
+	// DEBUGGING: log in the same way as mixed part
+	writePopulationToFile(config->folder, GOMEAs[GOMEAIndex]->population, "initial population --------", config->logDebugInformation);
+	writeMessageToLogFile(config->folder, countBuildingBlocks(GOMEAs[GOMEAIndex]->population, 5), config->logDebugInformation);
+
 	GOMEAs[GOMEAIndex]->calculateAverageFitness();
 
-	GOMEAs[GOMEAIndex]->makeOffspring();
+ 	/* ---------- switched loop order ---------- */
+	GOMEAs[GOMEAIndex]->determineFOSOrder();
+	// GOMEAs[GOMEAIndex]->FOSInstance->printFOS();
+
+	GOMEAs[GOMEAIndex]->copyPopulationToOffspring();
+
+	cout << "FOS size: " << GOMEAs[GOMEAIndex]->FOSInstance->size();
+	cout << "\tRunning generation " << GOMEAs[GOMEAIndex]->numberOfGenerations << " of GOMEA " << GOMEAIndex << " with FOS and population loops reversed! (population kept constant during FOS loop)" << endl;
+	for(size_t i = 0; i < GOMEAs[GOMEAIndex]->FOSInstance->size(); ++i)
+	{
+		writeMessageToLogFile(config->folder, "####### [GEN " + to_string(GOMEAs[GOMEAIndex]->numberOfGenerations) + "] FOS element " + to_string(i) + " of " + to_string(GOMEAs[GOMEAIndex]->FOSInstance->size()) +  " -> FOS_index " + to_string(GOMEAs[GOMEAIndex]->FOSInstance->FOSorder[i]) + " #######", config->logDebugInformation);
+		
+		GOMEAs[GOMEAIndex]->generateOffspringSingleFOSElement(i);
+
+		writePopulationToFile(config->folder, GOMEAs[GOMEAIndex]->offspringPopulation, "OFFSPRING POPULATION After generating DISCRETE population ----------------------------------", config->logDebugInformation);
+
+		writeMessageToLogFile(config->folder, "\n" + countBuildingBlocks(GOMEAs[GOMEAIndex]->offspringPopulation, 5) + "\n", config->logDebugInformation);
+	}
 
 	GOMEAs[GOMEAIndex]->copyOffspringToPopulation();
 
 	GOMEAs[GOMEAIndex]->calculateAverageFitness();
 
+	// TODO remove this part, temporary safety measure for if generations get too large (almost always means something was wrong)
+	if(GOMEAs[GOMEAIndex]->numberOfGenerations > 30)
+	{
+		cout << "Stopping after 30 generations.\nPopulation:" << endl;
+		printPopulation(GOMEAs[GOMEAIndex]->population);
+		throw utils::customException("Stopping after 30 generations");
+	}
+
 	GOMEAs[GOMEAIndex]->numberOfGenerations++;
-		
+
 	writeStatistics( GOMEAIndex );
+
+	/* ---------- end switched loop order ---------- */
+
+	/* ---------- original order ---------- */
+	// GOMEAs[GOMEAIndex]->makeOffspring();
+
+	// GOMEAs[GOMEAIndex]->copyOffspringToPopulation();
+
+	// GOMEAs[GOMEAIndex]->calculateAverageFitness();
+
+	// GOMEAs[GOMEAIndex]->numberOfGenerations++;
+		
+	// writeStatistics( GOMEAIndex );
 }
 
 bool gomeaIMS::checkTermination()
@@ -214,7 +261,11 @@ void gomeaIMS::initializeNewGOMEA()
     Population *newPopulation = NULL;
 
     if (numberOfGOMEAs == 0)
+	{
         newPopulation = new Population(config, problemInstance, sharedInformationInstance, numberOfGOMEAs, basePopulationSize);
+		// cout << "Initial population:\n";
+		// printPopulation( newPopulation->population );
+	}	
     else
         newPopulation = new Population(config, problemInstance, sharedInformationInstance, numberOfGOMEAs, 2 * GOMEAs[numberOfGOMEAs-1]->populationSize, GOMEAs[0]->FOSInstance );
     

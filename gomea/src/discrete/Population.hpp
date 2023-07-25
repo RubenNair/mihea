@@ -50,10 +50,14 @@ public:
     bool allSolutionsAreEqual();
     void makeOffspring();
     void copyOffspringToPopulation();
+    void copyPopulationToOffspring();
     void generateOffspring();
+    void generateOffspringSingleFOSElement(int FOS_index);
     void evaluateSolution(solution_t<char> *solution);
     void evaluateSolution(solution_t<char> *solution, solution_t<char> *solutionBefore, vec_t<int> &touchedGenes, double fitnessBefore);
+    void determineFOSOrder();
     bool GOM(size_t offspringIndex);
+    bool GOMSingleFOSElement(size_t offspringIndex, int FOS_index);
     bool FI(size_t offspringIndex);
     void updateElitistAndCheckVTR(solution_t<char> *solution);
     void checkTimeLimit();
