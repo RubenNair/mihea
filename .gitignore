@@ -23,3 +23,5 @@ dist/
 output/
 notes.md
 valgrind*
+venvgomea/
+venv/

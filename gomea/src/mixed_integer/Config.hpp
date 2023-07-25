@@ -28,6 +28,7 @@ class Config
 
 public:
 	Config();
+    ~Config();
 
     fitness_t *getFitnessClassDiscrete(int problem_index, int number_of_variables);
     bool parseCommandLine(int argc, char **argv);
@@ -53,6 +54,7 @@ public:
     double vtr = 1e+308;
     size_t k = 1, s = 1,   
         FOSIndex = 0;
+    double a_value = 1.1;
 	int GPUIndex = -1;
 	int maximumFOSSetSize = -1;
 

@@ -16,7 +16,19 @@ simpleGAMBIT::simpleGAMBIT()
 
 simpleGAMBIT::simpleGAMBIT(Config *config_): config(config_)
 {
-    // gomeaIMSInstance = new gomeaIMS(config);
+    maximumNumberOfGAMBITs   = config->maximumNumberOfGAMBITs;
+    problemInstance         = config->fitness;
+    basePopulationSize      = config->basePopulationSize;
+    problemInstance->maximum_number_of_evaluations = config->maximumNumberOfEvaluations;
+    problemInstance->maximum_number_of_seconds = config->maximumNumberOfSeconds;
+    problemInstance->initializeRun();
+    if( config->fix_seed )
+    {
+        utils::initializeRandomNumberGenerator(config->randomSeed);
+    } else 
+    {   
+        utils::initializeRandomNumberGenerator();
+    }
     iamalgamInstance = new iamalgam(config);
 }
 
@@ -29,15 +41,11 @@ void simpleGAMBIT::initialize()
     utils::initStartTime();
     utils::clearTimers();
     output = output_statistics_t();
-    maximumNumberOfGAMBITs   = config->maximumNumberOfGAMBITs;
-    problemInstance         = config->fitness;
-    basePopulationSize      = config->basePopulationSize;
-    problemInstance->initializeRun();
 
-    if( config->AnalyzeFOS )
-    {
-        prepareFolder(config->folder);
-    }
+    // if( config->AnalyzeFOS )
+    // {
+    prepareFolder(config->folder);
+    // }
 
     // gomeaIMSInstance = new gomeaIMS(config);
     // iamalgamInstance = new iamalgam(config);
@@ -76,80 +84,119 @@ void simpleGAMBIT::run()
     int gen = 0;
     double prevGenElitistFitness = -1;
     int numGensNoChange = 0;
-    while(!checkTermination() && (config->maximumNumberOfGenerations <= 0 || gen < config->maximumNumberOfGenerations ))
-    {
-        writeMessageToLogFile(config->folder, "\n\n\n############## Generation " + to_string(gen) + " ##############");
-        // Moved everthing up to Learn discrete model inside the while loop, I think this is where it should be.
-        // if (numberOfGAMBITs < maximumNumberOfGAMBITs)
-        // 			initializeNewGAMBIT();
-        FindCurrentGAMBIT(); // -> Finds the current GAMBIT to use for this iteration, and initializes a new GAMBIT with larger population size if necessary
-        
-        // Pass the GAMBITs (populations) to the GOMEA and iamalgam instances
-        // _TODO: maybe it's better to figure out in here which population to use this run, then only pass that one? -> Done
-        Population *currGAMBIT = GAMBITs[currentGAMBITIndex];
-        writePopulationToFile(config->folder, currGAMBIT->population, "initial population --------");
-        // gomeaIMSInstance->currGAMBIT = currGAMBIT;
-        // gomeaIMSInstance->GAMBITs = GAMBITs;
-
-        // _TODO: iamalgam's number_of_populations should be initialized to be maximumNumberOfGAMBITs -> Done I think
-        // iamalgamInstance->currGAMBIT = currGAMBIT;
-        // iamalgamInstance->GAMBITs = GAMBITs;
-
-        // Learn discrete model
-        // I assume this should be learning the linkage tree as happens in Population::makeOffspring() currently?
-        // based on similarity matrix
-        currGAMBIT->learnDiscreteModel();
-
-        // Loop over discrete FOS elements
-        currGAMBIT->determineFOSOrder();
-
-        // assert((int) currGAMBIT->FOSInstance->size() == 2 * config->numberOfdVariables - 1);
-        for(size_t i = 0; i < currGAMBIT->FOSInstance->size(); ++i)
+    try {
+        while(!checkTermination() && (config->maximumNumberOfGenerations <= 0 || gen < config->maximumNumberOfGenerations ))
         {
-            writeMessageToLogFile(config->folder, "####### [GEN " + to_string(gen) + "] FOS element " + to_string(i) + " of " + to_string(currGAMBIT->FOSInstance->size()) + " #######");
-            // cout << "[DEBUGGING] \tFOS element: " << i << endl;
-            // // Perform truncation selection -> only learn continuous model based on top tau percent of solutions.
-            // // Maybe easier to just do that in iamalgam.cpp instead of creating selection here?
-            // double **selection = NULL; // TODO 
+            writeMessageToLogFile(config->folder, "\n\n\n############## Generation " + to_string(gen) + " ##############", config->logDebugInformation);
+            // Moved everthing up to Learn discrete model inside the while loop, I think this is where it should be.
+            // if (numberOfGAMBITs < maximumNumberOfGAMBITs)
+            // 			initializeNewGAMBIT();
+            FindCurrentGAMBIT(); // -> Finds the current GAMBIT to use for this iteration, and initializes a new GAMBIT with larger population size if necessary
+            // Cover edge case for very small problems where optimum is found during initialization of population
+            if(hasTerminated)
+                break;
 
-            // Learn continuous model
-            //  Also generates new (continuous part of) population, evaluates all solutions and adapts distribution multipliers
-            //  Basically does what "makePopulations()" does in iAMaLGaM C code.
-            if(config->numberOfcVariables > 0) 
+            // Pass the GAMBITs (populations) to the GOMEA and iamalgam instances
+            // _TODO: maybe it's better to figure out in here which population to use this run, then only pass that one? -> Done
+            Population *currGAMBIT = GAMBITs[currentGAMBITIndex];           
+            writePopulationToFile(config->folder, currGAMBIT->population, "initial population --------", config->logDebugInformation);
+            writeMessageToLogFile(config->folder, countBuildingBlocks(currGAMBIT->population, 5), config->logDebugInformation);
+            // gomeaIMSInstance->currGAMBIT = currGAMBIT;
+            // gomeaIMSInstance->GAMBITs = GAMBITs;
+
+            // _TODO: iamalgam's number_of_populations should be initialized to be maximumNumberOfGAMBITs -> Done I think
+            // iamalgamInstance->currGAMBIT = currGAMBIT;
+            // iamalgamInstance->GAMBITs = GAMBITs;
+
+            // Learn discrete model
+            // I assume this should be learning the linkage tree as happens in Population::makeOffspring() currently?
+            // based on similarity matrix
+            currGAMBIT->learnDiscreteModel();
+
+            // Loop over discrete FOS elements
+            currGAMBIT->determineFOSOrder();
+
+            currGAMBIT->copyPopulationToOffspring();
+
+            // assert((int) currGAMBIT->FOSInstance->size() == 2 * config->numberOfdVariables - 1);
+            for(size_t i = 0; i < currGAMBIT->FOSInstance->size(); ++i)
             {
-                currGAMBIT->learnContinuousModel();
+                writeMessageToLogFile(config->folder, "####### [GEN " + to_string(gen) + "] FOS element " + to_string(i) + " of " + to_string(currGAMBIT->FOSInstance->size()) +  " -> FOS_index " + to_string(currGAMBIT->FOSInstance->FOSorder[i]) + " #######", config->logDebugInformation);
+                // cout << "[DEBUGGING] \tFOS element: " << i << endl;
+                // // Perform truncation selection -> only learn continuous model based on top tau percent of solutions.
+                // // Maybe easier to just do that in iamalgam.cpp instead of creating selection here?
+                // double **selection = NULL; // TODO 
+
+                // Learn continuous model
+                //  Also generates new (continuous part of) population, evaluates all solutions and adapts distribution multipliers
+                //  Basically does what "makePopulations()" does in iAMaLGaM C code.
+                if(config->numberOfcVariables > 0) 
+                {
+                    currGAMBIT->learnContinuousModel();
+                }
+
+                // Generate new population: replace whole continuous part of population with samples from (updated) continuous model,
+                // use discrete model to find donors for each individual (and then replace only elements in current FOS element).
+                // Idea: generate both parts first, then call some sort of evaluate all function from here. -> Might have to update some parts of iAMaLGaM after that still.
+                currGAMBIT->generateDiscretePopulation(i); // Generate discrete part of new population. Here, Single refers to a single FOS element, not single solution.
+                // cout << "[DEBUGGING] DONE GENERATING SINGLE OFFSPRING (discrete)" << endl;
+                // currGAMBIT->generateNewContinuousPopulation();
+                // cout << "[DEBUGGING] DONE GENERATING SINGLE OFFSPRING (continuous)" << endl;
+                // evaluate all solutions in (new) population -> No longer here; instead in continuous and discrete subparts.
+                // currGAMBIT->evaluateAllSolutionsInPopulation();
+
+                writePopulationToFile(config->folder, currGAMBIT->offspringPopulation, "OFFSPRING POPULATION After generating DISCRETE population ----------------------------------", config->logDebugInformation);
+                writeMessageToLogFile(config->folder, "\n" + countBuildingBlocks(currGAMBIT->offspringPopulation, 5) + "\n", config->logDebugInformation);
+
             }
-
-            // Generate new population: replace whole continuous part of population with samples from (updated) continuous model,
-            // use discrete model to find donors for each individual (and then replace only elements in current FOS element).
-            // Idea: generate both parts first, then call some sort of evaluate all function from here. -> Might have to update some parts of iAMaLGaM after that still.
-            currGAMBIT->generateDiscretePopulation(i); // Generate discrete part of new population. Here, Single refers to a single FOS element, not single solution.
-            // cout << "[DEBUGGING] DONE GENERATING SINGLE OFFSPRING (discrete)" << endl;
-            // currGAMBIT->generateNewContinuousPopulation();
-            // cout << "[DEBUGGING] DONE GENERATING SINGLE OFFSPRING (continuous)" << endl;
-            // evaluate all solutions in (new) population -> No longer here; instead in continuous and discrete subparts.
-            // currGAMBIT->evaluateAllSolutionsInPopulation();
-
             // update new population to previous offspringpopulation
             currGAMBIT->copyOffspringToPopulation();
 
-        }
-        cout << "[DEBUGGING] GEN: " << gen++ << "\t(probInst) Elitist Fitness: " << currGAMBIT->problemInstance->elitist_objective_value << "\t(sharedInfoPointer) Elitist Fitness: " << currGAMBIT->sharedInformationPointer->elitistFitness  << "\tcurrGAMBIT popsize: " << currGAMBIT->populationSize << endl;
-        if(abs(currGAMBIT->sharedInformationPointer->elitistFitness - prevGenElitistFitness) < 1e-12) 
-        {
-            numGensNoChange++;
-            if(numGensNoChange >= 25)
-            {
-                cout << "[DEBUGGING] No change in elitist fitness for 25 generations, stopping." << endl;
-                break;
-            }
-        }
-        else {
-            numGensNoChange = 0;
-        }
-        prevGenElitistFitness = currGAMBIT->sharedInformationPointer->elitistFitness;
+            // calculate average fitness of population (to match steps from discrete GOMEA code)
+            currGAMBIT->calculateAverageFitness();
+            
+            cout << "[DEBUGGING] GEN: " << gen++ << "\t(probInst) Elitist Fitness: " << currGAMBIT->problemInstance->elitist_objective_value << "\t(sharedInfoPointer) Elitist Fitness: " << currGAMBIT->sharedInformationPointer->elitistFitness  << "\tcurrGAMBIT popsize: " << currGAMBIT->populationSize << endl;
 
+            // if(gen >= 5)
+            // {
+            //     cout << "[DEBUGGING] SETTING WHOLE DISCRETE POPULATION TO 1!" << endl;
+            //     // Set whole discrete population to all 1s, see if it can still find the optimum then.
+            //     for(int i = 0; i < currGAMBIT->populationSize; ++i)
+            //     {
+            //         for(int j = 0; j < config->numberOfdVariables; j++)
+            //         {
+            //             currGAMBIT->population[i]->variables[j] = '\001';
+            //         }
+            //     }
+            //     currGAMBIT->evaluateAllSolutionsInPopulation();
+            // }
+
+            if(abs(currGAMBIT->sharedInformationPointer->elitistFitness - prevGenElitistFitness) < 1e-12) 
+            {
+                numGensNoChange++;
+                if(numGensNoChange >= 25)
+                {
+                    cout << "[DEBUGGING] No change in elitist fitness for 25 generations, stopping." << endl;
+                    break;
+                }
+            }
+            else {
+                numGensNoChange = 0;
+            }
+            prevGenElitistFitness = currGAMBIT->sharedInformationPointer->elitistFitness;
+
+        }
+        cout << "[EXIT] termination / max number of generations reached." << endl;
+        solution_t<char> *elitist_disc_solution = &GAMBITs[currentGAMBITIndex]->sharedInformationPointer->elitist;
+        writeStatisticsToFile(config->folder, GAMBITs[currentGAMBITIndex]->sharedInformationPointer->elitistSolutionHittingTimeEvaluations, GAMBITs[currentGAMBITIndex]->sharedInformationPointer->elitistSolutionHittingTimeMilliseconds, elitist_disc_solution, GAMBITs[currentGAMBITIndex]->populationSize);
     }
+    catch( utils::customException const& )
+    {
+        cout << "VTR has been hit, terminating the program. (VTR exception has been caught)" << endl;
+    }
+    
+	hasTerminated = true;
+	ezilaitini();
 
 
 //     for (int i = 0; i < n; i++)
@@ -230,7 +277,12 @@ void simpleGAMBIT::initializeNewGAMBIT()
     Population *newPopulation = NULL;
 
     if (numberOfGAMBITs == 0)
+    {
         newPopulation = new Population(config, problemInstance, sharedInformationInstance, numberOfGAMBITs, basePopulationSize);
+        // cout << "Initial population:" << endl;
+        // printPopulation(newPopulation->population);
+
+    }
     else
         newPopulation = new Population(config, problemInstance, sharedInformationInstance, numberOfGAMBITs, 2 * GAMBITs[numberOfGAMBITs-1]->populationSize, GAMBITs[0]->FOSInstance ); // Removed population increase, since that complicates things for iAMaLGaM. TODO check if it is easy/useful to include.
     
@@ -269,12 +321,13 @@ void simpleGAMBIT::FindCurrentGAMBIT()
 			currentGAMBITIndex = minimumGAMBITIndex;
         }   
 	}
-	catch( utils::customException const& )
-	{
-		hasTerminated = true;
-		// writeStatistics( currentGAMBITIndex );
-		ezilaitini();
-	}
+	catch( utils::customException const& ) 
+    {
+        cout << "VTR has been hit, terminating the program. (VTR exception has been caught)" << endl;
+        hasTerminated = true;
+        // writeStatistics( currentGAMBITIndex );
+        ezilaitini();
+    }
 }
 
 bool simpleGAMBIT::checkTerminationGAMBIT(int GAMBITIndex)

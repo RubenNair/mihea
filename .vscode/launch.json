@@ -2,11 +2,53 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "(gdb) Launch",
+            "name":"Python: run_discrete.py",
+            "type":"python",
+            "request":"launch",
+            "program":"${workspaceFolder}/gomea/run_discrete.py",
+            "args": ["60", "5", "100", "100"],
+            "cwd": "${workspaceFolder}",
+            "console":"integratedTerminal",
+            "justMyCode": false,
+        },
+        {
+            "name": "Python: current file",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+        },
+        {
+            "name": "(gdb) Launch (mixedInteger)",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/MixedIntegerGOMEA",
-            "args":  ["-n100", "-P3", "-L30_5", "-V1e-10", "-Ooutput/test/test2", "-F2_0_0_-1_0", "-l"],//["-n20", "-P2", "-L10_10", "-M100", "-Ooutput/test/test2"],
+            "args":  ["-n100", "-P3", "-L60_0", "-V0", "-Ooutput/test/testing", "-F2_0_0_-1_0", "-N1", "-S100"],//["-n20", "-P2", "-L10_10", "-M100", "-Ooutput/test/test2"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (discrete)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/DiscreteGOMEA",
+            "args":  ["-n100", "-P1", "-L60_0", "-V60", "-Ooutput/test/test2", "-F2_0_0_-1_0", "-N1", "-S100"],//["-n20", "-P2", "-L10_10", "-M100", "-Ooutput/test/test2"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

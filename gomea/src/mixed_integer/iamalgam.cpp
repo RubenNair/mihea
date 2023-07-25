@@ -18,15 +18,6 @@ iamalgam::iamalgam(Config *config_): config(config_)
     problemInstance       = config->fitness;
     number_of_parameters  = config->numberOfcVariables;
     number_of_populations = 1;
-    problemInstance->maximum_number_of_evaluations = config->maximumNumberOfEvaluations;
-    problemInstance->maximum_number_of_seconds = config->maximumNumberOfSeconds;
-    if( config->fix_seed )
-    {
-        utils::initializeRandomNumberGenerator(config->randomSeed);
-    } else 
-    {   
-        utils::initializeRandomNumberGenerator();
-    }
 }
 
 iamalgam::iamalgam(Config *config_, vec_t<solution_mixed*> population_) : iamalgam(config_)
@@ -75,6 +66,17 @@ void iamalgam::initializeMemory() {
   ranks                            = (double **) malloc( number_of_populations*sizeof( double * ) );
   // selections                       = (double ***) malloc( number_of_populations*sizeof( double ** ) );
   selections.resize(selection_size);
+  for(int i = 0; i < selection_size; i++) 
+  {
+    selections[i] = new solution_mixed(config->numberOfVariables, config->alphabetSize, config->numberOfcVariables, problemInstance);
+    selections[i]->randomInit(&gomea::utils::rng);
+    selections[i]->initObjectiveValues(problemInstance->number_of_objectives);
+    if(population[0]->fitness_buffers.size() > 0)
+    {
+      selections[i]->initFitnessBuffers(problemInstance->number_of_objectives);
+    }
+  }
+
   // objective_values_selections      = (double **) malloc( number_of_populations*sizeof( double * ) );
   // constraint_values_selections     = (double **) malloc( number_of_populations*sizeof( double * ) );
   mean_vectors                     = (double **) malloc( number_of_populations*sizeof( double * ) );
@@ -419,7 +421,8 @@ void iamalgam::makeSelectionsForOnePopulation(int population_index)
       // objective_values_selections[population_index][i]  = objective_values[population_index][sorted[i]];
       // constraint_values_selections[population_index][i] = constraint_values[population_index][sorted[i]];
       // for( j = 0; j < number_of_parameters; j++ )
-        selections[i] = population[sorted[i]];
+        //selections[i] = population[sorted[i]];
+        selections[i]->insertSolution(population[sorted[i]]);
     }
   }
   
@@ -511,7 +514,8 @@ void iamalgam::makeSelectionsForOnePopulationUsingDiversityOnRank0(int populatio
 
     // objective_values_selections[population_index][i]  = objective_values[population_index][selection_indices[i]];
     // constraint_values_selections[population_index][i] = constraint_values[population_index][selection_indices[i]];
-    selections[i] = population[selection_indices[i]];
+    // selections[i] = population[selection_indices[i]];
+    selections[i]->insertSolution(population[selection_indices[i]]);
   }
 
   free( nn_distances );
@@ -763,19 +767,19 @@ void iamalgam::copyBestSolutionsToPopulations()
       // population[0]->setConstraintValue(selections[0]->getConstraintValue()); 
 
 
-      // population[0]->insertSolution(selections[0]);
+      population[0]->insertSolution(selections[0]);
       // RUBEN testing a swap that sets best in selections to front of population, instead of just inserting selections[0] into population[0]
-      solution_mixed *temp = population[0];
-      population[0] = selections[0];
-      for(int j = 1; j < population_size; j++)
-      {
-        if(ranks[i][j] == 0)
-        {
-          population[j] = temp;
-          cout << "[DEBUGGING] SWAPPED " << j << " with 0" << endl;
-          break;
-        }
-      }
+      // solution_mixed *temp = population[0];
+      //population[0] = selections[0];
+      // for(int j = 1; j < population_size; j++)
+      // {
+      //   if(ranks[i][j] == 0)
+      //   {
+      //     population[j] = temp;
+      //     cout << "[DEBUGGING] SWAPPED " << j << " with 0" << endl;
+      //     break;
+      //   }
+      // }
     }
 
   }
@@ -1231,6 +1235,7 @@ void iamalgam::adaptDistributionMultipliersForOnePopulation(int i)
         distribution_multipliers[i] *= 0.5;
   
       improvement = generationalImprovementForOnePopulation( i, &st_dev_ratio );
+      // cout << "improvement found: " << (improvement ? "TRUE" : "FALSE") << "\n Old multiplier: " << distribution_multipliers[0] << endl;
   
       if( improvement )
       {
@@ -1253,6 +1258,7 @@ void iamalgam::adaptDistributionMultipliersForOnePopulation(int i)
         if( (no_improvement_stretch[i] < maximum_no_improvement_stretch) && (distribution_multipliers[i] < 1.0) )
           distribution_multipliers[i] = 1.0;
       }
+      // cout << "New multiplier: " << distribution_multipliers[0] << endl;
     }
 }
 
@@ -1624,7 +1630,7 @@ void iamalgam::learnContinuousModel(int population_index)
 {
   // First, make sure there is only 1 population by checking the number_of_populations and population_index
   assert(number_of_populations == 1 && population_index == 0);
-  checkForDuplicate("IAMALGAM 1");
+  // checkForDuplicate("IAMALGAM 1");
   computeRanksForOnePopulation(population_index); // Moved from where comment // computeRanks(); is.
   // checkForDuplicate("IAMALGAM 2");
   // TODO figure out if this is correct placement for making selections

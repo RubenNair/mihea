@@ -75,12 +75,12 @@ Population::Population(Config *config_, fitness_t *problemInstance_, sharedInfor
             population[i] = new solution_mixed(config->numberOfVariables, config->alphabetSize, config->numberOfcVariables, problemInstance); // TODO RUBEN: now just assumes amount of d and c variables is equal, getting real number of c variables depends on how fitness_t is handled
             population[i]->randomInit(&gomea::utils::rng);
             problemInstance->evaluate(population[i]);
-            updateElitistAndCheckVTR(population[i]);
+            // updateElitistAndCheckVTR(population[i]); // TODO RUBEN I think this can be removed, since this call is made at the start of learnDiscreteModel (after calculating average fitness)
             
             // problemInstance->evaluate(dPopulation[i]); // RUBEN TODO maybe doesn't work like this anymore, depends on how fitness_t is handled
             
-            // offspringPopulation[i] = new solution_mixed(problemInstance->number_of_variables, config->alphabetSize, problemInstance->number_of_variables, problemInstance); // TODO RUBEN: now just assumes amount of d and c variables is equal, getting real number of c variables depends on how fitness_t is handled
-            offspringPopulation[i] = population[i];
+            offspringPopulation[i] = new solution_mixed(config->numberOfVariables, config->alphabetSize, config->numberOfcVariables, problemInstance);
+            *offspringPopulation[i] = *population[i];
         }
 			
 		if( config->linkage_config != NULL )
@@ -94,9 +94,11 @@ Population::Population(Config *config_, fitness_t *problemInstance_, sharedInfor
 		}
 		else FOSInstance = FOSInstance_;
         
-        iamalgamInstance = new iamalgam(config_, population);
-        iamalgamInstance->initialize();
-
+        if(config->numberOfcVariables > 0)
+        {
+            iamalgamInstance = new iamalgam(config_, population);
+            iamalgamInstance->initialize();
+        }
 
 
 
@@ -111,7 +113,7 @@ Population::~Population()
     for (size_t i = 0; i < populationSize; ++i)
     {
         delete population[i];
-        delete offspringPopulation[i];
+        // delete offspringPopulation[i];
     }
 }
 
@@ -226,6 +228,16 @@ void Population::copyOffspringToPopulation()
     // *population[0] = sharedInformationPointer->elitist;
 }
 
+void Population::copyPopulationToOffspring()
+{
+    for(size_t i = 0; i < populationSize; i++)
+    {
+        // *population[i] = *offspringPopulation[i];
+        offspringPopulation[i]->insertSolution(population[i]);
+    }
+    // *population[0] = sharedInformationPointer->elitist;
+}
+
 void Population::makeOffspring()
 {
     if( numberOfGenerations == 0 )
@@ -276,7 +288,15 @@ void Population::learnDiscreteModel()
     // TODO: maybe update the similarity matrix here first? -> If I understand correctly, similarity matrix is made once and not updated?
             // Seems to be based on variable interaction graph. Just TODO need to double-check that it is initialized correctly (but maybe not in this function)
 
-    checkForDuplicate("DISCRETE START LEARN MODEL");
+    calculateAverageFitness();
+
+    if( numberOfGenerations == 0 )
+    {
+        for (size_t i = 0; i < populationSize; ++i)
+            updateElitistAndCheckVTR(population[i]);
+    }
+
+    // checkForDuplicate("DISCRETE START LEARN MODEL");
     if( FOSInstance->type == linkage::LINKAGE_TREE )
     {
         if (FOSInstance->is_static)
@@ -298,21 +318,21 @@ void Population::learnDiscreteModel()
             FOSInstance->learnLinkageTreeFOS(casted_population, config->alphabetSize );
         }
 
-        // For mixed-integer problems, the FOS set of all discrete elements is still valid (since it is not the whole solution (continuous part), and thus not a complete copy would be made)
-        // So add the FOS set of all discrete elements to the FOSInstance.
-        vec_t<int> allDiscreteElements(problemInstance->number_of_variables);
-        for (int i = 0; i < problemInstance->number_of_variables; ++i)
-        {
-            allDiscreteElements[i] = i;
-        }
-        FOSInstance->FOSStructure.push_back(allDiscreteElements);
+        // // For mixed-integer problems, the FOS set of all discrete elements is still valid (since it is not the whole solution (continuous part), and thus not a complete copy would be made)
+        // // So add the FOS set of all discrete elements to the FOSInstance.
+        // vec_t<int> allDiscreteElements(problemInstance->number_of_variables);
+        // for (int i = 0; i < problemInstance->number_of_variables; ++i)
+        // {
+        //     allDiscreteElements[i] = i;
+        // }
+        // FOSInstance->FOSStructure.push_back(allDiscreteElements);
         
         FOSInstance->initializeDependentSubfunctions(problemInstance->subfunction_dependency_map);
 
     }
 
     FOSInstance->setCountersToZero();
-    checkForDuplicate("DISCRETE END LEARN MODEL");
+    // FOSInstance->printFOS();
 }
 
 void Population::determineFOSOrder()
@@ -385,12 +405,12 @@ void Population::generateSingleOffspring(int FOS_index)
     for (size_t i = 0; i < populationSize; i++)
     {
         
-        solution_mixed backup = *population[i];
+        solution_mixed backup = *offspringPopulation[i];
 
         bool solutionHasChanged;
-        checkForDuplicate("DISCRETE BEFORE GOM");
+        // checkForDuplicate("DISCRETE BEFORE GOM");
         solutionHasChanged = GOMSingleFOS(i, FOS_index);
-        checkForDuplicate("DISCRETE AFTER GOM");
+        // checkForDuplicate("DISCRETE AFTER GOM");
         /* Phase 2 (Forced Improvement): optimal mixing with elitist solution */
         if (config->useForcedImprovements)
         {
@@ -412,8 +432,14 @@ void Population::generateSingleOffspring(int FOS_index)
         //     noImprovementStretches[i]++;
         // else
         //     noImprovementStretches[i] = 0;
-        checkForDuplicate("DISCRETE END OF LOOP");
+        // checkForDuplicate("DISCRETE END OF LOOP");
     }
+
+    // if(!allBuildingBlocksStillExist(population, 5))
+    // {
+    //     cout << "[DEBUGGING] Not all building blocks exist anymore after GOMSingleFOS for FOS_index " << FOS_index << ", gen " << numberOfGenerations << endl;
+    // }
+    // writeBuildingBlocksToFile(config->folder, population, "BUILDING BLOCKS After GOMSingleFOS index " + to_string(FOS_index) + " ----------------------------------", 5);
 }
 
 void Population::evaluateAllSolutionsInPopulation()
@@ -506,14 +532,14 @@ bool Population::GOMSingleFOS(size_t offspringIndex, size_t FOSIndex)
     bool thisIsTheElitistSolution = *offspringPopulation[offspringIndex] == sharedInformationPointer->elitist;//(sharedInformationPointer->elitistSolutionGOMEAIndex == GOMEAIndex) && (sharedInformationPointer->elitistSolutionOffspringIndex == offspringIndex);
 
     // *offspringPopulation[offspringIndex] = *population[offspringIndex];
-    offspringPopulation[offspringIndex]->insertSolution(population[offspringIndex]);
+    // offspringPopulation[offspringIndex]->insertSolution(population[offspringIndex]);
             
     vec_t<int> donorIndices(populationSize);
     iota(donorIndices.begin(), donorIndices.end(), 0);
 
     int ind = FOSInstance->FOSorder[FOSIndex];
 
-    if (FOSInstance->elementSize(ind) == 0 || (int) FOSInstance->elementSize(ind) == problemInstance->number_of_variables)
+    if (FOSInstance->elementSize(ind) == 0) // RUBEN removed check for (int) FOSInstance->elementSize(ind) == problemInstance->number_of_variables, since for MI case, FOS element with all discrete variables is allowed.
         return solutionHasChanged;
 
     bool donorEqualToOffspring = true;
@@ -759,9 +785,9 @@ void Population::updateElitistAndCheckVTR(solution_mixed *solution)
 		sharedInformationPointer->elitistConstraintValue = solution->getConstraintValue();
         
         /* Check the VTR */
-        if (problemInstance->use_vtr && solution->getObjectiveValue() <= problemInstance->vtr) // RUBEN: was >=, changed to <= (since I'm assuming minimization, TODO should probably have a robuster solution (based on probleminstance optimization_mode?))
+        if (problemInstance->use_vtr && solution->getObjectiveValue() <= problemInstance->vtr + 1e-10) // RUBEN: was >=, changed to <= (since I'm assuming minimization, TODO should probably have a robuster solution (based on probleminstance optimization_mode?))
         {
-            writeStatisticsToFile(config->folder, sharedInformationPointer->elitistSolutionHittingTimeEvaluations, sharedInformationPointer->elitistSolutionHittingTimeMilliseconds, solution);
+            writeStatisticsToFile(config->folder, sharedInformationPointer->elitistSolutionHittingTimeEvaluations, sharedInformationPointer->elitistSolutionHittingTimeMilliseconds, solution, populationSize);
             writeElitistSolutionToFile(config->folder, sharedInformationPointer->elitistSolutionHittingTimeEvaluations, sharedInformationPointer->elitistSolutionHittingTimeMilliseconds, solution);
             cout << "VTR HIT! (popsize: " << populationSize << ")\n";
             terminated = true;
@@ -778,26 +804,25 @@ void Population::updateElitistAndCheckVTR(solution_mixed *solution)
 
 void Population::generateDiscretePopulation(int FOS_index) 
 {
-    checkForDuplicate("START OF DISCRETE");
+    // checkForDuplicate("START OF DISCRETE");
     generateSingleOffspring(FOS_index);
-    checkIndividualSolvedDiscrete();
-    writePopulationToFile(config->folder, population, "POPULATION After generating DISCRETE population ----------------------------------");
-    checkForDuplicate("DISCRETE");
+    // checkIndividualSolvedDiscrete();
+    // checkForDuplicate("DISCRETE");
 }
 
 
 void Population::learnContinuousModel()
 {
-    checkForDuplicate("CONTINUOUS 1");
+    // checkForDuplicate("CONTINUOUS 1");
     iamalgamInstance->learnContinuousModel();
     // checkForDuplicate("CONTINUOUS 2");
 
     iamalgamInstance->generateNewPopulation();
-    writePopulationToFile(config->folder, population, "POPULATION After generating CONTINUOUS population ----------------------------------");
-    checkForDuplicate("CONTINUOUS 3");
+    writePopulationToFile(config->folder, population, "POPULATION After generating CONTINUOUS population ----------------------------------", config->logDebugInformation);
+    // checkForDuplicate("CONTINUOUS 3");
     
     evaluateAllSolutionsInPopulation();
-    checkForDuplicate("CONTINUOUS 4");
+    // checkForDuplicate("CONTINUOUS 4");
 
     iamalgamInstance->adaptDistributionMultipliersForOnePopulation();
 }

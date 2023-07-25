@@ -1,18 +1,28 @@
 CXX=g++
 CXXFLAGS=-g -Wall -std=c++17 -DCPP_STANDALONE -I./ -Igomea/ -IEigen/
-
+CXXFLAGS_O=-O2 -Wall -std=c++17 -DCPP_STANDALONE -I./ -Igomea/ -IEigen/
 SRCDIR=gomea/src
 OBJDIR=build/obj
+OBJDIR_O=build/obj_o
+OBJDIR_DISCRETE=build/obj_discrete
+OBJDIR_DISCRETE_O=build/obj__discrete_o
 BINDIR=build
 
 # list of all source files
 SRCS=$(wildcard $(SRCDIR)/mixed_integer/*.cpp $(SRCDIR)/fitness/*.cpp $(SRCDIR)/fitness/benchmarks-discrete/*.cpp $(SRCDIR)/fitness/benchmarks-mixed/*.cpp $(SRCDIR)/common/*.cpp $(SRCDIR)/utils/*.cpp)
+SRCS_DISCRETE=$(wildcard $(SRCDIR)/fitness/*.cpp $(SRCDIR)/fitness/benchmarks-discrete/*.cpp $(SRCDIR)/common/*.cpp $(SRCDIR)/utils/*.cpp $(SRCDIR)/discrete/*.cpp)
 
 # generate a list of object files based on source files
 OBJS=$(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(SRCS))
+OBJS_O=$(patsubst $(SRCDIR)/%.cpp,$(OBJDIR_O)/%.o,$(SRCS))
+OBJS_DISCRETE=$(patsubst $(SRCDIR)/%.cpp,$(OBJDIR_DISCRETE)/%.o,$(SRCS_DISCRETE))
+OBJS_DISCRETE_O=$(patsubst $(SRCDIR)/%.cpp,$(OBJDIR_DISCRETE_O)/%.o,$(SRCS_DISCRETE))
 
 # the final executable file
 TARGET=$(BINDIR)/MixedIntegerGOMEA
+TARGET_O=$(BINDIR)/MixedIntegerGOMEA_O
+TARGET_DISCRETE=$(BINDIR)/DiscreteGOMEA
+TARGET_DISCRETE_O=$(BINDIR)/DiscreteGOMEA_O
 
 default: cpp_MI
 
@@ -25,15 +35,46 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 $(TARGET): $(OBJS)
 	$(CXX) $(CXXFLAGS) $^ -o $@
 
+## For optimized version ##
+$(OBJDIR_O)/%.o: $(SRCDIR)/%.cpp
+	@mkdir -p $(@D)
+	$(CXX) $(CXXFLAGS_O) -c $< -o $@
+
+$(TARGET_O): $(OBJS_O)
+	$(CXX) $(CXXFLAGS_O) $^ -o $@
+
+#### Same, but for discrete version ####
+$(OBJDIR_DISCRETE)/%.o: $(SRCDIR)/%.cpp
+	@mkdir -p $(@D)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+$(TARGET_DISCRETE): $(OBJS_DISCRETE)
+	$(CXX) $(CXXFLAGS) $^ -o $@
+
+## For optimized version ##
+$(OBJDIR_DISCRETE_O)/%.o: $(SRCDIR)/%.cpp
+	@mkdir -p $(@D)
+	$(CXX) $(CXXFLAGS_O) -c $< -o $@
+
+$(TARGET_DISCRETE_O): $(OBJS_DISCRETE_O)
+	$(CXX) $(CXXFLAGS_O) $^ -o $@
+
 here: 
 	python3 setup.py build_ext --inplace
 
-cpp:
-	@mkdir -p build
-	g++ -g -Wall -std=c++17 -DCPP_STANDALONE -I./ -Igomea/ -IEigen/ gomea/src/discrete/*.cpp gomea/src/fitness/*.cpp gomea/src/common/*.cpp gomea/src/utils/*.cpp -o build/DiscreteGOMEA
+cpp: $(TARGET_DISCRETE)
+#	@mkdir -p build
+#	g++ -g -Wall -std=c++17 -DCPP_STANDALONE -I./ -Igomea/ -IEigen/ gomea/src/fitness/*.cpp gomea/src/fitness/benchmarks-discrete/*.cpp gomea/src/common/*.cpp gomea/src/utils/*.cpp gomea/src/discrete/*.cpp -o build/DiscreteGOMEA
+
+cpp_O: $(TARGET_DISCRETE_O)
+#	@mkdir -p build
+#	g++ -O2 -Wall -std=c++17 -DCPP_STANDALONE -I./ -Igomea/ -IEigen/ gomea/src/fitness/*.cpp gomea/src/fitness/benchmarks-discrete/*.cpp gomea/src/common/*.cpp gomea/src/utils/*.cpp gomea/src/discrete/*.cpp -o build/DiscreteGOMEA_O
 
 # cpp_MI target depends on the executable file
 cpp_MI: $(TARGET)
+
+# Same, but for optimized version
+cpp_MI_O: $(TARGET_O)
 
 debug:
 	python3 setup.py build_ext --inplace --debug

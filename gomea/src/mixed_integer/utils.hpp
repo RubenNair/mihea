@@ -55,11 +55,15 @@ void prepareFolder(string &folder);
 void initElitistFile(string &folder);
 void initStatisticsFile(string &folder);
 void initLogFile(string &folder);
-void writeStatisticsToFile(string &folder, long long numberOfEvaluations, long long time, solution_t<char> *solution);
+void writeStatisticsToFile(string &folder, long long numberOfEvaluations, long long time, solution_t<char> *solution, size_t populationSize);
 void writeElitistSolutionToFile(string &folder, long long numberOfEvaluations, long long time, solution_mixed *solution);
-void writePopulationToFile(string &folder, vec_t<solution_mixed*> population, string message);
-void writeMatrixToFile(string &folder, double **matrix, int rows, int cols, string message);
-void writeVectorToFile(string &folder, double *vector, int length, string message);
-void writeMessageToLogFile(string &folder, string message);
+void writePopulationToFile(string &folder, vec_t<solution_mixed*> population, string message, bool doLog = true);
+void writeBuildingBlocksToFile(string &folder, vec_t<solution_mixed*> population, string message, int k, bool doLog = true);
+bool allBuildingBlocksStillExist(vec_t<solution_mixed*> population, int k);
+string countBuildingBlocks(vec_t<solution_mixed*> population, int k);
+void printPopulation(vec_t<solution_mixed *> &population);
+void writeMatrixToFile(string &folder, double **matrix, int rows, int cols, string message, bool doLog = true);
+void writeVectorToFile(string &folder, double *vector, int length, string message, bool doLog = true);
+void writeMessageToLogFile(string &folder, string message, bool doLog = true);
 
 }}

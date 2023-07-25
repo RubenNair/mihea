@@ -8,6 +8,19 @@
         "*.tcc": "cpp",
         "string": "cpp",
         "fstream": "cpp",
-        "iosfwd": "cpp"
-    }
+        "iosfwd": "cpp",
+        "deque": "cpp",
+        "vector": "cpp",
+        "complex": "cpp",
+        "list": "cpp",
+        "unordered_map": "cpp",
+        "unordered_set": "cpp",
+        "string_view": "cpp",
+        "iomanip": "cpp"
+    },
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter"
+    },
+    "python.formatting.provider": "none",
+    "python.analysis.typeCheckingMode": "basic"
 }

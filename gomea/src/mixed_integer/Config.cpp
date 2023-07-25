@@ -5,6 +5,10 @@ namespace mixedinteger{
 
 Config::Config(){}
 
+Config::~Config()
+{
+}
+
 /**
  * Parses the command line.
  * For options, see printUsage.
@@ -82,7 +86,7 @@ bool Config::parseCommandLine(int argc, char **argv)
 
 
   int c, index;
-  while ((c = getopt_long(argc, argv, "h::n::p::X::Y::Q::g::w::e::s::f::P::F::m::l::L::O::T::S::V::I::B::Z::G::M::", longopts, &index)) != -1)
+  while ((c = getopt_long(argc, argv, "h::n::p::X::Y::Q::g::w::e::s::f::P::F::m::l::L::O::T::S::V::I::B::Z::G::M::N::", longopts, &index)) != -1)
   {
     switch (c)
     {
@@ -116,6 +120,9 @@ bool Config::parseCommandLine(int argc, char **argv)
         case 'n':
             basePopulationSize = atoi(optarg);
             break;
+        case 'N':
+            maximumNumberOfGAMBITs = atoi(optarg);
+            break;
         case 'P':
             {
                 const string optarg_str = string(optarg);
@@ -131,6 +138,11 @@ bool Config::parseCommandLine(int argc, char **argv)
                         problemIndex = atoi(tmp[0].c_str());
                         k = atoi(tmp[1].c_str());
                         s = atoi(tmp[2].c_str());
+                    }
+                    else if(tmp.size() == 2)
+                    {
+                        problemIndex = atoi(tmp[0].c_str());
+                        a_value = atof(tmp[1].c_str());
                     }
                 }
             }

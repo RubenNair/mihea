@@ -77,6 +77,11 @@ void DT5Sphere_t::evaluationFunction( solution_t<char> *solution )
 	{
 		int buffer_index = this->getIndexOfFitnessBuffer(i);
 		double fsub = discrete_subfunction(i, solution_mix->variables);
+		// TEST PURE DISCRETE: avoid floating point issues. Assuming differences in fitness value are at least 0.1.
+        if(solution_mix->getNumberOfCVariables() == 0)
+        {
+            fsub = round(fsub * 10);
+        }
 		solution_mix->addToFitnessBuffer(buffer_index, fsub);
 	}
 

@@ -54,6 +54,7 @@ public:
     void makeOffspring();
     void learnDiscreteModel();
     void copyOffspringToPopulation();
+    void copyPopulationToOffspring();
     void generateOffspring();
     void generateSingleOffspring(int FOS_index);
     void determineFOSOrder();

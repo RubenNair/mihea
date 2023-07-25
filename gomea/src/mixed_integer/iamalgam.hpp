@@ -146,7 +146,7 @@ class iamalgam
         double best_so_far_objective_value;
         double best_so_far_constraint_value;
         double st_dev_ratio_threshold = 1.0;
-        int maximum_no_improvement_stretch = 25;
+        int maximum_no_improvement_stretch = 200;
         bool haveNextNextGaussian = false;
         double nextNextGaussian;
         int64_t random_seed_changing;
