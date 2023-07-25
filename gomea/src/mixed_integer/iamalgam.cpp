@@ -1635,15 +1635,16 @@ void iamalgam::learnContinuousModel(int population_index)
   // checkForDuplicate("IAMALGAM 2");
   // TODO figure out if this is correct placement for making selections
   makeSelectionsForOnePopulation(population_index);
-  writePopulationToFile(config->folder, selections, "SELECTIONS in iamalgam ----------------------------------");  checkForDuplicate("IAMALGAM 3");
+  writePopulationToFile(config->folder, selections, "SELECTIONS in iamalgam ----------------------------------", config->logDebugInformation);  
+  // checkForDuplicate("IAMALGAM 3");
   // estimateParametersAllPopulations();
   estimateParameters(population_index);
 
-  writeMatrixToFile(config->folder, covariance_matrices[population_index], number_of_parameters, number_of_parameters,  "COVARIANCE MATRIX in iamalgam ----------------------------------");
-  writeMatrixToFile(config->folder, aggregated_covariance_matrices[population_index], number_of_parameters, number_of_parameters,  "AGGREGATED COVARIANCE MATRIX in iamalgam ----------------------------------");
-  writeMatrixToFile(config->folder, generational_covariance_matrices[population_index], number_of_parameters, number_of_parameters,  "GENERATIONAL COVARIANCE MATRIX in iamalgam ----------------------------------");
-  writeVectorToFile(config->folder, ams_vectors[population_index], number_of_parameters, "AMS VECTOR in iamalgam ----------------------------------");
-  writeMessageToLogFile(config->folder, "distribution multiplier: " + to_string(distribution_multipliers[population_index]) + "\n");
+  writeMatrixToFile(config->folder, covariance_matrices[population_index], number_of_parameters, number_of_parameters,  "COVARIANCE MATRIX in iamalgam ----------------------------------", config->logDebugInformation);
+  writeMatrixToFile(config->folder, aggregated_covariance_matrices[population_index], number_of_parameters, number_of_parameters,  "AGGREGATED COVARIANCE MATRIX in iamalgam ----------------------------------", config->logDebugInformation);
+  writeMatrixToFile(config->folder, generational_covariance_matrices[population_index], number_of_parameters, number_of_parameters,  "GENERATIONAL COVARIANCE MATRIX in iamalgam ----------------------------------", config->logDebugInformation);
+  writeVectorToFile(config->folder, ams_vectors[population_index], number_of_parameters, "AMS VECTOR in iamalgam ----------------------------------", config->logDebugInformation);
+  writeMessageToLogFile(config->folder, "distribution multiplier: " + to_string(distribution_multipliers[population_index]) + "\n", config->logDebugInformation);
 
   // checkForDuplicate("IAMALGAM 4");
 
