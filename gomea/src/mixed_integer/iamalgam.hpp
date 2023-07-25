@@ -116,7 +116,7 @@ class iamalgam
         double alpha_AMS;
         double delta_AMS;
         // double ***populations;
-        vec_t<solution_mixed*> population;
+        vec_t<solution_mixed*> population; // NOTE: This population is the *offspringPopulation* from Population.cpp!
         double *distribution_multipliers;
         double distribution_multiplier_increase;
         double distribution_multiplier_decrease = 0.9;

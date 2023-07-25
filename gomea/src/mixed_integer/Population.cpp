@@ -96,7 +96,7 @@ Population::Population(Config *config_, fitness_t *problemInstance_, sharedInfor
         
         if(config->numberOfcVariables > 0)
         {
-            iamalgamInstance = new iamalgam(config_, population);
+            iamalgamInstance = new iamalgam(config_, offspringPopulation);
             iamalgamInstance->initialize();
         }
 
