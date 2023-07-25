@@ -104,7 +104,7 @@ void writeElitistSolutionToFile(string &folder, long long numberOfEvaluations, l
 
 void writePopulationToFile(string &folder, vec_t<solution_mixed*> population, string message, bool doLog)
 {
-    if(filesystem::exists(folder + "/log.txt") && doLog)
+    if(doLog)
     {
         ofstream outFile(folder + "/log.txt", ofstream::app);
         if (outFile.fail())
@@ -132,7 +132,7 @@ void writePopulationToFile(string &folder, vec_t<solution_mixed*> population, st
 
 void writeBuildingBlocksToFile(string &folder, vec_t<solution_mixed*> population, string message, int k, bool doLog)
 {
-    if(filesystem::exists(folder + "/log.txt") && doLog)
+    if(doLog)
     {
         ofstream outFile(folder + "/log.txt", ofstream::app);
         streamsize prec = outFile.precision();
@@ -302,7 +302,7 @@ void printPopulation(vec_t<solution_mixed *> &population)
 
 void writeMatrixToFile(string &folder, double **matrix, int rows, int cols, string message, bool doLog)
 {
-    if(filesystem::exists(folder + "/log.txt") && doLog)
+    if(doLog)
     {
         ofstream outFile(folder + "/log.txt", ofstream::app);
         if (outFile.fail())
@@ -326,7 +326,7 @@ void writeMatrixToFile(string &folder, double **matrix, int rows, int cols, stri
 
 void writeVectorToFile(string &folder, double *vector, int length, string message, bool doLog)
 {
-    if(filesystem::exists(folder + "/log.txt") && doLog)
+    if(doLog)
     {
         ofstream outFile(folder + "/log.txt", ofstream::app);
         if (outFile.fail())
@@ -348,7 +348,7 @@ void writeVectorToFile(string &folder, double *vector, int length, string messag
 
 void writeMessageToLogFile(string &folder, string message, bool doLog)
 {
-    if(filesystem::exists(folder + "/log.txt") && doLog) 
+    if(doLog) 
     {
         ofstream outFile(folder + "/log.txt", ofstream::app);
         if (outFile.fail())

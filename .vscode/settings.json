@@ -16,7 +16,10 @@
         "unordered_map": "cpp",
         "unordered_set": "cpp",
         "string_view": "cpp",
-        "iomanip": "cpp"
+        "iomanip": "cpp",
+        "array": "cpp",
+        "initializer_list": "cpp",
+        "utility": "cpp"
     },
     "[python]": {
         "editor.defaultFormatter": "ms-python.black-formatter"
