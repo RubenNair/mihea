@@ -18,12 +18,12 @@ DT5Sphere_t::DT5Sphere_t( int number_of_variables, int number_of_c_variables ) :
 
 double DT5Sphere_t::getLowerRangeBound( int dimension )
 {
-	return( -10 );
+	return( -1e308 );
 }
 		
 double DT5Sphere_t::getUpperRangeBound( int dimension )
 {
-	return( 10 );
+	return( 1e308 );
 }
 		
 int DT5Sphere_t::getNumberOfSubfunctions()

@@ -18,12 +18,12 @@ oneMaxSphere_t::oneMaxSphere_t( int number_of_variables, int number_of_c_variabl
 
 double oneMaxSphere_t::getLowerRangeBound( int dimension )
 {
-	return( -10 );
+	return( -1e308 );
 }
 		
 double oneMaxSphere_t::getUpperRangeBound( int dimension )
 {
-	return( 10 );
+	return( 1e308 );
 }
 		
 int oneMaxSphere_t::getNumberOfSubfunctions()

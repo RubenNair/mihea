@@ -19,12 +19,12 @@ oneMaxRotEllip_t::oneMaxRotEllip_t( int number_of_variables, int number_of_c_var
 
 double oneMaxRotEllip_t::getLowerRangeBound( int dimension )
 {
-	return( -10 );
+	return( -1e308 );
 }
 		
 double oneMaxRotEllip_t::getUpperRangeBound( int dimension )
 {
-	return( 10 );
+	return( 1e308 );
 }
 		
 int oneMaxRotEllip_t::getNumberOfSubfunctions()

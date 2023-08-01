@@ -1,6 +1,6 @@
 CXX=g++
 CXXFLAGS=-g -Wall -std=c++17 -DCPP_STANDALONE -I./ -Igomea/ -IEigen/
-CXXFLAGS_O=-O2 -Wall -std=c++17 -DCPP_STANDALONE -I./ -Igomea/ -IEigen/
+CXXFLAGS_O=-O2 -Wall -std=c++17 -DCPP_STANDALONE -I./ -Igomea/ -IEigen/ #-pg ## For profiling
 SRCDIR=gomea/src
 OBJDIR=build/obj
 OBJDIR_O=build/obj_o
@@ -26,7 +26,7 @@ TARGET_DISCRETE_O=$(BINDIR)/DiscreteGOMEA_O
 
 default: cpp_MI
 
-# compile object files
+# compile object files (mixed integer version)
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	@mkdir -p $(@D)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
@@ -35,7 +35,7 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 $(TARGET): $(OBJS)
 	$(CXX) $(CXXFLAGS) $^ -o $@
 
-## For optimized version ##
+## For optimized mixed integer version ##
 $(OBJDIR_O)/%.o: $(SRCDIR)/%.cpp
 	@mkdir -p $(@D)
 	$(CXX) $(CXXFLAGS_O) -c $< -o $@
@@ -51,7 +51,7 @@ $(OBJDIR_DISCRETE)/%.o: $(SRCDIR)/%.cpp
 $(TARGET_DISCRETE): $(OBJS_DISCRETE)
 	$(CXX) $(CXXFLAGS) $^ -o $@
 
-## For optimized version ##
+## For optimized discrete version ##
 $(OBJDIR_DISCRETE_O)/%.o: $(SRCDIR)/%.cpp
 	@mkdir -p $(@D)
 	$(CXX) $(CXXFLAGS_O) -c $< -o $@
@@ -62,18 +62,20 @@ $(TARGET_DISCRETE_O): $(OBJS_DISCRETE_O)
 here: 
 	python3 setup.py build_ext --inplace
 
+# Compile discrete version of code, in debug mode
 cpp: $(TARGET_DISCRETE)
 #	@mkdir -p build
 #	g++ -g -Wall -std=c++17 -DCPP_STANDALONE -I./ -Igomea/ -IEigen/ gomea/src/fitness/*.cpp gomea/src/fitness/benchmarks-discrete/*.cpp gomea/src/common/*.cpp gomea/src/utils/*.cpp gomea/src/discrete/*.cpp -o build/DiscreteGOMEA
 
+# Compile discrete version of code, in optimized mode
 cpp_O: $(TARGET_DISCRETE_O)
 #	@mkdir -p build
 #	g++ -O2 -Wall -std=c++17 -DCPP_STANDALONE -I./ -Igomea/ -IEigen/ gomea/src/fitness/*.cpp gomea/src/fitness/benchmarks-discrete/*.cpp gomea/src/common/*.cpp gomea/src/utils/*.cpp gomea/src/discrete/*.cpp -o build/DiscreteGOMEA_O
 
-# cpp_MI target depends on the executable file
+# Compile mixed integer version of code, in debug mode
 cpp_MI: $(TARGET)
 
-# Same, but for optimized version
+# Compile mixed integer version of code, in optimized mode
 cpp_MI_O: $(TARGET_O)
 
 debug:

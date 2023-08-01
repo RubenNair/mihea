@@ -406,7 +406,7 @@ void iamalgam::makeSelections()
 void iamalgam::makeSelectionsForOnePopulation(int population_index)
 {
   int i, *sorted; //j
-  
+
   sorted = mergeSort( ranks[population_index], population_size );
 
   if( ranks[population_index][sorted[selection_size-1]] == 0 )
@@ -435,7 +435,7 @@ void iamalgam::makeSelectionsForOnePopulationUsingDiversityOnRank0(int populatio
          *selection_indices, index_of_farthest, number_selected_so_far;
   double *nn_distances, distance_of_farthest, value;
 
-  cout << "[DEBUGGING] ALL SELECTIONS IN IAMALGAM HAVE RANK 0!" << endl;
+  // cout << "[DEBUGGING] ALL SELECTIONS IN IAMALGAM HAVE RANK 0!" << endl;
   number_of_rank0_solutions = 0;
   for( i = 0; i < population_size; i++ )
   {
@@ -818,6 +818,8 @@ void iamalgam::generateAndEvaluateNewSolutionsToFillPopulations()
       samples_drawn_from_normal[i] = 0;
       out_of_bounds_draws[i]       = 0;
       q                            = 0;
+    
+    // cout << "[DEBUGGING] average fitness before generating new solutions: " << averageFitnessPopulation() << endl;
 
       for( j = 1; j < population_size; j++ )
       {
@@ -854,17 +856,29 @@ void iamalgam::generateAndEvaluateNewSolutionsToFillPopulations()
               population[j]->c_variables[k] = solution_AMS[k];
           }
         }
-
+      
+        problemInstance->evaluate(population[j]);
         // installedProblemEvaluation( problem_index, populations[i][j], &(objective_values[i][j]), &(constraint_values[i][j]) );
-  
+
         q++;
   
         free( solution );
       }
+      // cout << "[DEBUGGING] average fitness after generating new solutions: " << averageFitnessPopulation() << endl;
     }
   }
 
   free( solution_AMS );
+}
+
+double iamalgam::averageFitnessPopulation()
+{
+  double average = 0;
+  for(int i = 0; i < population_size; i++)
+  {
+    average += population[i]->getObjectiveValue();
+  }
+  return average/population_size;
 }
 
 void iamalgam::computeParametersForSampling(int population_index)
@@ -1236,7 +1250,7 @@ void iamalgam::adaptDistributionMultipliersForOnePopulation(int i)
   
       improvement = generationalImprovementForOnePopulation( i, &st_dev_ratio );
       // cout << "improvement found: " << (improvement ? "TRUE" : "FALSE") << "\n Old multiplier: " << distribution_multipliers[0] << endl;
-  
+    
       if( improvement )
       {
         no_improvement_stretch[i] = 0;
@@ -1319,6 +1333,7 @@ bool iamalgam::generationalImprovementForOnePopulation( int population_index, do
   }
 
   free( average_parameters_of_improvements );
+
 
   // if( fabs( objective_values_selections[population_index][index_best_selected] - objective_values[population_index][index_best_population] ) == 0.0 )
   if( fabs( selections[index_best_selected]->getObjectiveValue() - population[index_best_population]->getObjectiveValue() ) == 0.0 )
@@ -1745,7 +1760,6 @@ void iamalgam::generateNewPopulation(int population_index)
       free( solution );
     }
   }
-  number_of_generations++;
 
   free( solution_AMS );
 }

@@ -19,7 +19,8 @@
         "iomanip": "cpp",
         "array": "cpp",
         "initializer_list": "cpp",
-        "utility": "cpp"
+        "utility": "cpp",
+        "stdexcept": "cpp"
     },
     "[python]": {
         "editor.defaultFormatter": "ms-python.black-formatter"

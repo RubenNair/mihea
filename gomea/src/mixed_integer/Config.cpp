@@ -86,7 +86,7 @@ bool Config::parseCommandLine(int argc, char **argv)
 
 
   int c, index;
-  while ((c = getopt_long(argc, argv, "h::n::p::X::Y::Q::g::w::e::s::f::P::F::m::l::L::O::T::S::V::I::B::Z::G::M::N::", longopts, &index)) != -1)
+  while ((c = getopt_long(argc, argv, "h::n::p::X::Y::Q::g::w::e::s::f::P::F::m::l::L::O::T::S::V::I::B::Z::G::M::N::E::", longopts, &index)) != -1)
   {
     switch (c)
     {
@@ -107,6 +107,9 @@ bool Config::parseCommandLine(int argc, char **argv)
             break;
         case 'e':
             writeElitists = 1;
+            break;
+        case 'E':
+            printNewElitists = 1;
             break;
         case 's':
             saveEvaluations = 1;

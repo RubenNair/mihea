@@ -19,12 +19,12 @@ DT5RotEllip_t::DT5RotEllip_t( int number_of_variables, int number_of_c_variables
 
 double DT5RotEllip_t::getLowerRangeBound( int dimension )
 {
-	return( -10 );
+	return( -1e308 );
 }
 		
 double DT5RotEllip_t::getUpperRangeBound( int dimension )
 {
-	return( 10 );
+	return( 1e308 );
 }
 		
 int DT5RotEllip_t::getNumberOfSubfunctions()

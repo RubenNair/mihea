@@ -22,7 +22,9 @@ void solution_mixed::randomInit(std::mt19937 *rng)
 
     for (int i = 0; i < getNumberOfCVariables(); ++i) 
     {
-        c_variables[i] = problemInstance->getLowerRangeBound(i) + ((*rng)() / (double)(*rng).max()) * (problemInstance->getUpperRangeBound(i) - problemInstance->getLowerRangeBound(i));
+        // c_variables[i] = problemInstance->getLowerRangeBound(i) + ((*rng)() / (double)(*rng).max()) * (problemInstance->getUpperRangeBound(i) - problemInstance->getLowerRangeBound(i));
+		// TODO RUBEN: hardcoded upper and lower bounds for now, should be read from config maybe?
+		c_variables[i] = -10 + ((*rng)() / (double)(*rng).max()) * 20; 
     }
 }
 

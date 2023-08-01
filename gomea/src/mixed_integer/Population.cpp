@@ -83,7 +83,7 @@ Population::Population(Config *config_, fitness_t *problemInstance_, sharedInfor
             *offspringPopulation[i] = *population[i];
         }
 			
-		if( config->linkage_config != NULL )
+		if( config->linkage_config != NULL && config->numberOfVariables > 0 )
 		{
 			FOSInstance = linkage_model_t::createFOSInstance( *config->linkage_config, problemInstance->number_of_variables );
             FOSInstance->initializeDependentSubfunctions( problemInstance->subfunction_dependency_map );
@@ -318,15 +318,17 @@ void Population::learnDiscreteModel()
             FOSInstance->learnLinkageTreeFOS(casted_population, config->alphabetSize );
         }
 
-        // // For mixed-integer problems, the FOS set of all discrete elements is still valid (since it is not the whole solution (continuous part), and thus not a complete copy would be made)
-        // // So add the FOS set of all discrete elements to the FOSInstance.
-        // vec_t<int> allDiscreteElements(problemInstance->number_of_variables);
-        // for (int i = 0; i < problemInstance->number_of_variables; ++i)
-        // {
-        //     allDiscreteElements[i] = i;
-        // }
-        // FOSInstance->FOSStructure.push_back(allDiscreteElements);
-        
+        // For mixed-integer problems, the FOS set of all discrete elements is still valid (since it is not the whole solution (continuous part), and thus not a complete copy would be made)
+        // So add the FOS set of all discrete elements to the FOSInstance.
+        if(config->numberOfcVariables > 0)
+        {
+            vec_t<int> allDiscreteElements(problemInstance->number_of_variables);
+            for (int i = 0; i < problemInstance->number_of_variables; ++i)
+            {
+                allDiscreteElements[i] = i;
+            }
+            FOSInstance->FOSStructure.push_back(allDiscreteElements);
+        }
         FOSInstance->initializeDependentSubfunctions(problemInstance->subfunction_dependency_map);
 
     }
@@ -421,14 +423,14 @@ void Population::generateSingleOffspring(int FOS_index)
             }
         }
         
-        if (!(offspringPopulation[i]->getObjectiveValue() < population[i]->getObjectiveValue())) // RUBEN doesn't this assume maximization?
+        if (!(offspringPopulation[i]->getObjectiveValue() < population[i]->getObjectiveValue())) // RUBEN doesn't this assume minimization?
             noImprovementStretches[i]++;
         else
             noImprovementStretches[i] = 0;
         
         // RUBEN maybe this is a nicer, more general approach for the above if statement (TODO: check if < and > symbols are correct here)
-        // if((problemInstance->optimization_mode == fitness::opt_mode::MIN && !(offspringPopulation[i]->getObjectiveValue() > population[i]->getObjectiveValue()))
-        // || (problemInstance->optimization_mode == fitness::opt_mode::MAX && !(offspringPopulation[i]->getObjectiveValue() < population[i]->getObjectiveValue())))
+        // if((problemInstance->optimization_mode == fitness::opt_mode::MIN && !(offspringPopulation[i]->getObjectiveValue() < population[i]->getObjectiveValue()))
+        // || (problemInstance->optimization_mode == fitness::opt_mode::MAX && !(offspringPopulation[i]->getObjectiveValue() > population[i]->getObjectiveValue())))
         //     noImprovementStretches[i]++;
         // else
         //     noImprovementStretches[i] = 0;
@@ -446,7 +448,8 @@ void Population::evaluateAllSolutionsInPopulation()
 {
     for (size_t i = 0; i < populationSize; i++)
     {
-        problemInstance->evaluate(offspringPopulation[i]);
+        // TODO RUBEN: turn this back on in case I want to use this function as evaluation again as well.
+        // problemInstance->evaluate(offspringPopulation[i]);
         updateElitistAndCheckVTR(offspringPopulation[i]);
     }
 }
@@ -770,13 +773,16 @@ void Population::updateElitistAndCheckVTR(solution_mixed *solution)
     //if (sharedInformationPointer->firstEvaluationEver || (solution->getObjectiveValue() > sharedInformationPointer->elitist.getObjectiveValue()))
     if (sharedInformationPointer->firstEvaluationEver || problemInstance->betterFitness(solution,&sharedInformationPointer->elitist) )
     {
-        cout << "New elitist solution found: " << solution->getObjectiveValue() << ", c_variables: ";
-        for(auto const& val : solution->c_variables)
-            cout << val << " ";
-        cout << "\t variables: ";
-        for(int dval : solution->variables)
-            cout << dval << " ";
-        cout << endl;
+        if(config->printNewElitists)
+        {
+            cout << "New elitist solution found: " << solution->getObjectiveValue() << ", c_variables: ";
+            for(auto const& val : solution->c_variables)
+                cout << val << " ";
+            cout << "\t variables: ";
+            for(int dval : solution->variables)
+                cout << dval << " ";
+            cout << endl;
+        }
         sharedInformationPointer->elitistSolutionHittingTimeMilliseconds = utils::getElapsedTimeMilliseconds(sharedInformationPointer->startTime);
         sharedInformationPointer->elitistSolutionHittingTimeEvaluations = problemInstance->number_of_evaluations;
 
@@ -789,7 +795,7 @@ void Population::updateElitistAndCheckVTR(solution_mixed *solution)
         {
             writeStatisticsToFile(config->folder, sharedInformationPointer->elitistSolutionHittingTimeEvaluations, sharedInformationPointer->elitistSolutionHittingTimeMilliseconds, solution, populationSize);
             writeElitistSolutionToFile(config->folder, sharedInformationPointer->elitistSolutionHittingTimeEvaluations, sharedInformationPointer->elitistSolutionHittingTimeMilliseconds, solution);
-            cout << "VTR HIT! (popsize: " << populationSize << ")\n";
+            cout << "VTR HIT! (popsize: " << populationSize << ", stats -> (generation #evals): " << numberOfGenerations << " " << sharedInformationPointer->elitistSolutionHittingTimeEvaluations << ")\n";
             terminated = true;
             throw utils::customException("vtr");
         }
@@ -817,13 +823,14 @@ void Population::learnContinuousModel()
     iamalgamInstance->learnContinuousModel();
     // checkForDuplicate("CONTINUOUS 2");
 
-    iamalgamInstance->generateNewPopulation();
+    iamalgamInstance->generateAndEvaluateNewSolutionsToFillPopulations();
+    // iamalgamInstance->generateNewPopulation();
     writePopulationToFile(config->folder, population, "POPULATION After generating CONTINUOUS population ----------------------------------", config->logDebugInformation);
     // checkForDuplicate("CONTINUOUS 3");
     
     evaluateAllSolutionsInPopulation();
     // checkForDuplicate("CONTINUOUS 4");
-
+    iamalgamInstance->number_of_generations++;
     iamalgamInstance->adaptDistributionMultipliersForOnePopulation();
 }
 

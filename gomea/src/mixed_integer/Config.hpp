@@ -44,6 +44,7 @@ public:
 		fixFOSOrderForPopulation		   = 0,
         AnalyzeFOS                         = 0,
         writeElitists					   = 0,
+        printNewElitists                   = 0,
         saveEvaluations                    = 0,
         logDebugInformation                = 0,
         useForcedImprovements              = 0,

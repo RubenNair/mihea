@@ -59,6 +59,7 @@ class iamalgam
         void copyBestSolutionsToPopulations();
         void applyDistributionMultipliers();
         void generateAndEvaluateNewSolutionsToFillPopulations();
+        double averageFitnessPopulation();
         void computeParametersForSampling(int population_index);
         double **choleskyDecomposition( double **matrix, int n );
         int linpackDCHDC( double a[], int lda, int p, double work[], int ipvt[] );
