@@ -28,7 +28,6 @@ Population::Population(Config *config_, fitness_t *problemInstance_, sharedInfor
             population[i] = new solution_t<char>(problemInstance->number_of_variables, config->alphabetSize);
             population[i]->randomInit(&gomea::utils::rng);
             problemInstance->evaluate(population[i]);
-            updateElitistAndCheckVTR(population[i]);
             
             offspringPopulation[i] = new solution_t<char>(problemInstance->number_of_variables, config->alphabetSize);
             *offspringPopulation[i] = *population[i];
@@ -37,6 +36,7 @@ Population::Population(Config *config_, fitness_t *problemInstance_, sharedInfor
 		if( config->linkage_config != NULL )
 		{
 			FOSInstance = linkage_model_t::createFOSInstance( *config->linkage_config, problemInstance->number_of_variables );
+            FOSInstance->initializeDependentSubfunctions( problemInstance->subfunction_dependency_map );
 		}
 		else if( FOSInstance_ == NULL )
 		{
@@ -61,8 +61,9 @@ Population::~Population()
 
 ostream & operator << (ostream &out, const Population &populationInstance)
 {
+    out << "Generation " << populationInstance.numberOfGenerations << ":" << endl;
     for (size_t i = 0; i < populationInstance.populationSize; ++i)
-        out << populationInstance.population[i] << " ";
+        out << *populationInstance.population[i] << endl;
     out << endl;
     return out;
 }
@@ -88,6 +89,79 @@ void Population::calculateAverageFitness()
     averageFitness /= populationSize;
 }
 
+double Population::getFitnessMean()
+{
+	double objective_avg = 0.0;
+	for(int i = 0; i < populationSize; i++ )
+		objective_avg  += population[i]->getObjectiveValue();
+	objective_avg = objective_avg / ((double) populationSize);
+	return( objective_avg );
+}
+
+double Population::getFitnessVariance()
+{
+	double objective_avg = getFitnessMean();
+	double objective_var = 0.0;
+	for(int i = 0; i < populationSize; i++ )
+		objective_var  += (population[i]->getObjectiveValue()-objective_avg)*(population[i]->getObjectiveValue()-objective_avg);
+	objective_var = objective_var / ((double) populationSize);
+
+	if( objective_var <= 0.0 )
+		objective_var = 0.0;
+	return( objective_var );
+}
+
+double Population::getConstraintValueMean()
+{
+	double constraint_avg = 0.0;
+	for(int i = 0; i < populationSize; i++ )
+		constraint_avg  += population[i]->getConstraintValue();
+	constraint_avg = constraint_avg / ((double) populationSize);
+
+	return( constraint_avg );
+}
+
+double Population::getConstraintValueVariance()
+{
+	double constraint_avg = getConstraintValueMean();
+
+	double constraint_var = 0.0;
+	for(int i = 0; i < populationSize; i++ )
+		constraint_var  += (population[i]->getConstraintValue()-constraint_avg)*(population[i]->getConstraintValue()-constraint_avg);
+	constraint_var = constraint_var / ((double) populationSize);
+
+	if( constraint_var <= 0.0 )
+		constraint_var = 0.0;
+	return( constraint_var );
+}
+
+solution_t<char> *Population::getBestSolution()
+{
+	int index_best = 0;
+	for(int j = 1; j < populationSize; j++ )
+    {
+        if( problemInstance->betterFitness( population[j]->getObjectiveValue(), population[j]->getConstraintValue(), population[index_best]->getObjectiveValue(), population[index_best]->getConstraintValue()) )
+		{
+			index_best = j;
+        }
+    }
+	return( population[index_best] );
+}
+
+solution_t<char> *Population::getWorstSolution()
+{
+	int index_worst = 0;
+	for(int j = 1; j < populationSize; j++ )
+    {
+        if( problemInstance->betterFitness( population[index_worst]->getObjectiveValue(), population[index_worst]->getConstraintValue(), population[j]->getObjectiveValue(), population[j]->getConstraintValue()) )
+		{
+			index_worst = j;
+        }
+    }
+	return( population[index_worst] );
+}
+
+
 void Population::copyOffspringToPopulation()
 {
     for(size_t i = 0; i < populationSize; i++)
@@ -96,17 +170,37 @@ void Population::copyOffspringToPopulation()
     }
 }
 
+void Population::copyPopulationToOffspring()
+{
+    for(size_t i = 0; i < populationSize; i++)
+    {
+        *offspringPopulation[i] = *population[i];
+    }
+}
+
 void Population::makeOffspring()
 {
+    if( numberOfGenerations == 0 )
+    {
+        for (size_t i = 0; i < populationSize; ++i)
+            updateElitistAndCheckVTR(population[i]);
+    }
+
     if( FOSInstance->type == linkage::LINKAGE_TREE )
     {
         if (FOSInstance->is_static)
         {
             if (FOSInstance->size() == 0)
-                FOSInstance->learnLinkageTreeFOS(problemInstance->getSimilarityMatrix(FOSInstance->getSimilarityMeasure()), false );
+            {
+                FOSInstance->learnLinkageTreeFOS(problemInstance->getSimilarityMatrix(FOSInstance->getSimilarityMeasure()), false);
+                FOSInstance->initializeDependentSubfunctions( problemInstance->subfunction_dependency_map );
+            }
         }
         else
+        {
             FOSInstance->learnLinkageTreeFOS(population, config->alphabetSize );
+            FOSInstance->initializeDependentSubfunctions(problemInstance->subfunction_dependency_map);
+        }
     }
 
     FOSInstance->setCountersToZero();
@@ -122,6 +216,145 @@ void Population::makeOffspring()
 
 }
 
+void Population::determineFOSOrder()
+{
+    if( numberOfGenerations == 0 )
+    {
+        for (size_t i = 0; i < populationSize; ++i)
+            updateElitistAndCheckVTR(population[i]);
+    }
+
+    if( FOSInstance->type == linkage::LINKAGE_TREE )
+    {
+        if (FOSInstance->is_static)
+        {
+            if (FOSInstance->size() == 0)
+            {
+                FOSInstance->learnLinkageTreeFOS(problemInstance->getSimilarityMatrix(FOSInstance->getSimilarityMeasure()), false);
+                FOSInstance->initializeDependentSubfunctions( problemInstance->subfunction_dependency_map );
+            }
+        }
+        else
+        {
+            FOSInstance->learnLinkageTreeFOS(population, config->alphabetSize );
+            FOSInstance->initializeDependentSubfunctions(problemInstance->subfunction_dependency_map);
+        }
+    }
+
+    FOSInstance->setCountersToZero();
+    if (config->AnalyzeFOS)
+    {
+        FOSInstance->writeToFileFOS(config->folder, GOMEAIndex, numberOfGenerations);
+    }
+    
+    assert( !config->useParallelFOSOrder || !config->fixFOSOrderForPopulation );
+   	if( config->fixFOSOrderForPopulation )
+    	FOSInstance->shuffleFOS(); 
+	else if( config->useParallelFOSOrder )
+    {
+        assert( problemInstance->hasVariableInteractionGraph() );
+		FOSInstance->determineParallelFOSOrder(problemInstance->variable_interaction_graph );
+    }
+    if (!config->useParallelFOSOrder && !config->fixFOSOrderForPopulation)
+            FOSInstance->shuffleFOS();
+}
+
+void Population::generateOffspringSingleFOSElement(int FOS_index)
+{
+    
+    for (size_t i = 0; i < populationSize; i++)
+    {
+        
+        solution_t<char> backup = *offspringPopulation[i];
+
+        bool solutionHasChanged;
+        solutionHasChanged = GOMSingleFOSElement(i, FOS_index);
+
+        /* Phase 2 (Forced Improvement): optimal mixing with elitist solution */
+        if (config->useForcedImprovements)
+        {
+            if ((!solutionHasChanged) || (noImprovementStretches[i] > (1 + (log(populationSize) / log(10)))))
+                FI(i);
+        }
+
+        if (!(offspringPopulation[i]->getObjectiveValue() > population[i]->getObjectiveValue()))
+            noImprovementStretches[i]++;
+        else
+            noImprovementStretches[i] = 0;
+    }
+}
+
+bool Population::GOMSingleFOSElement(size_t offspringIndex, int FOS_index)
+{
+    size_t donorIndex;
+    bool solutionHasChanged = false;
+    bool thisIsTheElitistSolution = *offspringPopulation[offspringIndex] == sharedInformationPointer->elitist;//(sharedInformationPointer->elitistSolutionGOMEAIndex == GOMEAIndex) && (sharedInformationPointer->elitistSolutionOffspringIndex == offspringIndex);
+    
+    // *offspringPopulation[offspringIndex] = *population[offspringIndex];
+            
+    vec_t<int> donorIndices(populationSize);
+    iota(donorIndices.begin(), donorIndices.end(), 0);
+
+    int ind = FOSInstance->FOSorder[FOS_index];
+
+    if (FOSInstance->elementSize(ind) == 0 || (int) FOSInstance->elementSize(ind) == problemInstance->number_of_variables)
+        return false;
+
+    bool donorEqualToOffspring = true;
+    size_t indicesTried = 0;
+
+    while (donorEqualToOffspring && indicesTried < donorIndices.size())
+    {
+        int j = gomea::utils::rng() % (donorIndices.size() - indicesTried);
+        swap(donorIndices[indicesTried], donorIndices[indicesTried + j]);
+        donorIndex = donorIndices[indicesTried];
+        indicesTried++;
+
+        if (donorIndex == offspringIndex)
+            continue;
+
+        vec_t<char> donorGenes;
+        for(size_t j = 0; j < FOSInstance->elementSize(ind); j++)
+        {
+            int variableFromFOS = FOSInstance->FOSStructure[ind][j];
+            //offspringPopulation[offspringIndex]->variables[variableFromFOS] = population[donorIndex]->variables[variableFromFOS];
+            donorGenes.push_back(population[donorIndex]->variables[variableFromFOS]);
+            if (donorGenes[j] != offspringPopulation[offspringIndex]->variables[variableFromFOS])
+                donorEqualToOffspring = false;
+        }
+        partial_solution_t<char> *partial_offspring = new partial_solution_t<char>(donorGenes, FOSInstance->FOSStructure[ind]);
+
+        if (!donorEqualToOffspring)
+        {
+            //evaluateSolution(offspringPopulation[offspringIndex], backup, touchedGenes, backup->getObjectiveValue());
+            //problemInstance->evaluatePartialSolution(offspringPopulation[offspringIndex], partial_offspring, FOSInstance->getDependentSubfunctions(ind) );
+            problemInstance->evaluatePartialSolution(offspringPopulation[offspringIndex], partial_offspring );
+
+            // accept the change if this solution is not the elitist and the fitness is at least equally good (allows random walk in neutral fitness landscape)
+            // however, if this is the elitist solution, only accept strict improvements, to avoid convergence problems
+            if ((!thisIsTheElitistSolution && (partial_offspring->getObjectiveValue() >= offspringPopulation[offspringIndex]->getObjectiveValue())) || 
+                    (thisIsTheElitistSolution && (partial_offspring->getObjectiveValue() > offspringPopulation[offspringIndex]->getObjectiveValue())))     
+            {
+                offspringPopulation[offspringIndex]->insertPartialSolution(partial_offspring);
+                // offspringPopulation[offspringIndex]->variables[variableFromFOS] = population[donorIndex]->variables[variableFromFOS];
+                //*backup = *offspringPopulation[offspringIndex];
+                
+                solutionHasChanged = true;
+                updateElitistAndCheckVTR(offspringPopulation[offspringIndex]);
+
+                FOSInstance->improvementCounters[ind]++;
+            }
+
+            FOSInstance->usageCounters[ind]++;
+
+        }
+        delete partial_offspring;
+
+        break;
+    }
+    return solutionHasChanged;
+}
+
 void Population::generateOffspring()
 {
     vec_t<vec_t<int> > neighbors;
@@ -135,24 +368,24 @@ void Population::generateOffspring()
 		FOSInstance->determineParallelFOSOrder(problemInstance->variable_interaction_graph );
     }
 
-    for(size_t i = 0; i < populationSize; i++)
+    for (size_t i = 0; i < populationSize; i++)
     {
-			if( !config->useParallelFOSOrder && !config->fixFOSOrderForPopulation )
-				FOSInstance->shuffleFOS(); 
+        if (!config->useParallelFOSOrder && !config->fixFOSOrderForPopulation)
+            FOSInstance->shuffleFOS();
 
-            solution_t<char> backup = *population[i];
-            
-            bool solutionHasChanged;
-            solutionHasChanged = GOM(i);
-            
-            /* Phase 2 (Forced Improvement): optimal mixing with elitist solution */
-            if (config->useForcedImprovements)
-            {
-                if ((!solutionHasChanged) || (noImprovementStretches[i] > (1+(log(populationSize)/log(10)))))
-                    FI(i);
-            }
+        solution_t<char> backup = *population[i];
 
-        if(!(offspringPopulation[i]->getObjectiveValue() > population[i]->getObjectiveValue()))
+        bool solutionHasChanged;
+        solutionHasChanged = GOM(i);
+
+        /* Phase 2 (Forced Improvement): optimal mixing with elitist solution */
+        if (config->useForcedImprovements)
+        {
+            if ((!solutionHasChanged) || (noImprovementStretches[i] > (1 + (log(populationSize) / log(10)))))
+                FI(i);
+        }
+
+        if (!(offspringPopulation[i]->getObjectiveValue() > population[i]->getObjectiveValue()))
             noImprovementStretches[i]++;
         else
             noImprovementStretches[i] = 0;
@@ -204,6 +437,7 @@ bool Population::GOM(size_t offspringIndex)
             if (!donorEqualToOffspring)
             {
                 //evaluateSolution(offspringPopulation[offspringIndex], backup, touchedGenes, backup->getObjectiveValue());
+                //problemInstance->evaluatePartialSolution(offspringPopulation[offspringIndex], partial_offspring, FOSInstance->getDependentSubfunctions(ind) );
                 problemInstance->evaluatePartialSolution(offspringPopulation[offspringIndex], partial_offspring );
 
                 // accept the change if this solution is not the elitist and the fitness is at least equally good (allows random walk in neutral fitness landscape)
@@ -224,6 +458,7 @@ bool Population::GOM(size_t offspringIndex)
                 FOSInstance->usageCounters[ind]++;
 
             }
+            delete partial_offspring;
 
             break;
         }
@@ -345,20 +580,22 @@ void Population::checkTimeLimit()
 void Population::updateElitistAndCheckVTR(solution_t<char> *solution)
 {
     /* Update elitist solution */
-    if (sharedInformationPointer->firstEvaluationEver || (solution->getObjectiveValue() > sharedInformationPointer->elitist.getObjectiveValue()))
+    //if (sharedInformationPointer->firstEvaluationEver || (solution->getObjectiveValue() > sharedInformationPointer->elitist.getObjectiveValue()))
+    if (sharedInformationPointer->firstEvaluationEver || problemInstance->betterFitness(solution,&sharedInformationPointer->elitist) )
     {
         sharedInformationPointer->elitistSolutionHittingTimeMilliseconds = utils::getElapsedTimeMilliseconds(sharedInformationPointer->startTime);
         sharedInformationPointer->elitistSolutionHittingTimeEvaluations = problemInstance->number_of_evaluations;
 
         sharedInformationPointer->elitist = *solution;
 		sharedInformationPointer->elitistFitness = solution->getObjectiveValue();
+		sharedInformationPointer->elitistConstraintValue = solution->getConstraintValue();
         
         /* Check the VTR */
         if (problemInstance->use_vtr && solution->getObjectiveValue() >= problemInstance->vtr)
         {
             //writeStatisticsToFile(config->folder, sharedInformationPointer->elitistSolutionHittingTimeEvaluations, sharedInformationPointer->elitistSolutionHittingTimeMilliseconds, solution);
             //writeElitistSolutionToFile(config->folder, sharedInformationPointer->elitistSolutionHittingTimeEvaluations, sharedInformationPointer->elitistSolutionHittingTimeMilliseconds, solution);
-            //cout << "VTR HIT!\n";
+            cout << "VTR HIT! evals: " << problemInstance->full_number_of_evaluations << endl;
             terminated = true;
             throw utils::customException("vtr");
         }

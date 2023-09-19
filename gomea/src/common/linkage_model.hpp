@@ -12,6 +12,7 @@
 
 #include "gomea/src/common/linkage_config.hpp"
 #include "gomea/src/common/solution.hpp"
+#include "gomea/src/fitness/fitness.hpp"
 #include "gomea/src/utils/time.hpp"
 #include "gomea/src/utils/tools.hpp"
 
@@ -72,6 +73,8 @@ public:
 	void determineParallelFOSOrder(vec_t<vec_t<int>> VIG );
     void determineParallelFOSOrder(std::map<int, std::set<int>> VIG );
     vec_t<int> graphColoring(std::map<int, std::set<int>> &VIG);
+    void initializeDependentSubfunctions( std::map<int,std::set<int>> &subfunction_dependency_map );
+    std::set<int> getDependentSubfunctions( int linkage_set_index );
 
     void writeMIMatrixToFile(vec_t<vec_t<double>> MI_Matrix, std::string folder, int populationIndex, int generation);
     
@@ -83,6 +86,7 @@ public:
 protected:
     vec_t<int> colors;
     vec_t<vec_t<double>> S_Matrix;
+    vec_t<std::set<int>> dependent_subfunctions;
     bool filtered;
     int similarityMeasure;
     
@@ -95,6 +99,7 @@ protected:
     int determineNearestNeighbour(size_t index, const vec_t< vec_t< int > > &mpm ); 
     vec_t<vec_t<double>> computeMIMatrix(vec_t<solution_t<char>*> &population, size_t alphabetSize);
     vec_t<vec_t<double>> computeNMIMatrix(vec_t<solution_t<char>*> &population, size_t alphabetSize);
+    vec_t<vec_t<double>> computeHammingDistanceSimilarityMatrix( vec_t<solution_t<char>*> &population );
     void estimateParametersForSingleBinaryMarginal(vec_t<solution_t<char>*> &population, size_t alphabetSize, vec_t<size_t> &indices, size_t &factorSize, vec_t<double> &result);
 };
 

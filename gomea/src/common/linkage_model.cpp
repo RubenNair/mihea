@@ -33,19 +33,27 @@ linkage_model_pt linkage_model_t::createFOSInstance( const linkage_config_t &con
 		assert( numberOfVariables > 0 );
 	if( config.type == linkage::MPM )
 		assert( config.mpm_block_size < numberOfVariables );
+	linkage_model_pt new_fos;
 	switch( config.type )
 	{
-		case linkage::UNIVARIATE: return univariate(numberOfVariables);
-		case linkage::MPM: return marginal_product_model(numberOfVariables, config.mpm_block_size);
-		case linkage::LINKAGE_TREE: return linkage_tree(numberOfVariables, config.lt_similarity_measure, config.lt_filtered, config.lt_maximum_set_size, config.lt_is_static );
-		case linkage::CUSTOM_LM: return custom_fos(numberOfVariables,config.FOS);
-		case linkage::FROM_FILE: return from_file(config.filename);
+		case linkage::UNIVARIATE: new_fos = univariate(numberOfVariables); break;
+		case linkage::MPM: new_fos = marginal_product_model(numberOfVariables, config.mpm_block_size); break;
+		case linkage::LINKAGE_TREE: new_fos = linkage_tree(numberOfVariables, config.lt_similarity_measure, config.lt_filtered, config.lt_maximum_set_size, config.lt_is_static ); break;
+		case linkage::CUSTOM_LM: new_fos = custom_fos(numberOfVariables,config.FOS); break;
+		case linkage::FROM_FILE: new_fos = from_file(config.filename); break;
+		default: throw std::runtime_error("Unknown or unsuitable linkage model.\n");
 	}
-	throw std::runtime_error("Unknown or unsuitable linkage model.\n");
+	if( new_fos->numberOfVariables != numberOfVariables )
+	{
+		printf("Linkage model has incorrect number of variables (%d != %d).\n",new_fos->numberOfVariables,numberOfVariables);
+		throw std::runtime_error("Linkage model has incorrect number of variables.\n");
+	}
+	return new_fos;
 }
 
 linkage_model_t::linkage_model_t( size_t numberOfVariables_, size_t block_size ) : linkage_model_t(numberOfVariables_)
 {
+	numberOfVariables = numberOfVariables_;
 	if( block_size == 0 )
 		block_size = numberOfVariables_;
 	if( block_size == 1 )
@@ -75,9 +83,19 @@ linkage_model_t::linkage_model_t( size_t numberOfVariables_, size_t block_size )
 
 linkage_model_t::linkage_model_t( size_t numberOfVariables_, const vec_t<vec_t<int>> &FOS )
 {
+	numberOfVariables = numberOfVariables_;
 	size_t tot_size = 0;
 	for( vec_t<int> group : FOS )
 	{
+		for( int i : group )
+		{
+			if( i < 0 || i >= numberOfVariables_ )
+			{
+				std::stringstream msg;
+				msg << "Elements of FOS must be within the range [0," << (numberOfVariables_-1) << "].\n";
+				throw std::runtime_error(msg.str());
+			}
+		}
 		addGroup(group);
 		tot_size += group.size();
 	}
@@ -88,6 +106,7 @@ linkage_model_t::linkage_model_t( size_t numberOfVariables_, const vec_t<vec_t<i
 
 linkage_model_t::linkage_model_t(size_t numberOfVariables_, int similarityMeasure_, bool filtered_, int maximumSetSize_, bool is_static_ ) : linkage_model_t(numberOfVariables_)
 {
+	numberOfVariables = numberOfVariables_;
 	similarityMeasure = similarityMeasure_;
 	filtered = filtered_;
 	if (maximumSetSize_ > 0)
@@ -108,6 +127,7 @@ linkage_model_t::linkage_model_t( std::string filename )
 	char    c, string[1000];
 	int     i, j, k;
 	FILE *file = fopen( filename.c_str(), "r" );
+	this->numberOfVariables = 0;
 	if( file != NULL )
 	{
 		/* Length */
@@ -116,7 +136,7 @@ linkage_model_t::linkage_model_t( std::string filename )
 		c = fgetc(file);
 		while ((c != EOF))
 		{
-			while (c != '\n')
+			while (c != '\n' && c != EOF)
 				c = fgetc(file);
 			length++;
 			c = fgetc(file);
@@ -134,9 +154,11 @@ linkage_model_t::linkage_model_t( std::string filename )
 			while ((c != '\n') && (c != EOF))
 			{
 				k = 0;
-				while ((c == ' ') || (c == '\n') || (c == '\t'))
+				while ((c == ' ') || (c == '\n') || (c == '\t') || (c == ','))
+				{
 					c = fgetc(file);
-				while ((c != ' ') && (c != '\n') && (c != '\t'))
+				}
+				while ((c != ' ') && (c != '\n') && (c != '\t') && (c != ',') && (c != EOF))
 				{
 					string[k] = (char)c;
 					c = fgetc(file);
@@ -145,7 +167,7 @@ linkage_model_t::linkage_model_t( std::string filename )
 				string[k] = '\0';
 				// printf("FOS[%d][%d] = %d\n",i,j,(int) atoi( string ));
 				int e = ((int)atoi(string));
-				this->numberOfVariables = fmax(this->numberOfVariables, e);
+				this->numberOfVariables = fmax(this->numberOfVariables, e+1);
 				vec.push_back(e);
 				j++;
 			}
@@ -165,7 +187,7 @@ linkage_model_t::linkage_model_t( std::string filename )
     
 linkage_model_pt linkage_model_t::univariate(size_t numberOfVariables_)
 {
-	linkage_model_pt new_fos = std::shared_ptr<linkage_model_t>(new linkage_model_t(numberOfVariables_,0));
+	linkage_model_pt new_fos = std::shared_ptr<linkage_model_t>(new linkage_model_t(numberOfVariables_,1)); // RUBEN for univariate, block_size should be 1 (was 0)
 	return( new_fos );
 }
 
@@ -303,6 +325,34 @@ void linkage_model_t::determineParallelFOSOrder(std::map<int,std::set<int>> VIG 
 	assert( FOSorder.size() == FOSStructure.size() ); 
 }
 
+void linkage_model_t::initializeDependentSubfunctions( std::map<int,std::set<int>> &subfunction_dependency_map )
+{
+	if( subfunction_dependency_map.size() == 0 )
+		return;
+	//auto t = utils::getTimestamp();
+    dependent_subfunctions = vec_t<std::set<int>>(FOSStructure.size());
+	//vec_t<bool> touched_subfunctions = vec_t<bool>(numberOfVariables,false);
+	for( size_t i = 0; i < FOSStructure.size(); i++ )
+	{
+    	dependent_subfunctions[i] = std::set<int>();
+		for( int ind : FOSStructure[i] )
+		{
+			//for( int fi : subfunction_dependency_map[ind] )
+			//	touched_subfunctions[fi] = true;
+			if( subfunction_dependency_map[ind].size() > 0 )
+				dependent_subfunctions[i].insert(subfunction_dependency_map[ind].begin(), subfunction_dependency_map[ind].end());
+		}
+	}
+	//utils::addToTimer("init_depf",t);
+}
+    
+std::set<int> linkage_model_t::getDependentSubfunctions( int linkage_set_index )
+{
+	if( dependent_subfunctions.size() == 0 )
+		return std::set<int>();
+	else return dependent_subfunctions[linkage_set_index];
+}
+
 // VIG_i is the list of all variables dependent on i
 vec_t<int> linkage_model_t::graphColoring( std::map<int,std::set<int>> &VIG )
 {
@@ -356,7 +406,9 @@ vec_t<int> linkage_model_t::graphColoring( std::map<int,std::set<int>> &VIG )
 		}
 
 		int numColorsSeen = 0;
-		bool colorsSeen[numColors] = {};
+		bool colorsSeen[numColors];
+		for( int i = 0; i < numColors; i++)
+			colorsSeen[i] = false;
 		int availableColor = -1;
 		for( int v : FOSVIG[ind] )
 		{
@@ -428,6 +480,10 @@ void linkage_model_t::learnLinkageTreeFOS(vec_t<solution_t<char>*> &population, 
 	else if (similarityMeasure == 1) // normalized MI
 	{
 		MI_matrix = computeNMIMatrix(population, alphabetSize);
+	}
+	else
+	{
+		throw std::runtime_error("Unknown similarity measure.\n");
 	}
     
 	learnLinkageTreeFOS(MI_matrix,false);
@@ -748,6 +804,32 @@ vec_t<vec_t<double>> linkage_model_t::computeMIMatrix( vec_t<solution_t<char>*> 
         for (size_t j = i + 1; j < numberOfVariables; j++)
         {
             MI_Matrix[i][j] = MI_Matrix[i][i] + MI_Matrix[j][j] - MI_Matrix[i][j];
+            MI_Matrix[j][i] = MI_Matrix[i][j];
+        }
+    }
+
+	return( MI_Matrix );
+}
+
+vec_t<vec_t<double>> linkage_model_t::computeHammingDistanceSimilarityMatrix( vec_t<solution_t<char>*> &population )
+{
+    vec_t<vec_t<double>> MI_Matrix;
+	MI_Matrix.resize(numberOfVariables);
+    for (size_t i = 0; i < numberOfVariables; ++i)
+        MI_Matrix[i].resize(numberOfVariables);         
+
+    for (size_t i = 0; i < numberOfVariables; i++)
+    {
+        for (size_t j = i + 1; j < numberOfVariables; j++)
+        {
+			double total_hamming = 0.0;
+			for( solution_t<char> *sol : population )
+			{
+				if( sol->variables[i] != sol->variables[j] )
+					total_hamming += 1.0;
+			}
+			total_hamming /= population.size();
+            MI_Matrix[i][j] = 1.0 / total_hamming;
             MI_Matrix[j][i] = MI_Matrix[i][j];
         }
     }

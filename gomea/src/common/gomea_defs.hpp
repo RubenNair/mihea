@@ -3,8 +3,10 @@
 #include <stdio.h>
 #include <math.h>
 #include <string>
+#include <sstream>
 #include <vector>
 #include <map>
+#include <unordered_map>
 #include <set>
 #include <cassert>
 #include <stdexcept>
@@ -20,5 +22,6 @@ namespace gomea{
 template<class T>
 using vec_t = std::vector<T>;
 typedef std::variant<char, int, float, double> genotype_t;
+typedef std::map<int,std::set<int>> graph_t;
 
 }

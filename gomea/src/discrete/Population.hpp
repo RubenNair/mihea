@@ -38,17 +38,26 @@ public:
     Population(Config *config_, fitness_t *problemInstance_, sharedInformation *sharedInformationPointer_, size_t GOMEAIndex_, size_t populationSize_, linkage_model_pt FOSInstance_ = NULL );
     ~Population();
 
-
-    friend ostream & operator << (ostream &out, const solution_t<char> &solution);
+    friend ostream & operator << (ostream &out, const Population &populationInstance);
 
     void calculateAverageFitness();
+    double getFitnessMean();
+    double getFitnessVariance();
+    double getConstraintValueMean();
+    double getConstraintValueVariance();
+    solution_t<char> *getBestSolution();
+    solution_t<char> *getWorstSolution();
     bool allSolutionsAreEqual();
     void makeOffspring();
     void copyOffspringToPopulation();
+    void copyPopulationToOffspring();
     void generateOffspring();
+    void generateOffspringSingleFOSElement(int FOS_index);
     void evaluateSolution(solution_t<char> *solution);
     void evaluateSolution(solution_t<char> *solution, solution_t<char> *solutionBefore, vec_t<int> &touchedGenes, double fitnessBefore);
+    void determineFOSOrder();
     bool GOM(size_t offspringIndex);
+    bool GOMSingleFOSElement(size_t offspringIndex, int FOS_index);
     bool FI(size_t offspringIndex);
     void updateElitistAndCheckVTR(solution_t<char> *solution);
     void checkTimeLimit();

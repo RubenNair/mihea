@@ -20,7 +20,10 @@ fitness_t<T>::fitness_t( int number_of_variables, double vtr, bool use_vtr, opt_
 	{}
 
 template<class T>
-fitness_t<T>::~fitness_t(){}
+fitness_t<T>::~fitness_t(){
+	variable_interaction_graph.clear();
+	subfunction_dependency_map.clear();
+}
 
 /**
  * Returns 1 if x is better than y, 0 otherwise.
@@ -65,26 +68,16 @@ bool fitness_t<T>::betterFitness( solution_t<T> *sol_x, solution_t<T> *sol_y )
 }
 
 template<class T>
-int fitness_t<T>::getNumberOfSubfunctions()
-{
-	return number_of_variables;
-}
-		
-template<class T>
-int fitness_t<T>::getNumberOfFitnessBuffers()
-{
-	return 1;
-}
-
-template<class T>
 void fitness_t<T>::evaluate( solution_t<T> *solution )
 {
 	checkTermination();
 
-	solution->initMemory(number_of_objectives, getNumberOfFitnessBuffers());
+	solution->initObjectiveValues( number_of_objectives );
 
+	auto t = utils::getTimestamp();
 	evaluationFunction( solution );
-	
+	utils::addToTimer("eval_time",t);
+
 	if( use_vtr && !vtr_hit_status && solution->getConstraintValue() == 0 && solution->getObjectiveValue() <= vtr  )
 	{
 		vtr_hit_status = true;
@@ -104,8 +97,9 @@ void fitness_t<T>::evaluatePartialSolutionBlackBox( solution_t<T> *parent, parti
 {
 	checkTermination();
 	
-	solution->initMemory(number_of_objectives, getNumberOfFitnessBuffers());
+	solution->initObjectiveValues( number_of_objectives );
 	
+	auto t = utils::getTimestamp();
 	// Make backup of parent
 	double *var_backup = new double[solution->getNumberOfTouchedVariables()];
 	for( int i = 0; i < solution->getNumberOfTouchedVariables(); i++ )
@@ -116,30 +110,45 @@ void fitness_t<T>::evaluatePartialSolutionBlackBox( solution_t<T> *parent, parti
 	}
 	double obj_val_backup = parent->getObjectiveValue();
 	double cons_val_backup = parent->getConstraintValue();
-	std::vector<double> buffer_backup = parent->getFitnessBuffers();
+	//std::vector<double> buffer_backup = parent->getFitnessBuffers();
 
 	evaluationFunction( parent );
 
 	// Insert calculated objective and constraint values into partial solution	
 	solution->setObjectiveValue(parent->getObjectiveValue());
 	solution->setConstraintValue(parent->getConstraintValue());
-	solution->setFitnessBuffers(parent->getFitnessBuffers());
+	//solution->setFitnessBuffers(parent->getFitnessBuffers());
 
 	// Restore parent to original state
 	parent->setObjectiveValue(obj_val_backup);
 	parent->setConstraintValue(cons_val_backup);
-	parent->setFitnessBuffers(buffer_backup);
+	//parent->setFitnessBuffers(buffer_backup);
 	for( int i = 0; i < solution->getNumberOfTouchedVariables(); i++ )
 		parent->variables[solution->touched_indices[i]] = var_backup[i];
 	delete[] var_backup;
+	
+	utils::addToTimer("eval_time",t);
 }
 
-template<class T>
+/*template<class T>
 void fitness_t<T>::evaluatePartialSolution( solution_t<T> *parent, partial_solution_t<T> *solution )
+{
+	std::set<int> dependent_subfunctions;
+	for( int ind : solution->touched_indices )
+	{
+		assert( this->subfunction_dependency_map[ind].size() > 0 );
+		dependent_subfunctions.insert(this->subfunction_dependency_map[ind].begin(), this->subfunction_dependency_map[ind].end());
+	}
+	evaluatePartialSolution( parent, solution, dependent_subfunctions );
+}*/
+
+//void fitness_t<T>::evaluatePartialSolution( solution_t<T> *parent, partial_solution_t<T> *solution, const std::set<int> &dependent_subfunctions )
+template<class T>
+void fitness_t<T>::evaluatePartialSolution( solution_t<T> *parent, partial_solution_t<T> *solution ) 
 {
 	checkTermination();
 	
-	solution->initMemory(number_of_objectives,getNumberOfFitnessBuffers());
+	solution->initObjectiveValues( number_of_objectives );
 	
 	if( black_box_optimization )
 	{
@@ -147,7 +156,11 @@ void fitness_t<T>::evaluatePartialSolution( solution_t<T> *parent, partial_solut
 	}
 	else
 	{
+		//partialEvaluationFunction( parent, solution, dependent_subfunctions );
+		auto t = utils::getTimestamp();
 		partialEvaluationFunction( parent, solution );
+		utils::addToTimer("eval_time",t);
+
 #ifdef CHECK_PARTIAL_FITNESS
 		double fbefore = solution->objective_value;
 		evaluatePartialSolutionBlackBox( parent, solution );	
@@ -181,6 +194,7 @@ void fitness_t<T>::evaluatePartialSolution( solution_t<T> *parent, partial_solut
 	}
 }
 
+//void fitness_t<T>::partialEvaluationFunction( solution_t<T> *parent, partial_solution_t<T> *solution, const std::set<int> &dependent_subfunctions )
 template<class T>
 void fitness_t<T>::partialEvaluationFunction( solution_t<T> *parent, partial_solution_t<T> *solution )
 {
@@ -191,52 +205,29 @@ void fitness_t<T>::partialEvaluationFunction( solution_t<T> *parent, partial_sol
 template<class T>
 void fitness_t<T>::initialize()
 {
-	initializeSubfunctionDependencyMap();
 	initializeVariableInteractionGraph();
 }
 
 template<class T>
-void fitness_t<T>::initializeSubfunctionDependencyMap()
+void fitness_t<T>::initializeRun()
 {
-	for( int i = 0; i < number_of_variables; i++ )
-	{
-		subfunction_dependency_map[i] = std::set<int>();
-	}
-	for( int i = 0; i < getNumberOfSubfunctions(); i++ )
-	{
-		vec_t<int> dependent_variables = inputsToSubfunction(i);
-		for( int j : dependent_variables )
-		{
-			subfunction_dependency_map[j].insert(i);
-		}
-	}
+	number_of_evaluations = 0.0;	// discounted in GBO
+	full_number_of_evaluations = 0; // not discounted in GBO
+	elitist_objective_value = 1e308;
+	elitist_constraint_value = 1e308;
+	vtr_hit_status = false;
 }
 
 template<class T>
-vec_t<int> fitness_t<T>::inputsToSubfunction( int subfunction_index )
+void fitness_t<T>::initializeVariableInteractionGraph()
 {
-	vec_t<int> dependencies;
-	int parameter_index = subfunction_index;
-	dependencies.push_back(parameter_index);
-	return dependencies;
-}
-
-template<class T>
-int fitness_t<T>::getIndexOfFitnessBuffer( int subfunction_index )
-{
-	return 0;
+	return;
 }
 
 template<class T>
 bool fitness_t<T>::hasVariableInteractionGraph()
 {
-	return( variable_interaction_graph.size() > 0 );
-}
-
-template<class T>
-void fitness_t<T>::initializeVariableInteractionGraph() 
-{
-	return;
+	return( this->variable_interaction_graph.size() > 0 );
 }
 
 template<class T>
@@ -244,7 +235,7 @@ void fitness_t<T>::printVariableInteractionGraph()
 {
 	for( int i = 0; i < this->number_of_variables; i++ )
 	{
-		std::set<int> deps = variable_interaction_graph[i];
+		std::set<int> deps = this->variable_interaction_graph[i];
 		printf("[%d]->[",i);
 		int c = 0;
 		for( int v : deps )
@@ -257,6 +248,7 @@ void fitness_t<T>::printVariableInteractionGraph()
 		printf("]\n");
 	}
 }
+
 
 template<class T>
 vec_t<vec_t<double>> fitness_t<T>::getSimilarityMatrix( int similarity_measure_index )
@@ -291,28 +283,12 @@ double fitness_t<T>::getSimilarityMeasure( size_t var_a, size_t var_b )
 }
 
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-= Section Problems -=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
-template<class T>
-double fitness_t<T>::getLowerRangeBound( int dimension )
-{
-	assert(0);
-	return -1;
-}
-
-template<class T>
-double fitness_t<T>::getUpperRangeBound( int dimension )
-{
-	assert(0);
-	return -1;
-}
-
-template<>
-double fitness_t<double>::getLowerRangeBound( int dimension )
+double fitness_generic_t::getLowerRangeBound( int dimension )
 {
 	return( -INFINITY );
 }
 		
-template<>
-double fitness_t<double>::getUpperRangeBound( int dimension )
+double fitness_generic_t::getUpperRangeBound( int dimension )
 {
 	return( INFINITY );
 }
@@ -321,12 +297,11 @@ double fitness_t<double>::getUpperRangeBound( int dimension )
  * Returns whether a parameter is inside the range bound of
  * every problem.
  */
-template<>
-bool fitness_t<double>::isParameterInRangeBounds( double parameter, int dimension )
+bool fitness_generic_t::isParameterInRangeBounds( double parameter, int dimension )
 {
     if( parameter < getLowerRangeBound( dimension ) ||
 		parameter > getUpperRangeBound( dimension ) ||
-		isnan( parameter ) )
+		std::isnan( parameter ) )
     {
         return( false );
     }
@@ -471,5 +446,20 @@ void fitness_t<T>::checkTimeLimitTerminationCondition()
         throw utils::customException("time");
 	}
 }
+
+template<class T>
+int fitness_t<T>::getNumberOfVariables()
+{
+	return this->number_of_variables;
+}
+
+template<class T>
+double fitness_t<T>::getVTR()
+{
+	return this->vtr;
+}
+
+template class fitness_t<char>;
+template class fitness_t<double>;
 
 }}

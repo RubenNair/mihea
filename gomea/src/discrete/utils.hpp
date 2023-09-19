@@ -53,7 +53,13 @@ public:
 
 void prepareFolder(string &folder);
 void initElitistFile(string &folder);
+void initLogFile(string &folder);
 void writeStatisticsToFile(string &folder, long long numberOfEvaluations, long long time, solution_t<char> *solution);
 void writeElitistSolutionToFile(string &folder, long long numberOfEvaluations, long long time, solution_t<char> *solution);
+void writePopulationToFile(string &folder, vec_t<solution_t<char>*> population, string message, bool doLog = true);
+void writeBuildingBlocksToFile(string &folder, vec_t<solution_t<char>*> population, string message, int k, bool doLog = true);
+string countBuildingBlocks(vec_t<solution_t<char>*> population, int k);
+void printPopulation(vec_t<solution_t<char> *> &population);
+void writeMessageToLogFile(string &folder, string message, bool doLog = true);
 
 }}

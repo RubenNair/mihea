@@ -1,0 +1,180 @@
+output/test3_v2/GAMBIT_R/popsizeMult_8.00000/30_runs/F5/a_4.25/10_10/statistics.txt: 30/30 popsize: 1200 avgEvals: 224969.10
+output/test3_v2/GAMBIT_R/popsizeMult_8.00000/30_runs/F5/a_4.25/30_30/statistics.txt: 14/30 popsize: 1200
+output/test3_v2/GAMBIT_R/popsizeMult_8.00000/30_runs/F5/a_4.25/20_20/statistics.txt: 14/30 popsize: 1200
+output/test3_v2/GAMBIT_R/popsizeMult_8.00000/30_runs/F5/a_4.20/10_10/statistics.txt: 30/30 popsize: 1200 avgEvals: 221317.73
+output/test3_v2/GAMBIT_R/popsizeMult_8.00000/30_runs/F5/a_4.20/30_30/statistics.txt: 15/30 popsize: 1200
+output/test3_v2/GAMBIT_R/popsizeMult_8.00000/30_runs/F5/a_4.20/20_20/statistics.txt: 13/30 popsize: 1200
+output/test3_v2/GAMBIT_R/popsizeMult_8.00000/30_runs/F5/a_4.375/10_10/statistics.txt: 30/30 popsize: 1200 avgEvals: 221888.90
+output/test3_v2/GAMBIT_R/popsizeMult_8.00000/30_runs/F5/a_4.375/30_30/statistics.txt: 13/30 popsize: 1200
+output/test3_v2/GAMBIT_R/popsizeMult_8.00000/30_runs/F5/a_4.375/20_20/statistics.txt: 19/30 popsize: 1200
+output/test3_v2/GAMBIT_R/popsizeMult_8.00000/30_runs/F5/a_4.3125/10_10/statistics.txt: 30/30 popsize: 1200 avgEvals: 222155.96
+output/test3_v2/GAMBIT_R/popsizeMult_8.00000/30_runs/F5/a_4.3125/30_30/statistics.txt: 19/30 popsize: 1200
+output/test3_v2/GAMBIT_R/popsizeMult_8.00000/30_runs/F5/a_4.3125/20_20/statistics.txt: 18/30 popsize: 1200
+output/test3_v2/GAMBIT_R/popsizeMult_8.00000/30_runs/F5/a_4.5/10_10/statistics.txt: 30/30 popsize: 1200 avgEvals: 222858.66
+output/test3_v2/GAMBIT_R/popsizeMult_8.00000/30_runs/F5/a_4.5/30_30/statistics.txt: 22/30 popsize: 1200
+output/test3_v2/GAMBIT_R/popsizeMult_8.00000/30_runs/F5/a_4.5/20_20/statistics.txt: 17/30 popsize: 1200
+output/test3_v2/GAMBIT_R/popsizeMult_4.00000/30_runs/F5/a_4.25/10_10/statistics.txt: 29/30 popsize: 600 avgEvals: 117062.65
+output/test3_v2/GAMBIT_R/popsizeMult_4.00000/30_runs/F5/a_4.25/30_30/statistics.txt: 23/30 popsize: 600
+output/test3_v2/GAMBIT_R/popsizeMult_4.00000/30_runs/F5/a_4.25/20_20/statistics.txt: 20/30 popsize: 600
+output/test3_v2/GAMBIT_R/popsizeMult_4.00000/30_runs/F5/a_4.20/10_10/statistics.txt: 30/30 popsize: 600 avgEvals: 118464.03
+output/test3_v2/GAMBIT_R/popsizeMult_4.00000/30_runs/F5/a_4.20/30_30/statistics.txt: 22/30 popsize: 600
+output/test3_v2/GAMBIT_R/popsizeMult_4.00000/30_runs/F5/a_4.20/20_20/statistics.txt: 12/30 popsize: 600
+output/test3_v2/GAMBIT_R/popsizeMult_4.00000/30_runs/F5/a_4.375/10_10/statistics.txt: 30/30 popsize: 600 avgEvals: 116733.00
+output/test3_v2/GAMBIT_R/popsizeMult_4.00000/30_runs/F5/a_4.375/30_30/statistics.txt: 28/30 popsize: 600
+output/test3_v2/GAMBIT_R/popsizeMult_4.00000/30_runs/F5/a_4.375/20_20/statistics.txt: 18/30 popsize: 600
+output/test3_v2/GAMBIT_R/popsizeMult_4.00000/30_runs/F5/a_4.3125/10_10/statistics.txt: 30/30 popsize: 600 avgEvals: 116004.76
+output/test3_v2/GAMBIT_R/popsizeMult_4.00000/30_runs/F5/a_4.3125/30_30/statistics.txt: 22/30 popsize: 600
+output/test3_v2/GAMBIT_R/popsizeMult_4.00000/30_runs/F5/a_4.3125/20_20/statistics.txt: 21/30 popsize: 600
+output/test3_v2/GAMBIT_R/popsizeMult_4.00000/30_runs/F5/a_4.5/10_10/statistics.txt: 30/30 popsize: 600 avgEvals: 115511.96
+output/test3_v2/GAMBIT_R/popsizeMult_4.00000/30_runs/F5/a_4.5/30_30/statistics.txt: 26/30 popsize: 600
+output/test3_v2/GAMBIT_R/popsizeMult_4.00000/30_runs/F5/a_4.5/20_20/statistics.txt: 26/30 popsize: 600
+output/test3_v2/GAMBIT_R/popsizeMult_2.00000/30_runs/F5/a_4.25/10_10/statistics.txt: 30/30 popsize: 300 avgEvals: 59107.36
+output/test3_v2/GAMBIT_R/popsizeMult_2.00000/30_runs/F5/a_4.25/30_30/statistics.txt: 27/30 popsize: 300
+output/test3_v2/GAMBIT_R/popsizeMult_2.00000/30_runs/F5/a_4.25/20_20/statistics.txt: 26/30 popsize: 300
+output/test3_v2/GAMBIT_R/popsizeMult_2.00000/30_runs/F5/a_4.20/10_10/statistics.txt: 29/30 popsize: 300 avgEvals: 56647.79
+output/test3_v2/GAMBIT_R/popsizeMult_2.00000/30_runs/F5/a_4.20/30_30/statistics.txt: 25/30 popsize: 300
+output/test3_v2/GAMBIT_R/popsizeMult_2.00000/30_runs/F5/a_4.20/20_20/statistics.txt: 24/30 popsize: 300
+output/test3_v2/GAMBIT_R/popsizeMult_2.00000/30_runs/F5/a_4.375/10_10/statistics.txt: 30/30 popsize: 300 avgEvals: 59268.86
+output/test3_v2/GAMBIT_R/popsizeMult_2.00000/30_runs/F5/a_4.375/30_30/statistics.txt: 30/30 popsize: 300 avgEvals: 243393.76
+output/test3_v2/GAMBIT_R/popsizeMult_2.00000/30_runs/F5/a_4.375/20_20/statistics.txt: 27/30 popsize: 300
+output/test3_v2/GAMBIT_R/popsizeMult_2.00000/30_runs/F5/a_4.3125/10_10/statistics.txt: 30/30 popsize: 300 avgEvals: 59876.60
+output/test3_v2/GAMBIT_R/popsizeMult_2.00000/30_runs/F5/a_4.3125/30_30/statistics.txt: 26/30 popsize: 300
+output/test3_v2/GAMBIT_R/popsizeMult_2.00000/30_runs/F5/a_4.3125/20_20/statistics.txt: 27/30 popsize: 300
+output/test3_v2/GAMBIT_R/popsizeMult_2.00000/30_runs/F5/a_4.5/10_10/statistics.txt: 29/30 popsize: 300 avgEvals: 61358.03
+output/test3_v2/GAMBIT_R/popsizeMult_2.00000/30_runs/F5/a_4.5/30_30/statistics.txt: 29/30 popsize: 300 avgEvals: 251917.96
+output/test3_v2/GAMBIT_R/popsizeMult_2.00000/30_runs/F5/a_4.5/20_20/statistics.txt: 29/30 popsize: 300 avgEvals: 146660.89
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F3/0.75/30_90/statistics.txt: 21/30 popsize: 50
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F3/0.75/40_120/statistics.txt: 17/30 popsize: 50
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F3/0.75/20_60/statistics.txt: 24/30 popsize: 50
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F3/0.75/10_30/statistics.txt: 26/30 popsize: 50
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F3/0.5/60_60/statistics.txt: 19/30 popsize: 50
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F3/0.5/80_80/statistics.txt: 16/30 popsize: 50
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F3/0.5/20_20/statistics.txt: 26/30 popsize: 50
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F3/0.5/40_40/statistics.txt: 18/30 popsize: 50
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F3/0.25/120_40/statistics.txt: 7/30 popsize: 50
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F3/0.25/30_10/statistics.txt: 21/30 popsize: 50
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F3/0.25/60_20/statistics.txt: 16/30 popsize: 50
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F3/0.25/90_30/statistics.txt: 11/30 popsize: 50
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F4/0.75/30_90/statistics.txt: 27/30 popsize: 80
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F4/0.75/40_120/statistics.txt: 28/30 popsize: 80
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F4/0.75/20_60/statistics.txt: 28/30 popsize: 80
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F4/0.75/10_30/statistics.txt: 30/30 popsize: 80 avgEvals: 58477.56
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F4/0.5/60_60/statistics.txt: 26/30 popsize: 80
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F4/0.5/80_80/statistics.txt: 28/30 popsize: 80
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F4/0.5/20_20/statistics.txt: 29/30 popsize: 80 avgEvals: 36127.13
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F4/0.5/40_40/statistics.txt: 30/30 popsize: 80 avgEvals: 105385.50
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F4/0.25/120_40/statistics.txt: 22/30 popsize: 80
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F4/0.25/30_10/statistics.txt: 28/30 popsize: 80
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F4/0.25/60_20/statistics.txt: 28/30 popsize: 80
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F4/0.25/90_30/statistics.txt: 25/30 popsize: 80
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F1/0.75/30_90/statistics.txt: 28/30 popsize: 10
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F1/0.75/40_120/statistics.txt: 19/25 popsize: 10
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F1/0.75/20_60/statistics.txt: 29/30 popsize: 10 avgEvals: 1304816.75
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F1/0.75/10_30/statistics.txt: 30/30 popsize: 10 avgEvals: 32691.90
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F1/0.5/60_60/statistics.txt: 25/30 popsize: 10
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F1/0.5/80_80/statistics.txt: 22/30 popsize: 10
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F1/0.5/20_20/statistics.txt: 27/30 popsize: 10
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F1/0.5/40_40/statistics.txt: 23/30 popsize: 10
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F1/0.25/120_40/statistics.txt: 17/30 popsize: 10
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F1/0.25/30_10/statistics.txt: 27/30 popsize: 10
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F1/0.25/60_20/statistics.txt: 18/30 popsize: 10
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F1/0.25/90_30/statistics.txt: 18/30 popsize: 10
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F5/a_4.25/10_10/statistics.txt: 29/30 popsize: 150 avgEvals: 32431.17
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F5/a_4.25/30_30/statistics.txt: 24/30 popsize: 150
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F5/a_4.25/20_20/statistics.txt: 23/30 popsize: 150
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F5/a_4.20/10_10/statistics.txt: 29/30 popsize: 150 avgEvals: 32460.86
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F5/a_4.20/30_30/statistics.txt: 20/30 popsize: 150
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F5/a_4.20/20_20/statistics.txt: 23/30 popsize: 150
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F5/a_4.375/10_10/statistics.txt: 30/30 popsize: 150 avgEvals: 33040.03
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F5/a_4.375/30_30/statistics.txt: 26/30 popsize: 150
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F5/a_4.375/20_20/statistics.txt: 28/30 popsize: 150
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F5/a_4.3125/10_10/statistics.txt: 29/30 popsize: 150 avgEvals: 33269.41
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F5/a_4.3125/30_30/statistics.txt: 24/30 popsize: 150
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F5/a_4.3125/20_20/statistics.txt: 25/30 popsize: 150
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F5/a_4.5/10_10/statistics.txt: 29/30 popsize: 150 avgEvals: 32148.41
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F5/a_4.5/30_30/statistics.txt: 27/30 popsize: 150
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F5/a_4.5/20_20/statistics.txt: 24/30 popsize: 150
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F2/0.75/30_90/statistics.txt: 0/0 popsize: -1 avgEvals: 
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F2/0.75/40_120/statistics.txt: 0/3 popsize: -1
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F2/0.75/20_60/statistics.txt: 3/4 popsize: 10 avgEvals: 34445164.66
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F2/0.75/10_30/statistics.txt: 28/30 popsize: 10
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F2/0.5/60_60/statistics.txt: 3/7 popsize: 10
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F2/0.5/80_80/statistics.txt: 0/5 popsize: -1
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F2/0.5/20_20/statistics.txt: 30/30 popsize: 10 avgEvals: 72267.63
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F2/0.5/40_40/statistics.txt: 24/29 popsize: 10
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F2/0.25/120_40/statistics.txt: 18/30 popsize: 10
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F2/0.25/30_10/statistics.txt: 27/30 popsize: 10
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F2/0.25/60_20/statistics.txt: 24/30 popsize: 10
+output/test3_v2/GAMBIT_R/popsizeMult_1.00000/30_runs/F2/0.25/90_30/statistics.txt: 18/30 popsize: 10
+output/test3_v2/GAMBIT_K/popsizeMult_8.00000/30_runs/F5/a_5.125/10_10/statistics.txt: 30/30 popsize: 1200 avgEvals: 170567.66
+output/test3_v2/GAMBIT_K/popsizeMult_8.00000/30_runs/F5/a_5.125/30_30/statistics.txt: 29/30 popsize: 1200 avgEvals: 524714.10
+output/test3_v2/GAMBIT_K/popsizeMult_8.00000/30_runs/F5/a_5.125/20_20/statistics.txt: 30/30 popsize: 1200 avgEvals: 348557.80
+output/test3_v2/GAMBIT_K/popsizeMult_8.00000/30_runs/F5/a_5.1875/10_10/statistics.txt: 30/30 popsize: 1200 avgEvals: 171302.20
+output/test3_v2/GAMBIT_K/popsizeMult_8.00000/30_runs/F5/a_5.1875/30_30/statistics.txt: 30/30 popsize: 1200 avgEvals: 522512.33
+output/test3_v2/GAMBIT_K/popsizeMult_8.00000/30_runs/F5/a_5.1875/20_20/statistics.txt: 30/30 popsize: 1200 avgEvals: 346722.40
+output/test3_v2/GAMBIT_K/popsizeMult_8.00000/30_runs/F5/a_5.0/10_10/statistics.txt: 30/30 popsize: 1200 avgEvals: 176120.06
+output/test3_v2/GAMBIT_K/popsizeMult_8.00000/30_runs/F5/a_5.0/30_30/statistics.txt: 29/30 popsize: 1200 avgEvals: 535672.00
+output/test3_v2/GAMBIT_K/popsizeMult_8.00000/30_runs/F5/a_5.0/20_20/statistics.txt: 30/30 popsize: 1200 avgEvals: 345683.30
+output/test3_v2/GAMBIT_K/popsizeMult_8.00000/30_runs/F5/a_5.0625/10_10/statistics.txt: 30/30 popsize: 1200 avgEvals: 175860.30
+output/test3_v2/GAMBIT_K/popsizeMult_8.00000/30_runs/F5/a_5.0625/30_30/statistics.txt: 29/30 popsize: 1200 avgEvals: 510412.37
+output/test3_v2/GAMBIT_K/popsizeMult_8.00000/30_runs/F5/a_5.0625/20_20/statistics.txt: 30/30 popsize: 1200 avgEvals: 339644.10
+output/test3_v2/GAMBIT_K/popsizeMult_8.00000/30_runs/F5/a_5.25/10_10/statistics.txt: 30/30 popsize: 1200 avgEvals: 174490.50
+output/test3_v2/GAMBIT_K/popsizeMult_8.00000/30_runs/F5/a_5.25/30_30/statistics.txt: 29/30 popsize: 1200 avgEvals: 519597.44
+output/test3_v2/GAMBIT_K/popsizeMult_8.00000/30_runs/F5/a_5.25/20_20/statistics.txt: 30/30 popsize: 1200 avgEvals: 344479.43
+output/test3_v2/GAMBIT_K/popsizeMult_8.00000/30_runs/F5/a_5.5/10_10/statistics.txt: 30/30 popsize: 1200 avgEvals: 170823.56
+output/test3_v2/GAMBIT_K/popsizeMult_8.00000/30_runs/F5/a_5.5/30_30/statistics.txt: 29/30 popsize: 1200 avgEvals: 516433.48
+output/test3_v2/GAMBIT_K/popsizeMult_8.00000/30_runs/F5/a_5.5/20_20/statistics.txt: 30/30 popsize: 1200 avgEvals: 344450.46
+output/test3_v2/GAMBIT_K/popsizeMult_4.00000/30_runs/F5/a_5.125/10_10/statistics.txt: 30/30 popsize: 600 avgEvals: 88151.50
+output/test3_v2/GAMBIT_K/popsizeMult_4.00000/30_runs/F5/a_5.125/30_30/statistics.txt: 30/30 popsize: 600 avgEvals: 293831.66
+output/test3_v2/GAMBIT_K/popsizeMult_4.00000/30_runs/F5/a_5.125/20_20/statistics.txt: 30/30 popsize: 600 avgEvals: 184143.20
+output/test3_v2/GAMBIT_K/popsizeMult_4.00000/30_runs/F5/a_5.1875/10_10/statistics.txt: 30/30 popsize: 600 avgEvals: 88968.03
+output/test3_v2/GAMBIT_K/popsizeMult_4.00000/30_runs/F5/a_5.1875/30_30/statistics.txt: 27/30 popsize: 600
+output/test3_v2/GAMBIT_K/popsizeMult_4.00000/30_runs/F5/a_5.1875/20_20/statistics.txt: 30/30 popsize: 600 avgEvals: 184253.33
+output/test3_v2/GAMBIT_K/popsizeMult_4.00000/30_runs/F5/a_5.0/10_10/statistics.txt: 30/30 popsize: 600 avgEvals: 88097.56
+output/test3_v2/GAMBIT_K/popsizeMult_4.00000/30_runs/F5/a_5.0/30_30/statistics.txt: 30/30 popsize: 600 avgEvals: 298344.53
+output/test3_v2/GAMBIT_K/popsizeMult_4.00000/30_runs/F5/a_5.0/20_20/statistics.txt: 29/30 popsize: 600 avgEvals: 186192.31
+output/test3_v2/GAMBIT_K/popsizeMult_4.00000/30_runs/F5/a_5.0625/10_10/statistics.txt: 30/30 popsize: 600 avgEvals: 86905.13
+output/test3_v2/GAMBIT_K/popsizeMult_4.00000/30_runs/F5/a_5.0625/30_30/statistics.txt: 29/30 popsize: 600 avgEvals: 300089.79
+output/test3_v2/GAMBIT_K/popsizeMult_4.00000/30_runs/F5/a_5.0625/20_20/statistics.txt: 28/30 popsize: 600
+output/test3_v2/GAMBIT_K/popsizeMult_4.00000/30_runs/F5/a_5.25/10_10/statistics.txt: 30/30 popsize: 600 avgEvals: 86885.60
+output/test3_v2/GAMBIT_K/popsizeMult_4.00000/30_runs/F5/a_5.25/30_30/statistics.txt: 29/30 popsize: 600 avgEvals: 292556.37
+output/test3_v2/GAMBIT_K/popsizeMult_4.00000/30_runs/F5/a_5.25/20_20/statistics.txt: 30/30 popsize: 600 avgEvals: 188436.86
+output/test3_v2/GAMBIT_K/popsizeMult_4.00000/30_runs/F5/a_5.5/10_10/statistics.txt: 30/30 popsize: 600 avgEvals: 87814.76
+output/test3_v2/GAMBIT_K/popsizeMult_4.00000/30_runs/F5/a_5.5/30_30/statistics.txt: 30/30 popsize: 600 avgEvals: 294400.30
+output/test3_v2/GAMBIT_K/popsizeMult_4.00000/30_runs/F5/a_5.5/20_20/statistics.txt: 30/30 popsize: 600 avgEvals: 180412.20
+output/test3_v2/GAMBIT_K/popsizeMult_2.00000/30_runs/F5/a_5.125/10_10/statistics.txt: 30/30 popsize: 300 avgEvals: 44927.56
+output/test3_v2/GAMBIT_K/popsizeMult_2.00000/30_runs/F5/a_5.125/30_30/statistics.txt: 27/30 popsize: 300
+output/test3_v2/GAMBIT_K/popsizeMult_2.00000/30_runs/F5/a_5.125/20_20/statistics.txt: 28/30 popsize: 300
+output/test3_v2/GAMBIT_K/popsizeMult_2.00000/30_runs/F5/a_5.1875/10_10/statistics.txt: 29/30 popsize: 300 avgEvals: 45730.48
+output/test3_v2/GAMBIT_K/popsizeMult_2.00000/30_runs/F5/a_5.1875/30_30/statistics.txt: 26/30 popsize: 300
+output/test3_v2/GAMBIT_K/popsizeMult_2.00000/30_runs/F5/a_5.1875/20_20/statistics.txt: 24/30 popsize: 300
+output/test3_v2/GAMBIT_K/popsizeMult_2.00000/30_runs/F5/a_5.0/10_10/statistics.txt: 30/30 popsize: 300 avgEvals: 44661.06
+output/test3_v2/GAMBIT_K/popsizeMult_2.00000/30_runs/F5/a_5.0/30_30/statistics.txt: 26/30 popsize: 300
+output/test3_v2/GAMBIT_K/popsizeMult_2.00000/30_runs/F5/a_5.0/20_20/statistics.txt: 28/30 popsize: 300
+output/test3_v2/GAMBIT_K/popsizeMult_2.00000/30_runs/F5/a_5.0625/10_10/statistics.txt: 29/30 popsize: 300 avgEvals: 45686.13
+output/test3_v2/GAMBIT_K/popsizeMult_2.00000/30_runs/F5/a_5.0625/30_30/statistics.txt: 26/30 popsize: 300
+output/test3_v2/GAMBIT_K/popsizeMult_2.00000/30_runs/F5/a_5.0625/20_20/statistics.txt: 28/30 popsize: 300
+output/test3_v2/GAMBIT_K/popsizeMult_2.00000/30_runs/F5/a_5.25/10_10/statistics.txt: 29/30 popsize: 300 avgEvals: 44289.06
+output/test3_v2/GAMBIT_K/popsizeMult_2.00000/30_runs/F5/a_5.25/30_30/statistics.txt: 26/30 popsize: 300
+output/test3_v2/GAMBIT_K/popsizeMult_2.00000/30_runs/F5/a_5.25/20_20/statistics.txt: 28/30 popsize: 300
+output/test3_v2/GAMBIT_K/popsizeMult_2.00000/30_runs/F5/a_5.5/10_10/statistics.txt: 30/30 popsize: 300 avgEvals: 44837.63
+output/test3_v2/GAMBIT_K/popsizeMult_2.00000/30_runs/F5/a_5.5/30_30/statistics.txt: 27/30 popsize: 300
+output/test3_v2/GAMBIT_K/popsizeMult_2.00000/30_runs/F5/a_5.5/20_20/statistics.txt: 28/30 popsize: 300
+output/test3_v2/GAMBIT_K/popsizeMult_1.00000/30_runs/F5/a_5.125/10_10/statistics.txt: 28/30 popsize: 150
+output/test3_v2/GAMBIT_K/popsizeMult_1.00000/30_runs/F5/a_5.125/30_30/statistics.txt: 11/30 popsize: 150
+output/test3_v2/GAMBIT_K/popsizeMult_1.00000/30_runs/F5/a_5.125/20_20/statistics.txt: 21/30 popsize: 150
+output/test3_v2/GAMBIT_K/popsizeMult_1.00000/30_runs/F5/a_5.1875/10_10/statistics.txt: 29/30 popsize: 150 avgEvals: 24847.10
+output/test3_v2/GAMBIT_K/popsizeMult_1.00000/30_runs/F5/a_5.1875/30_30/statistics.txt: 17/30 popsize: 150
+output/test3_v2/GAMBIT_K/popsizeMult_1.00000/30_runs/F5/a_5.1875/20_20/statistics.txt: 25/30 popsize: 150
+output/test3_v2/GAMBIT_K/popsizeMult_1.00000/30_runs/F5/a_5.0/10_10/statistics.txt: 30/30 popsize: 150 avgEvals: 25266.33
+output/test3_v2/GAMBIT_K/popsizeMult_1.00000/30_runs/F5/a_5.0/30_30/statistics.txt: 12/30 popsize: 150
+output/test3_v2/GAMBIT_K/popsizeMult_1.00000/30_runs/F5/a_5.0/20_20/statistics.txt: 20/30 popsize: 150
+output/test3_v2/GAMBIT_K/popsizeMult_1.00000/30_runs/F5/a_5.0625/10_10/statistics.txt: 29/30 popsize: 150 avgEvals: 25572.00
+output/test3_v2/GAMBIT_K/popsizeMult_1.00000/30_runs/F5/a_5.0625/30_30/statistics.txt: 10/30 popsize: 150
+output/test3_v2/GAMBIT_K/popsizeMult_1.00000/30_runs/F5/a_5.0625/20_20/statistics.txt: 25/30 popsize: 150
+output/test3_v2/GAMBIT_K/popsizeMult_1.00000/30_runs/F5/a_5.25/10_10/statistics.txt: 29/30 popsize: 150 avgEvals: 25762.96
+output/test3_v2/GAMBIT_K/popsizeMult_1.00000/30_runs/F5/a_5.25/30_30/statistics.txt: 10/30 popsize: 150
+output/test3_v2/GAMBIT_K/popsizeMult_1.00000/30_runs/F5/a_5.25/20_20/statistics.txt: 19/30 popsize: 150
+output/test3_v2/GAMBIT_K/popsizeMult_1.00000/30_runs/F5/a_5.5/10_10/statistics.txt: 29/30 popsize: 150 avgEvals: 26808.79
+output/test3_v2/GAMBIT_K/popsizeMult_1.00000/30_runs/F5/a_5.5/30_30/statistics.txt: 14/30 popsize: 150
+output/test3_v2/GAMBIT_K/popsizeMult_1.00000/30_runs/F5/a_5.5/20_20/statistics.txt: 22/30 popsize: 150

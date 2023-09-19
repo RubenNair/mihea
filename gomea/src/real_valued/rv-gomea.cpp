@@ -1,42 +1,3 @@
-/**
- *
- * RV-GOMEA
- *
- * If you use this software for any purpose, please cite the most recent publication:
- * A. Bouter, C. Witteveen, T. Alderliesten, P.A.N. Bosman. 2017.
- * Exploiting Linkage Information in Real-Valued Optimization with the Real-Valued
- * Gene-pool Optimal Mixing Evolutionary Algorithm. In Proceedings of the Genetic
- * and Evolutionary Computation Conference (GECCO 2017).
- * DOI: 10.1145/3071178.3071272
- *
- * Copyright (c) 1998-2017 Peter A.N. Bosman
- *
- * The software in this file is the proprietary information of
- * Peter A.N. Bosman.
- *
- * IN NO EVENT WILL THE AUTHOR OF THIS SOFTWARE BE LIABLE TO YOU FOR ANY
- * DAMAGES, INCLUDING BUT NOT LIMITED TO LOST PROFITS, LOST SAVINGS, OR OTHER
- * INCIDENTIAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE USE OR THE INABILITY
- * TO USE SUCH PROGRAM, EVEN IF THE AUTHOR HAS BEEN ADVISED OF THE POSSIBILITY
- * OF SUCH DAMAGES, OR FOR ANY CLAIM BY ANY OTHER PARTY. THE AUTHOR MAKES NO
- * REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE SOFTWARE, EITHER
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT. THE
- * AUTHOR SHALL NOT BE LIABLE FOR ANY DAMAGES SUFFERED BY ANYONE AS A RESULT OF
- * USING, MODIFYING OR DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
- *
- * The software in this file is the result of (ongoing) scientific research.
- * The following people have been actively involved in this research over
- * the years:
- * - Peter A.N. Bosman
- * - Dirk Thierens
- * - Jörn Grahl
- * - Anton Bouter
- *
- */
-
-/*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
-
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-= Section Includes -=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 #include "gomea/src/real_valued/rv-gomea.hpp"
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
@@ -380,12 +341,10 @@ void rvg_t::printUsage( void )
  */
 void rvg_t::initialize( void )
 {
-	if( is_initialized )
-		return;
-	is_initialized = true;
-
     total_number_of_writes = 0;
     config->number_of_subgenerations_per_population_factor = 8;
+    fitness->number_of_evaluations = 0;
+    output = output_statistics_t();
 
     if( config->fix_seed )
     {
@@ -395,8 +354,9 @@ void rvg_t::initialize( void )
     {
         utils::initializeRandomNumberGenerator();
     }
-    arma_rng::set_seed(utils::random_seed);
-
+    //arma_rng::set_seed(utils::random_seed);
+    fitness->initializeRun();
+	
 	initializeProblem();
 }
 
@@ -457,30 +417,48 @@ void rvg_t::initializeProblem()
  * Writes (appends) statistics about the current generation to a
  * file named "statistics.dat".
  */
+std::vector<double> rvg_t::getOverallBestFitness()
+{
+	double best_obj_val = populations[0]->objective_value_elitist;
+	double best_cons_val = populations[0]->constraint_value_elitist;
+	for( int i = 1; i < populations.size(); i++ )
+	{
+		if( fitness->betterFitness( populations[i]->objective_value_elitist, populations[i]->constraint_value_elitist, best_obj_val, best_cons_val ) )
+        {
+            best_obj_val = populations[i]->objective_value_elitist;
+            best_cons_val = populations[i]->constraint_value_elitist;
+        }
+	}
+
+    std::vector<double> result(2);
+    result[0] = best_obj_val;
+    result[1] = best_cons_val;
+    return( result );
+}
+
 void rvg_t::writeGenerationalStatisticsForOnePopulation( int population_index )
 {
     /* Average, best and worst */
-    double population_objective_avg  = populations[population_index]->getFitnessMean();
+    /*double population_objective_avg  = populations[population_index]->getFitnessMean();
     double population_constraint_avg = populations[population_index]->getConstraintValueMean();
     double population_objective_var  = populations[population_index]->getFitnessVariance();
     double population_constraint_var = populations[population_index]->getConstraintValueVariance();
     solution_t<double> *best_solution = populations[population_index]->getBestSolution();
-    solution_t<double> *worst_solution = populations[population_index]->getWorstSolution();
-
-    // TODO - compute best fitness and insert into output_statistics
-    assert(0);
+    solution_t<double> *worst_solution = populations[population_index]->getWorstSolution();*/
 
     int key = total_number_of_writes;
     output.addMetricValue("generation",key,populations[population_index]->number_of_generations);
     output.addMetricValue("evaluations",key,fitness->number_of_evaluations);
     output.addMetricValue("time",key,utils::getElapsedTimeSinceStartSeconds());
-    output.addMetricValue("pop_index",key,population_index);
-    output.addMetricValue("pop_size",key,populations[population_index]->population_size);
-    output.addMetricValue("best_obj_val",key,best_solution->getObjectiveValue());
-    output.addMetricValue("best_cons_val",key,best_solution->getConstraintValue());
-    output.addMetricValue("obj_val_avg",key,population_objective_avg);
-    output.addMetricValue("obj_val_var",key,population_objective_var);
-
+    output.addMetricValue("eval_time",key,utils::getTimer("eval_time"));
+    output.addMetricValue("population_index",key,population_index);
+    output.addMetricValue("population_size",key,populations[population_index]->population_size);
+    output.addMetricValue("best_obj_val",key,fitness->elitist_objective_value);
+    output.addMetricValue("best_cons_val",key,fitness->elitist_constraint_value);
+    //output.addMetricValue("subpop_best_obj_val",key,best_solution->getObjectiveValue());
+    //output.addMetricValue("subpop_best_cons_val",key,best_solution->getConstraintValue());
+    //output.addMetricValue("subpop_obj_val_avg",key,population_objective_avg);
+    //output.addMetricValue("subpop_obj_val_var",key,population_objective_var);
     total_number_of_writes++;
 }
 
@@ -687,7 +665,12 @@ bool rvg_t::checkTerminationCondition( void )
 
 bool rvg_t::checkPopulationTerminationConditions( int population_index )
 {
-	if( checkFitnessVarianceTermination(population_index) )
+	if( checkNumberOfGenerationsTerminationCondition(population_index) )
+	{
+        return( true );
+    }
+	
+    if( checkFitnessVarianceTermination(population_index) )
 	{
         return( true );
     }
@@ -804,6 +787,12 @@ bool rvg_t::checkFitnessVarianceTermination( int population_index )
 	return( false );
 }
 
+bool rvg_t::checkNumberOfGenerationsTerminationCondition( int population_index )
+{
+    if( config->maximum_number_of_generations > 0 && populations[population_index]->number_of_generations >= config->maximum_number_of_generations )
+        return( true );
+    return( false );
+}
 
 /**
  * Checks whether the distribution multiplier in any population
@@ -834,12 +823,15 @@ bool rvg_t::checkDistributionMultiplierTerminationCondition( int population_inde
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=- Section Run -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 rvg_t::~rvg_t()
 {
-	if( is_initialized )
-	{
-		for( size_t i = 0; i < populations.size(); i++ )
-			delete( populations[i] );
-		delete( fitness );
-	}
+    for (size_t i = 0; i < populations.size(); i++)
+        delete (populations[i]);
+}
+
+void rvg_t::ezilaitini()
+{
+    for (size_t i = 0; i < populations.size(); i++)
+        delete (populations[i]);
+    populations.clear();
 }
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 
@@ -872,8 +864,10 @@ void rvg_t::generationalStepAllPopulationsRecursiveFold( int population_index_sm
             {
 				populations[population_index]->runGeneration();
 
-				if( populations.size() == 1 && config->write_generational_statistics )
-					writeGenerationalStatisticsForOnePopulation( 0 );
+				//if( config->write_generational_statistics )
+				//if( populations.size() == 1 && config->write_generational_statistics )
+				if( populations[population_index]->number_of_generations % 10 == 1 && config->write_generational_statistics )
+					writeGenerationalStatisticsForOnePopulation( population_index );
 
 				if( populations.size() == 1 && config->write_generational_solutions )
 					writeGenerationalSolutions( 0 );
@@ -925,12 +919,13 @@ void rvg_t::runAllPopulations()
  */
 void rvg_t::run( void )
 {
-    printf("Running RV-GOMEA\n");
+    //printf("Running RV-GOMEA\n");
 
     int out = gomea::utils::initializePythonEmbedding("gomea", PyInit_real_valued);
     assert(out == 0);
 
     utils::initStartTime();
+	utils::clearTimers();
 	initialize();
 
 	if( config->print_verbose_overview )
@@ -940,15 +935,15 @@ void rvg_t::run( void )
     {
         runAllPopulations();
     }
-	catch( utils::customException const& )
-	{
-		writeGenerationalStatisticsForOnePopulation( populations.size()-1 );
+	catch( utils::customException const& ){
+        for( auto &p : populations )
+            p->updateElitist();
     }
+	writeGenerationalStatisticsForOnePopulation( populations.size()-1 );
+    ezilaitini();
 
 	/*printf("evals %f ", fitness->number_of_evaluations);
-
 	printf("obj_val %6.2e ", fitness->elitist_objective_value);
-
 	printf("time %lf ", utils::getElapsedTimeSinceStartSeconds());
 	printf("generations ");
 	if( populations.size() > 1 )

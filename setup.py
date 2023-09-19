@@ -1,6 +1,6 @@
-VERSION_MAJOR = 0
+VERSION_MAJOR = 1
 VERSION_MINOR = 0
-VERSION_PATCH = 1
+VERSION_PATCH = 0
 VERSION_STRING = '%s.%s.%s' % (VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH)
 __version__ = VERSION_STRING
 
@@ -10,12 +10,13 @@ import sys
 import glob
 import getopt
 import numpy as np
+import platform
 
 if sys.version_info[0] == 2:
-    raise Exception('Python 2.x is no longer supported')
+        raise Exception('Python 2.x is no longer supported')
 
 with open("README.md", 'r') as f:
-    long_description = f.read()
+        long_description = f.read()
 
 debug_mode = False
 if '--debug' in sys.argv:
@@ -24,21 +25,25 @@ if '--debug' in sys.argv:
 common_src = glob.glob("gomea/src/common/*.cpp") + glob.glob("gomea/src/utils/*.cpp")
 fitness_src = glob.glob("gomea/src/fitness/*.cpp") + glob.glob("gomea/src/fitness/benchmarks-rv/*.cpp") + glob.glob("gomea/src/fitness/benchmarks-discrete/*.cpp")
 
-compile_args_debug = ["-std=c++17","-UNDEBUG","-g"]
-link_args_debug = ["-std=c++17","-UNDEBUG","-g"]
-compile_args_release = ["-std=c++17","-O3"]
-link_args_release = ["-std=c++17","-O3"]
-compile_args = compile_args_release
-link_args = link_args_release
+compile_args = ["-std=c++17"]
+link_args = ["-std=c++17"]
 if debug_mode:
-        compile_args = compile_args_debug
-        link_args = link_args_debug
+        compile_args.extend(['-UNDEBUG','-g'])
+        link_args.extend(['-UNDEBUG','-g'])
+else:
+        compile_args.extend(['-O3'])
+        link_args.extend(['-O3'])
+if platform.system() == "Darwin":
+        compile_args.extend(["-stdlib=libc++","-mmacosx-version-min=10.7"])
+        link_args.extend(["-stdlib=libc++","-mmacosx-version-min=10.7"])
+        #compile_args.extend(["-stdlib=libc++"])
+        #link_args.extend(["-stdlib=libc++"])
 
 extensions = []
 
 extensions.append( Extension("gomea.discrete",
         ["gomea/discrete.pyx"] + glob.glob("gomea/src/discrete/*.cpp") + common_src + fitness_src,
-        include_dirs=["."],
+        include_dirs = ["."] + [np.get_include()],
         language="c++",
         extra_compile_args=compile_args,
         extra_link_args=link_args)
@@ -46,18 +51,17 @@ extensions.append( Extension("gomea.discrete",
 
 extensions.append( Extension("gomea.real_valued",
         ["gomea/real_valued.pyx"] + glob.glob("gomea/src/real_valued/*.cpp") + common_src + fitness_src,
-        include_dirs=["."],
+        include_dirs = ["."] + ["Eigen"] + [np.get_include()],
         language="c++",
         extra_compile_args=compile_args,
         extra_link_args=link_args,
-        libraries=["armadillo"],
         library_dirs=[],
         extra_objects=[])
 )
 
 extensions.append( Extension("gomea.fitness",
         ["gomea/fitness.pyx"] + fitness_src + common_src,
-        include_dirs=["."],
+        include_dirs = ["."] + [np.get_include()],
         language="c++",
         extra_compile_args=compile_args,
         extra_link_args=link_args)
@@ -65,7 +69,7 @@ extensions.append( Extension("gomea.fitness",
 
 extensions.append( Extension("gomea.linkage",
         ["gomea/linkage.pyx"] + common_src,
-        include_dirs=["."],
+        include_dirs = ["."] + [np.get_include()],
         language="c++",
         extra_compile_args=compile_args,
         extra_link_args=link_args)
@@ -73,7 +77,7 @@ extensions.append( Extension("gomea.linkage",
 
 extensions.append( Extension("gomea.output",
         ["gomea/output.pyx"] + common_src,
-        include_dirs=["."],
+        include_dirs = ["."] + [np.get_include()],
         language="c++",
         extra_compile_args=compile_args,
         extra_link_args=link_args)
@@ -89,11 +93,16 @@ setup(
     long_description = long_description,
     long_description_content_type = 'text/markdown',
     packages=["gomea"],
+    include_dirs=["gomea"],
     ext_modules = cythonize(extensions,
         include_path = ["."] + [np.get_include()],
         gdb_debug = debug_mode,
         language_level = "3"),
-    install_requires=["numpy>=1.19.0","tqdm"],
+    install_requires=["numpy>=1.23.0","tqdm"],
+    include_package_data=True,
+    package_data = {
+        'gomea': ['*.pxd', '*.hpp', '*.h']
+    },
     zip_safe = False
 )
 

@@ -29,43 +29,45 @@ gomeaIMS::gomeaIMS(Config *config_): config(config_)
 }
 
 gomeaIMS::~gomeaIMS()
-{
-	if( isInitialized )
-	{
-		for (int i = 0; i < numberOfGOMEAs; ++i)
-			delete GOMEAs[i];
+{}
 
-		//delete problemInstance;
+void gomeaIMS::ezilaitini()
+{
+	for (int i = 0; i < GOMEAs.size(); ++i)
+		delete GOMEAs[i];
+	GOMEAs.clear();
+
+	// delete problemInstance;
+	if( isInitialized )
 		delete sharedInformationInstance;
-	}
+	isInitialized = false;
 }
 
 void gomeaIMS::initialize()
 {
 	utils::initStartTime();
+	utils::clearTimers();
+    problemInstance->initializeRun();
+    output = output_statistics_t();
 
-	if( config->AnalyzeFOS )
-	{
+	// if( config->AnalyzeFOS )
+	// {
 		prepareFolder(config->folder);
-	}
-    //initElitistFile(config->folder);
-
-    #ifdef DEBUG
-        cout << "Problem Instance created! Problem number is " << config->problemIndex << endl;
-    #endif
+	// }
+    initElitistFile(config->folder);
+    if(config->logDebugInformation)
+    {
+        initLogFile(config->folder);
+    }
 
     sharedInformationInstance = new sharedInformation(config->maxArchiveSize);
-    #ifdef DEBUG
-        cout << "Shared Information instance created!\n";
-    #endif
-
 	isInitialized = true;
+	hasTerminated = false;
 }
 
 void gomeaIMS::run()
 {
-	if( !isInitialized )
-		initialize();
+	initialize();
 
 	try{
 		while(!checkTermination())
@@ -78,11 +80,10 @@ void gomeaIMS::run()
 			numberOfGenerationsIMS++;
 		}
 	}
-	catch( utils::customException const& )
-	{
-		hasTerminated = true;
-		writeStatistics( numberOfGOMEAs-1 );			
-	}
+	catch( utils::customException const& ){}
+	hasTerminated = true;
+	writeStatistics(numberOfGOMEAs - 1);
+	ezilaitini();
 }
 
 void gomeaIMS::runGeneration()
@@ -116,23 +117,67 @@ void gomeaIMS::runGeneration()
 	catch( utils::customException const& )
 	{
 		hasTerminated = true;
-		writeStatistics( currentGOMEAIndex );			
+		writeStatistics( currentGOMEAIndex );
+		ezilaitini();
 	}
 }
 
 void gomeaIMS::runGeneration( int GOMEAIndex )
 {
+	writeMessageToLogFile(config->folder, "\n\n\n############## Generation " + to_string(GOMEAs[GOMEAIndex]->numberOfGenerations) + " ##############", config->logDebugInformation);
+	// DEBUGGING: log in the same way as mixed part
+	writePopulationToFile(config->folder, GOMEAs[GOMEAIndex]->population, "initial population --------", config->logDebugInformation);
+	writeMessageToLogFile(config->folder, countBuildingBlocks(GOMEAs[GOMEAIndex]->population, 5), config->logDebugInformation);
+
 	GOMEAs[GOMEAIndex]->calculateAverageFitness();
 
-	GOMEAs[GOMEAIndex]->makeOffspring();
+ 	/* ---------- switched loop order ---------- */
+	GOMEAs[GOMEAIndex]->determineFOSOrder();
+	// GOMEAs[GOMEAIndex]->FOSInstance->printFOS();
+
+	GOMEAs[GOMEAIndex]->copyPopulationToOffspring();
+
+	cout << "FOS size: " << GOMEAs[GOMEAIndex]->FOSInstance->size();
+	cout << "\tRunning generation " << GOMEAs[GOMEAIndex]->numberOfGenerations << " of GOMEA " << GOMEAIndex << " with FOS and population loops reversed! (population kept constant during FOS loop)" << endl;
+	for(size_t i = 0; i < GOMEAs[GOMEAIndex]->FOSInstance->size(); ++i)
+	{
+		writeMessageToLogFile(config->folder, "####### [GEN " + to_string(GOMEAs[GOMEAIndex]->numberOfGenerations) + "] FOS element " + to_string(i) + " of " + to_string(GOMEAs[GOMEAIndex]->FOSInstance->size()) +  " -> FOS_index " + to_string(GOMEAs[GOMEAIndex]->FOSInstance->FOSorder[i]) + " #######", config->logDebugInformation);
+		
+		GOMEAs[GOMEAIndex]->generateOffspringSingleFOSElement(i);
+
+		writePopulationToFile(config->folder, GOMEAs[GOMEAIndex]->offspringPopulation, "OFFSPRING POPULATION After generating DISCRETE population ----------------------------------", config->logDebugInformation);
+
+		writeMessageToLogFile(config->folder, "\n" + countBuildingBlocks(GOMEAs[GOMEAIndex]->offspringPopulation, 5) + "\n", config->logDebugInformation);
+	}
 
 	GOMEAs[GOMEAIndex]->copyOffspringToPopulation();
 
 	GOMEAs[GOMEAIndex]->calculateAverageFitness();
 
+	// TODO remove this part, temporary safety measure for if generations get too large (almost always means something was wrong)
+	if(GOMEAs[GOMEAIndex]->numberOfGenerations > 30)
+	{
+		cout << "Stopping after 30 generations.\nPopulation:" << endl;
+		printPopulation(GOMEAs[GOMEAIndex]->population);
+		throw utils::customException("Stopping after 30 generations");
+	}
+
 	GOMEAs[GOMEAIndex]->numberOfGenerations++;
-		
+
 	writeStatistics( GOMEAIndex );
+
+	/* ---------- end switched loop order ---------- */
+
+	/* ---------- original order ---------- */
+	// GOMEAs[GOMEAIndex]->makeOffspring();
+
+	// GOMEAs[GOMEAIndex]->copyOffspringToPopulation();
+
+	// GOMEAs[GOMEAIndex]->calculateAverageFitness();
+
+	// GOMEAs[GOMEAIndex]->numberOfGenerations++;
+		
+	// writeStatistics( GOMEAIndex );
 }
 
 bool gomeaIMS::checkTermination()
@@ -216,7 +261,11 @@ void gomeaIMS::initializeNewGOMEA()
     Population *newPopulation = NULL;
 
     if (numberOfGOMEAs == 0)
+	{
         newPopulation = new Population(config, problemInstance, sharedInformationInstance, numberOfGOMEAs, basePopulationSize);
+		// cout << "Initial population:\n";
+		// printPopulation( newPopulation->population );
+	}	
     else
         newPopulation = new Population(config, problemInstance, sharedInformationInstance, numberOfGOMEAs, 2 * GOMEAs[numberOfGOMEAs-1]->populationSize, GOMEAs[0]->FOSInstance );
     
@@ -297,19 +346,30 @@ bool gomeaIMS::checkTerminationGOMEA(int GOMEAIndex)
 
 void gomeaIMS::writeStatistics( int population_index )
 {
+    /*double population_objective_avg  = GOMEAs[population_index]->getFitnessMean();
+    double population_constraint_avg = GOMEAs[population_index]->getConstraintValueMean();
+    double population_objective_var  = GOMEAs[population_index]->getFitnessVariance();
+    double population_constraint_var = GOMEAs[population_index]->getConstraintValueVariance();
+    solution_t<double> *best_solution = GOMEAs[population_index]->getBestSolution();
+    solution_t<double> *worst_solution = GOMEAs[population_index]->getWorstSolution();*/
+
 	assert( sharedInformationInstance != NULL );
 	int key = numberOfStatisticsWrites;
     double evals = problemInstance->number_of_evaluations;
     //double elitist_evals = sharedInformationInstance->elitistSolutionHittingTimeEvaluations;
-    double time_s = sharedInformationInstance->elitistSolutionHittingTimeMilliseconds/1000.0;
+    //double time_s = sharedInformationInstance->elitistSolutionHittingTimeMilliseconds/1000.0;
 	double best_fitness = sharedInformationInstance->elitistFitness;
+    output.addMetricValue("generation",key,(int)GOMEAs[population_index]->numberOfGenerations);
     output.addMetricValue("evaluations",key,evals);
     //output.addMetricValue("elitist_hitting_evaluations",key,elitist_evals);
-    output.addMetricValue("time",key,time_s);
-    output.addMetricValue("best_obj_val",key,best_fitness);
+    output.addMetricValue("time",key,utils::getElapsedTimeSinceStartSeconds());
+    output.addMetricValue("eval_time",key,utils::getTimer("eval_time"));
     output.addMetricValue("population_index",key,population_index);
-    output.addMetricValue("generation",key,(int)GOMEAs[population_index]->numberOfGenerations);
-    output.addMetricValue("pop_size",key,(int)GOMEAs[population_index]->populationSize);
+    output.addMetricValue("population_size",key,(int)GOMEAs[population_index]->populationSize);
+    output.addMetricValue("best_obj_val",key,sharedInformationInstance->elitistFitness);
+    output.addMetricValue("best_cons_val",key,sharedInformationInstance->elitistConstraintValue);
+    //output.addMetricValue("obj_val_avg",key,population_objective_avg);
+    //output.addMetricValue("obj_val_var",key,population_objective_var);
 	numberOfStatisticsWrites++;
 }
 
