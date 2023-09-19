@@ -47,6 +47,18 @@ fitness_t *Config::getFitnessClassDiscrete( int problem_index, int number_of_var
         return new gomea::fitness::DT5Sphere_t(number_of_variables, numberOfcVariables);
         case 4:
         return new gomea::fitness::DT5RotEllip_t(number_of_variables, numberOfcVariables); //new gomea::fitness::maxCut_t(number_of_variables, problemInstancePath);
+        case 5:
+        return new gomea::fitness::DT5BlockRotEllip_t(number_of_variables, numberOfcVariables, a_value);
+        case 50:
+        return new gomea::fitness::DT5BlockRotEllipCentersZero_t(number_of_variables, numberOfcVariables, a_value);
+        case 51:
+        return new gomea::fitness::DT5BlockFullRotEllipWrongExponent_t(number_of_variables, numberOfcVariables, a_value);
+        case 55:
+        return new gomea::fitness::DT5BlockNOTRotEllip_t(number_of_variables, numberOfcVariables, a_value);
+        case 551:
+        return new gomea::fitness::DT5BlockNOTRotEllipWrongExponent_t(number_of_variables, numberOfcVariables, a_value);
+        case 555:
+        return new gomea::fitness::DT5BlockRotEllipBBO_t(number_of_variables, numberOfcVariables, a_value);
 		default:
 		return NULL;
 	}
@@ -86,7 +98,7 @@ bool Config::parseCommandLine(int argc, char **argv)
 
 
   int c, index;
-  while ((c = getopt_long(argc, argv, "h::n::p::X::Y::Q::g::w::e::s::f::P::F::m::l::L::O::T::S::V::I::B::Z::G::M::N::E::", longopts, &index)) != -1)
+  while ((c = getopt_long(argc, argv, "h::k::n::p::X::Y::Q::g::w::e::s::f::P::F::m::l::L::O::T::S::V::I::B::Z::G::M::N::E::", longopts, &index)) != -1)
   {
     switch (c)
     {
@@ -110,6 +122,9 @@ bool Config::parseCommandLine(int argc, char **argv)
             break;
         case 'E':
             printNewElitists = 1;
+            break;
+        case 'k':
+            dontUseOffspringPopulation = 1;
             break;
         case 's':
             saveEvaluations = 1;

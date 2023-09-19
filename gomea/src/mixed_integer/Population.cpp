@@ -96,7 +96,10 @@ Population::Population(Config *config_, fitness_t *problemInstance_, sharedInfor
         
         if(config->numberOfcVariables > 0)
         {
-            iamalgamInstance = new iamalgam(config_, offspringPopulation);
+            if(config->dontUseOffspringPopulation)
+                iamalgamInstance = new iamalgam(config_, population);
+            else
+                iamalgamInstance = new iamalgam(config_, offspringPopulation);
             iamalgamInstance->initialize();
         }
 
@@ -593,6 +596,9 @@ bool Population::GOMSingleFOS(size_t offspringIndex, size_t FOSIndex)
                 // offspringPopulation[offspringIndex]->variables[variableFromFOS] = population[donorIndex]->variables[variableFromFOS];
                 //*backup = *offspringPopulation[offspringIndex];
                 offspringPopulation[offspringIndex]->insertSolution(offspring);
+                // For GAMBIT_K, also update population with better individual (so it can also be chosen as donor)
+                if(config->dontUseOffspringPopulation)
+                    population[offspringIndex]->insertSolution(offspring);
 
                 solutionHasChanged = true;
                 updateElitistAndCheckVTR(offspringPopulation[offspringIndex]);
@@ -793,7 +799,7 @@ void Population::updateElitistAndCheckVTR(solution_mixed *solution)
         /* Check the VTR */
         if (problemInstance->use_vtr && solution->getObjectiveValue() <= problemInstance->vtr + 1e-10) // RUBEN: was >=, changed to <= (since I'm assuming minimization, TODO should probably have a robuster solution (based on probleminstance optimization_mode?))
         {
-            writeStatisticsToFile(config->folder, sharedInformationPointer->elitistSolutionHittingTimeEvaluations, sharedInformationPointer->elitistSolutionHittingTimeMilliseconds, solution, populationSize);
+            writeStatisticsToFile(config->folder, sharedInformationPointer->elitistSolutionHittingTimeEvaluations, sharedInformationPointer->elitistSolutionHittingTimeMilliseconds, solution, populationSize, true);
             writeElitistSolutionToFile(config->folder, sharedInformationPointer->elitistSolutionHittingTimeEvaluations, sharedInformationPointer->elitistSolutionHittingTimeMilliseconds, solution);
             cout << "VTR HIT! (popsize: " << populationSize << ", stats -> (generation #evals): " << numberOfGenerations << " " << sharedInformationPointer->elitistSolutionHittingTimeEvaluations << ")\n";
             terminated = true;
@@ -839,6 +845,35 @@ void Population::learnContinuousModel()
 // {
 //     iamalgamInstance->generateNewPopulation();
 // }
+
+void Population::checkDiscretePopulationConvergedNotOptimal()
+{
+    bool allOnes = true;
+    bool allEqual = true;
+    for(size_t i = 1; i < populationSize; i++)
+    {
+        for(size_t j = 0; j < population[i]->variables.size(); j++)
+        {
+            if(population[i]->variables[j] != population[0]->variables[j])
+            {
+                allEqual = false;
+                break;
+            }
+            if(allOnes && population[i]->variables[j] == 0)
+            {
+                allOnes = false;
+            }
+        }
+        if(!allEqual)
+            break;
+    }
+
+    if(allEqual && !allOnes)
+    {
+        cout << "Discrete parts of all solutions in population are equal, but not all 1. Optimum cannot be reached, terminating." << endl;
+        terminated = true;
+    }
+}
 
 void Population::checkForDuplicate(string message)
 {

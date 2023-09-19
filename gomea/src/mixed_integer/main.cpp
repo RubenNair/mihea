@@ -16,7 +16,7 @@ int main(int argc, char **argv)
     try
     {
         // gomeaInstance->run();
-        cout << "[DEBUGGING] Starting the GAMBIT run!" << endl;
+        cout << "[DEBUGGING] Starting the " << (config->dontUseOffspringPopulation ? "GAMBIT_K" : "GAMBIT_R") << " run!" << endl;
         simpleGAMBITInstance->run();
     }
     catch (utils::customException &ex)

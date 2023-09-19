@@ -75,6 +75,7 @@ public:
     // void updatePopulation(int population_index, Population *currGAMBIT, bool onlyObjectiveAndConstraints = false);
     void learnContinuousModel();
     void generateDiscretePopulation(int FOS_index);
+    void checkDiscretePopulationConvergedNotOptimal();
     void checkForDuplicate(string message);
     void checkIndividualSolvedDiscrete();
     bool allContinuousEqual(solution_mixed *a, solution_mixed *b);

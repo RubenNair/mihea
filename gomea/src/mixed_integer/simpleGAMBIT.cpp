@@ -141,6 +141,9 @@ void simpleGAMBIT::run()
                         currGAMBIT->learnContinuousModel();
                     }
 
+                    // In GAMBIT_K, update changes from continuous part (directly modified in population) to offspring, so discrete part with GOM uses the updated continuous part.
+                    if(config->dontUseOffspringPopulation)
+                        currGAMBIT->copyPopulationToOffspring();
                     // Generate new population: replace whole continuous part of population with samples from (updated) continuous model,
                     // use discrete model to find donors for each individual (and then replace only elements in current FOS element).
                     // Idea: generate both parts first, then call some sort of evaluate all function from here. -> Might have to update some parts of iAMaLGaM after that still.
@@ -166,6 +169,10 @@ void simpleGAMBIT::run()
             currGAMBIT->calculateAverageFitness();
             
             currGAMBIT->numberOfGenerations++;
+
+            // Check if discrete population has converged to a solution that is not the optimum. If so, terminate that GAMBIT.
+            // NOTE: this assumes that for every problem, the optimum has all discrete variables set to 1.
+            currGAMBIT->checkDiscretePopulationConvergedNotOptimal();
             // if(gen >= 5)
             // {
             //     cout << "[DEBUGGING] SETTING WHOLE DISCRETE POPULATION TO 1!" << endl;

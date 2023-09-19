@@ -595,7 +595,7 @@ void Population::updateElitistAndCheckVTR(solution_t<char> *solution)
         {
             //writeStatisticsToFile(config->folder, sharedInformationPointer->elitistSolutionHittingTimeEvaluations, sharedInformationPointer->elitistSolutionHittingTimeMilliseconds, solution);
             //writeElitistSolutionToFile(config->folder, sharedInformationPointer->elitistSolutionHittingTimeEvaluations, sharedInformationPointer->elitistSolutionHittingTimeMilliseconds, solution);
-            cout << "VTR HIT!\n";
+            cout << "VTR HIT! evals: " << problemInstance->full_number_of_evaluations << endl;
             terminated = true;
             throw utils::customException("vtr");
         }

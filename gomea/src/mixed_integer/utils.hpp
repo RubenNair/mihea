@@ -55,7 +55,7 @@ void prepareFolder(string &folder);
 void initElitistFile(string &folder);
 void initStatisticsFile(string &folder);
 void initLogFile(string &folder);
-void writeStatisticsToFile(string &folder, long long numberOfEvaluations, long long time, solution_t<char> *solution, size_t populationSize);
+void writeStatisticsToFile(string &folder, long long numberOfEvaluations, long long time, solution_t<char> *solution, size_t populationSize, bool vtrHit = false);
 void writeElitistSolutionToFile(string &folder, long long numberOfEvaluations, long long time, solution_mixed *solution);
 void writePopulationToFile(string &folder, vec_t<solution_mixed*> population, string message, bool doLog = true);
 void writeBuildingBlocksToFile(string &folder, vec_t<solution_mixed*> population, string message, int k, bool doLog = true);

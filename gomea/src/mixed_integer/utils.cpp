@@ -9,8 +9,9 @@ void prepareFolder(string &folder)
     {
 		filesystem::create_directories(folder);
     }
-	filesystem::create_directories(folder + "/fos");
-	filesystem::create_directories(folder + "/output");
+    // TODO Ruben: temporarily removing the creation of these folders, since I don't use them currently.
+	// filesystem::create_directories(folder + "/fos");
+	// filesystem::create_directories(folder + "/output");
 }
 
 void initStatisticsFile(string &folder)
@@ -28,7 +29,7 @@ void initStatisticsFile(string &folder)
             cerr << "Problems with opening file " << folder + "/elitists.txt!\n";
             exit(0);
         }
-        outFile << "#Evaluations " << "Time,sec. " << "Fitness " << "populationSize " << endl;
+        outFile << "#Evaluations " << "Time,sec. " << "Fitness " << "populationSize " << "VTR hit" << endl;
         outFile.close();
     }
 }
@@ -67,7 +68,7 @@ void initLogFile(string &folder)
     outFile.close();
 }
 
-void writeStatisticsToFile(string &folder, long long numberOfEvaluations, long long time, solution_t<char> *solution, size_t populationSize)
+void writeStatisticsToFile(string &folder, long long numberOfEvaluations, long long time, solution_t<char> *solution, size_t populationSize, bool vtrHit)
 {
     ofstream outFile(folder + "/statistics.txt", ofstream::app);
     if (outFile.fail())
@@ -76,7 +77,7 @@ void writeStatisticsToFile(string &folder, long long numberOfEvaluations, long l
         exit(0);
     }
 
-    outFile << (int)numberOfEvaluations << " " << fixed << setprecision(3) << time/1000.0 << " " <<  setprecision(11) << solution->getObjectiveValue() << " " << populationSize;
+    outFile << (int)numberOfEvaluations << " " << fixed << setprecision(3) << time/1000.0 << " " <<  setprecision(11) << solution->getObjectiveValue() << " " << populationSize << " " << vtrHit;
     outFile << endl;
 
     outFile.close();

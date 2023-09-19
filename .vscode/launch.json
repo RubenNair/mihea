@@ -24,7 +24,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/MixedIntegerGOMEA",
-            "args":  ["-n100", "-P3", "-L60_0", "-V0", "-Ooutput/test/testing", "-F2_0_0_-1_0", "-N1", "-S100"],//["-n20", "-P2", "-L10_10", "-M100", "-Ooutput/test/test2"],
+            "args":  ["-n20", "-P1", "-L20_60", "-V0.0", "-Ooutput/test/testing", "-F2_0_0_-1_0", "-N1", "-S103", "-E", "-k"],//["-n20", "-P2", "-L10_10", "-M100", "-Ooutput/test/test2"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -78,17 +78,21 @@
         {
             "name": "(gdb) Attach",
             "type": "cppdbg",
-            "program": "gdb",
+            "program": "${workspaceFolder}/venvgomea/bin/python",
             "request": "attach",
-            "logging": {
-                "engineLogging": true
-            },
-            "sourceFileMap": {
-                "${workspaceFolder}": {
-                    "editorPath": "${workspaceFolder}",
-                    "useForBreakpoints": "true"
-                }
-            }
+            "processId": "${command:pickProcess}",
+            // "logging": {
+            //     "engineLogging": true
+            // },
+            "additionalSOLibSearchPath":"${workspaceRoot}",
+            "MIMode": "gdb",
+            "cwd" : "${workspaceFolder}"
+            // "sourceFileMap": {
+            //     "${workspaceFolder}": {
+            //         "editorPath": "${workspaceFolder}",
+            //         "useForBreakpoints": "true"
+            //     }
+            // }
         },
         {
             "name": "Python: main",

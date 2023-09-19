@@ -48,6 +48,7 @@ public:
         saveEvaluations                    = 0,
         logDebugInformation                = 0,
         useForcedImprovements              = 0,
+        dontUseOffspringPopulation         = 0,
         printHelp                          = 0,
 		maximumNumberOfEvaluations		   = -1,
 		maximumNumberOfGenerations		   = -1;

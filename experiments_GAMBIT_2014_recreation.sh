@@ -6,6 +6,7 @@ printGenerationalOutputEachRun="false";
 flags="-F2_0_0_-1_0 -N1";
 consoleOutput="/dev/stdout";
 problems=();
+basePopsizes=();
 folderBaseName="output";
 loops=1;
 a_vals=("1.15" "2.75" "3.00")
@@ -51,9 +52,11 @@ printf -v popsizeMult %.5f "${popsizeMult}";
 
 if [ "${useKrystofVersion}" = "true" ];
 then
+    basePopsizes=("20" "30" "100" "200" "150");
     flags="${flags} -k"
     folderBaseName="${folderBaseName}/GAMBIT_K";
 else
+    basePopsizes=("10" "10" "50" "80" "150")
     folderBaseName="${folderBaseName}/GAMBIT_R";
 fi
 
@@ -72,21 +75,21 @@ if [[ "${problems[@]}" =~ 1 ]];
 then
     ### COMMANDS FOR F1:
     echo -e "[RUNNING] \tStarting F1 experiments";
-    for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P1 -n$(echo 15*${popsizeMult} | bc) -L20_20 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F1/0.5/20_20 ${flags} >${consoleOutput}; done & 
-    for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P1 -n$(echo 15*${popsizeMult} | bc) -L30_10 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F1/0.25/30_10 ${flags} >${consoleOutput}; done & 
-    for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P1 -n$(echo 15*${popsizeMult} | bc) -L10_30 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F1/0.75/10_30 ${flags} >${consoleOutput}; done & 
+    for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P1 -n$(echo ${basePopsizes[0]}*${popsizeMult} | bc) -L20_20 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F1/0.5/20_20 ${flags} >${consoleOutput}; done & 
+    for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P1 -n$(echo ${basePopsizes[0]}*${popsizeMult} | bc) -L30_10 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F1/0.25/30_10 ${flags} >${consoleOutput}; done & 
+    for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P1 -n$(echo ${basePopsizes[0]}*${popsizeMult} | bc) -L10_30 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F1/0.75/10_30 ${flags} >${consoleOutput}; done & 
 
-    for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P1 -n$(echo 20*${popsizeMult} | bc) -L40_40 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F1/0.5/40_40 ${flags} >${consoleOutput}; done & 
-    for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P1 -n$(echo 20*${popsizeMult} | bc) -L60_20 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F1/0.25/60_20 ${flags} >${consoleOutput}; done & 
-    for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P1 -n$(echo 20*${popsizeMult} | bc) -L20_60 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F1/0.75/20_60 ${flags} >${consoleOutput}; done & 
+    for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P1 -n$(echo ${basePopsizes[0]}*${popsizeMult} | bc) -L40_40 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F1/0.5/40_40 ${flags} >${consoleOutput}; done & 
+    for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P1 -n$(echo ${basePopsizes[0]}*${popsizeMult} | bc) -L60_20 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F1/0.25/60_20 ${flags} >${consoleOutput}; done & 
+    for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P1 -n$(echo ${basePopsizes[0]}*${popsizeMult} | bc) -L20_60 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F1/0.75/20_60 ${flags} >${consoleOutput}; done & 
 
-    for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P1 -n$(echo 25*${popsizeMult} | bc) -L60_60 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F1/0.5/60_60 ${flags} >${consoleOutput}; done & 
-    for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P1 -n$(echo 25*${popsizeMult} | bc) -L90_30 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F1/0.25/90_30 ${flags} >${consoleOutput}; done & 
-    for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P1 -n$(echo 25*${popsizeMult} | bc) -L30_90 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F1/0.75/30_90 ${flags} >${consoleOutput}; done & 
+    for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P1 -n$(echo ${basePopsizes[0]}*${popsizeMult} | bc) -L60_60 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F1/0.5/60_60 ${flags} >${consoleOutput}; done & 
+    for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P1 -n$(echo ${basePopsizes[0]}*${popsizeMult} | bc) -L90_30 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F1/0.25/90_30 ${flags} >${consoleOutput}; done & 
+    for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P1 -n$(echo ${basePopsizes[0]}*${popsizeMult} | bc) -L30_90 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F1/0.75/30_90 ${flags} >${consoleOutput}; done & 
 
-    for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P1 -n$(echo 25*${popsizeMult} | bc) -L80_80 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F1/0.5/80_80 ${flags} >${consoleOutput}; done & 
-    for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P1 -n$(echo 30*${popsizeMult} | bc) -L120_40 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F1/0.25/120_40 ${flags} >${consoleOutput}; done & 
-    for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P1 -n$(echo 25*${popsizeMult} | bc) -L40_120 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F1/0.75/40_120 ${flags} >${consoleOutput}; done & 
+    for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P1 -n$(echo ${basePopsizes[0]}*${popsizeMult} | bc) -L80_80 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F1/0.5/80_80 ${flags} >${consoleOutput}; done & 
+    for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P1 -n$(echo ${basePopsizes[0]}*${popsizeMult} | bc) -L120_40 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F1/0.25/120_40 ${flags} >${consoleOutput}; done & 
+    for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P1 -n$(echo ${basePopsizes[0]}*${popsizeMult} | bc) -L40_120 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F1/0.75/40_120 ${flags} >${consoleOutput}; done & 
     wait;
     echo -e "[RUNNING] \tDone running F1 experiments";
 fi
@@ -95,21 +98,21 @@ if [[ "${problems[@]}" =~ 2 ]];
 then
     ### COMMANDS FOR F2:
     echo -e "[RUNNING] \tStarting F2 experiments";
-    for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P2 -n$(echo 30*${popsizeMult} | bc) -L20_20 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F2/0.5/20_20 ${flags} >${consoleOutput}; done &
-    for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P2 -n$(echo 25*${popsizeMult} | bc) -L30_10 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F2/0.25/30_10 ${flags} >${consoleOutput}; done &
-    for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P2 -n$(echo 40*${popsizeMult} | bc) -L10_30 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F2/0.75/10_30 ${flags} >${consoleOutput}; done &
+    for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P2 -n$(echo ${basePopsizes[1]}*${popsizeMult} | bc) -L20_20 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F2/0.5/20_20 ${flags} >${consoleOutput}; done &
+    for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P2 -n$(echo ${basePopsizes[1]}*${popsizeMult} | bc) -L30_10 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F2/0.25/30_10 ${flags} >${consoleOutput}; done &
+    for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P2 -n$(echo ${basePopsizes[1]}*${popsizeMult} | bc) -L10_30 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F2/0.75/10_30 ${flags} >${consoleOutput}; done &
 
-    for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P2 -n$(echo 40*${popsizeMult} | bc) -L40_40 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F2/0.5/40_40 ${flags} >${consoleOutput}; done &
-    for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P2 -n$(echo 30*${popsizeMult} | bc) -L60_20 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F2/0.25/60_20 ${flags} >${consoleOutput}; done &
-    for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P2 -n$(echo 50*${popsizeMult} | bc) -L20_60 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F2/0.75/20_60 ${flags} >${consoleOutput}; done &
+    for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P2 -n$(echo ${basePopsizes[1]}*${popsizeMult} | bc) -L40_40 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F2/0.5/40_40 ${flags} >${consoleOutput}; done &
+    for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P2 -n$(echo ${basePopsizes[1]}*${popsizeMult} | bc) -L60_20 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F2/0.25/60_20 ${flags} >${consoleOutput}; done &
+    for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P2 -n$(echo ${basePopsizes[1]}*${popsizeMult} | bc) -L20_60 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F2/0.75/20_60 ${flags} >${consoleOutput}; done &
 
-    for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P2 -n$(echo 60*${popsizeMult} | bc) -L60_60 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F2/0.5/60_60 ${flags} >${consoleOutput}; done &
-    for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P2 -n$(echo 40*${popsizeMult} | bc) -L90_30 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F2/0.25/90_30 ${flags} >${consoleOutput}; done &
-    for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P2 -n$(echo 60*${popsizeMult} | bc) -L30_90 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F2/0.75/30_90 ${flags} >${consoleOutput}; done &
+    for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P2 -n$(echo ${basePopsizes[1]}*${popsizeMult} | bc) -L60_60 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F2/0.5/60_60 ${flags} >${consoleOutput}; done &
+    for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P2 -n$(echo ${basePopsizes[1]}*${popsizeMult} | bc) -L90_30 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F2/0.25/90_30 ${flags} >${consoleOutput}; done &
+    for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P2 -n$(echo ${basePopsizes[1]}*${popsizeMult} | bc) -L30_90 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F2/0.75/30_90 ${flags} >${consoleOutput}; done &
 
-    for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P2 -n$(echo 80*${popsizeMult} | bc) -L80_80 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F2/0.5/80_80 ${flags} >${consoleOutput}; done &
-    for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P2 -n$(echo 40*${popsizeMult} | bc) -L120_40 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F2/0.25/120_40 ${flags} >${consoleOutput}; done &
-    for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P2 -n$(echo 80*${popsizeMult} | bc) -L40_120 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F2/0.75/40_120 ${flags} >${consoleOutput}; done &
+    for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P2 -n$(echo ${basePopsizes[1]}*${popsizeMult} | bc) -L80_80 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F2/0.5/80_80 ${flags} >${consoleOutput}; done &
+    for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P2 -n$(echo ${basePopsizes[1]}*${popsizeMult} | bc) -L120_40 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F2/0.25/120_40 ${flags} >${consoleOutput}; done &
+    for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P2 -n$(echo ${basePopsizes[1]}*${popsizeMult} | bc) -L40_120 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F2/0.75/40_120 ${flags} >${consoleOutput}; done &
     wait;
     echo -e "[RUNNING] \tDone running F2 experiments";
 fi
@@ -118,21 +121,21 @@ if [[ "${problems[@]}" =~ 3 ]];
 then
     ### COMMANDS FOR F3:
     echo -e "[RUNNING] \tStarting F3 experiments";
-    for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P3 -n$(echo 100*${popsizeMult} | bc) -L20_20 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F3/0.5/20_20 ${flags} >${consoleOutput}; done &
-    for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P3 -n$(echo 100*${popsizeMult} | bc) -L30_10 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F3/0.25/30_10 ${flags} >${consoleOutput}; done &
-    for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P3 -n$(echo 100*${popsizeMult} | bc) -L10_30 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F3/0.75/10_30 ${flags} >${consoleOutput}; done &
+    for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P3 -n$(echo ${basePopsizes[2]}*${popsizeMult} | bc) -L20_20 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F3/0.5/20_20 ${flags} >${consoleOutput}; done &
+    for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P3 -n$(echo ${basePopsizes[2]}*${popsizeMult} | bc) -L30_10 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F3/0.25/30_10 ${flags} >${consoleOutput}; done &
+    for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P3 -n$(echo ${basePopsizes[2]}*${popsizeMult} | bc) -L10_30 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F3/0.75/10_30 ${flags} >${consoleOutput}; done &
 
-    for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P3 -n$(echo 100*${popsizeMult} | bc) -L40_40 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F3/0.5/40_40 ${flags} >${consoleOutput}; done &
-    for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P3 -n$(echo 100*${popsizeMult} | bc) -L60_20 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F3/0.25/60_20 ${flags} >${consoleOutput}; done &
-    for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P3 -n$(echo 100*${popsizeMult} | bc) -L20_60 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F3/0.75/20_60 ${flags} >${consoleOutput}; done &
+    for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P3 -n$(echo ${basePopsizes[2]}*${popsizeMult} | bc) -L40_40 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F3/0.5/40_40 ${flags} >${consoleOutput}; done &
+    for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P3 -n$(echo ${basePopsizes[2]}*${popsizeMult} | bc) -L60_20 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F3/0.25/60_20 ${flags} >${consoleOutput}; done &
+    for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P3 -n$(echo ${basePopsizes[2]}*${popsizeMult} | bc) -L20_60 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F3/0.75/20_60 ${flags} >${consoleOutput}; done &
 
-    for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P3 -n$(echo 120*${popsizeMult} | bc) -L60_60 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F3/0.5/60_60 ${flags} >${consoleOutput}; done &
-    for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P3 -n$(echo 120*${popsizeMult} | bc) -L90_30 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F3/0.25/90_30 ${flags} >${consoleOutput}; done &
-    for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P3 -n$(echo 120*${popsizeMult} | bc) -L30_90 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F3/0.75/30_90 ${flags} >${consoleOutput}; done &
+    for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P3 -n$(echo ${basePopsizes[2]}*${popsizeMult} | bc) -L60_60 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F3/0.5/60_60 ${flags} >${consoleOutput}; done &
+    for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P3 -n$(echo ${basePopsizes[2]}*${popsizeMult} | bc) -L90_30 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F3/0.25/90_30 ${flags} >${consoleOutput}; done &
+    for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P3 -n$(echo ${basePopsizes[2]}*${popsizeMult} | bc) -L30_90 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F3/0.75/30_90 ${flags} >${consoleOutput}; done &
 
-    for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P3 -n$(echo 150*${popsizeMult} | bc) -L80_80 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F3/0.5/80_80 ${flags} >${consoleOutput}; done &
-    for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P3 -n$(echo 150*${popsizeMult} | bc) -L120_40 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F3/0.25/120_40 ${flags} >${consoleOutput}; done &
-    for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P3 -n$(echo 150*${popsizeMult} | bc) -L40_120 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F3/0.75/40_120 ${flags} >${consoleOutput}; done &
+    for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P3 -n$(echo ${basePopsizes[2]}*${popsizeMult} | bc) -L80_80 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F3/0.5/80_80 ${flags} >${consoleOutput}; done &
+    for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P3 -n$(echo ${basePopsizes[2]}*${popsizeMult} | bc) -L120_40 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F3/0.25/120_40 ${flags} >${consoleOutput}; done &
+    for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P3 -n$(echo ${basePopsizes[2]}*${popsizeMult} | bc) -L40_120 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F3/0.75/40_120 ${flags} >${consoleOutput}; done &
     wait;
     echo -e "[RUNNING] \tDone running F3 experiments";
 fi
@@ -141,21 +144,21 @@ if [[ "${problems[@]}" =~ 4 ]];
 then
     ### COMMANDS FOR F4:
     echo -e "[RUNNING] \tStarting F4 experiments";
-    for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P4 -n$(echo 100*${popsizeMult} | bc) -L20_20 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F4/0.5/20_20 ${flags} >${consoleOutput}; done &
-    for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P4 -n$(echo 100*${popsizeMult} | bc) -L30_10 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F4/0.25/30_10 ${flags} >${consoleOutput}; done &
-    for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P4 -n$(echo 100*${popsizeMult} | bc) -L10_30 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F4/0.75/10_30 ${flags} >${consoleOutput}; done &
+    for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P4 -n$(echo ${basePopsizes[3]}*${popsizeMult} | bc) -L20_20 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F4/0.5/20_20 ${flags} >${consoleOutput}; done &
+    for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P4 -n$(echo ${basePopsizes[3]}*${popsizeMult} | bc) -L30_10 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F4/0.25/30_10 ${flags} >${consoleOutput}; done &
+    for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P4 -n$(echo ${basePopsizes[3]}*${popsizeMult} | bc) -L10_30 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F4/0.75/10_30 ${flags} >${consoleOutput}; done &
 
-    for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P4 -n$(echo 120*${popsizeMult} | bc) -L40_40 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F4/0.5/40_40 ${flags} >${consoleOutput}; done &
-    for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P4 -n$(echo 120*${popsizeMult} | bc) -L60_20 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F4/0.25/60_20 ${flags} >${consoleOutput}; done &
-    for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P4 -n$(echo 120*${popsizeMult} | bc) -L20_60 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F4/0.75/20_60 ${flags} >${consoleOutput}; done &
+    for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P4 -n$(echo ${basePopsizes[3]}*${popsizeMult} | bc) -L40_40 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F4/0.5/40_40 ${flags} >${consoleOutput}; done &
+    for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P4 -n$(echo ${basePopsizes[3]}*${popsizeMult} | bc) -L60_20 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F4/0.25/60_20 ${flags} >${consoleOutput}; done &
+    for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P4 -n$(echo ${basePopsizes[3]}*${popsizeMult} | bc) -L20_60 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F4/0.75/20_60 ${flags} >${consoleOutput}; done &
 
-    for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P4 -n$(echo 150*${popsizeMult} | bc) -L60_60 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F4/0.5/60_60 ${flags} >${consoleOutput}; done &
-    for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P4 -n$(echo 150*${popsizeMult} | bc) -L90_30 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F4/0.25/90_30 ${flags} >${consoleOutput}; done &
-    for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P4 -n$(echo 150*${popsizeMult} | bc) -L30_90 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F4/0.75/30_90 ${flags} >${consoleOutput}; done &
+    for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P4 -n$(echo ${basePopsizes[3]}*${popsizeMult} | bc) -L60_60 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F4/0.5/60_60 ${flags} >${consoleOutput}; done &
+    for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P4 -n$(echo ${basePopsizes[3]}*${popsizeMult} | bc) -L90_30 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F4/0.25/90_30 ${flags} >${consoleOutput}; done &
+    for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P4 -n$(echo ${basePopsizes[3]}*${popsizeMult} | bc) -L30_90 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F4/0.75/30_90 ${flags} >${consoleOutput}; done &
 
-    for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P4 -n$(echo 150*${popsizeMult} | bc) -L80_80 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F4/0.5/80_80 ${flags} >${consoleOutput}; done &
-    for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P4 -n$(echo 150*${popsizeMult} | bc) -L120_40 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F4/0.25/120_40 ${flags} >${consoleOutput}; done &
-    for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P4 -n$(echo 150*${popsizeMult} | bc) -L40_120 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F4/0.75/40_120 ${flags} >${consoleOutput}; done &
+    for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P4 -n$(echo ${basePopsizes[3]}*${popsizeMult} | bc) -L80_80 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F4/0.5/80_80 ${flags} >${consoleOutput}; done &
+    for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P4 -n$(echo ${basePopsizes[3]}*${popsizeMult} | bc) -L120_40 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F4/0.25/120_40 ${flags} >${consoleOutput}; done &
+    for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P4 -n$(echo ${basePopsizes[3]}*${popsizeMult} | bc) -L40_120 -V0.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F4/0.75/40_120 ${flags} >${consoleOutput}; done &
     wait;
     echo -e "[RUNNING] \tDone running F4 experiments";
 fi
@@ -168,9 +171,9 @@ then
     for a_val in "${a_vals[@]}"; 
     do
         echo -e "[RUNNING] \tStarting F5 experiments for a_val = ${a_val}";
-        for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P5_${a_val} -n$(echo 150*${popsizeMult} | bc) -L10_10 -V2.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F5/a_${a_val}/10_10 ${flags} >${consoleOutput}; done &
-        for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P5_${a_val} -n$(echo 200*${popsizeMult} | bc) -L20_20 -V4.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F5/a_${a_val}/20_20 ${flags} >${consoleOutput}; done &
-        for ((i=1; i<= $loops; i++)); do build/MixedIntegerGOMEA_O -P5_${a_val} -n$(echo 250*${popsizeMult} | bc) -L30_30 -V6.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F5/a_${a_val}/30_30 ${flags} >${consoleOutput}; done &
+        for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P5_${a_val} -n$(echo ${basePopsizes[4]}*${popsizeMult} | bc) -L10_10 -V2.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F5/a_${a_val}/10_10 ${flags} >${consoleOutput}; done &
+        for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P5_${a_val} -n$(echo ${basePopsizes[4]}*${popsizeMult} | bc) -L20_20 -V4.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F5/a_${a_val}/20_20 ${flags} >${consoleOutput}; done &
+        for ((i=1; i<= $loops; i++)); do timeout 10m build/MixedIntegerGOMEA_O -P5_${a_val} -n$(echo ${basePopsizes[4]}*${popsizeMult} | bc) -L30_30 -V6.0 -O${folderBaseName}/popsizeMult_${popsizeMult}/${loops}_runs/F5/a_${a_val}/30_30 ${flags} >${consoleOutput}; done &
     done
     wait;
     echo -e "[RUNNING] \tDone running all F5 experiments";
