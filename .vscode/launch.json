@@ -24,7 +24,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/MixedIntegerGOMEA",
-            "args":  ["-n20", "-P1", "-L20_60", "-V0.0", "-Ooutput/test/testing", "-F2_0_0_-1_0", "-N1", "-S103", "-E", "-k"],//["-n20", "-P2", "-L10_10", "-M100", "-Ooutput/test/test2"],
+            "args":  ["-n20", "-P1004", "-Ooutput/test/testing", "-Irandomnetwork_ew_4nodes", "-F2_0_0_-1_0", "-N1", "-S0"],//["-n20", "-P1", "-L20_60", "-V0.0", "-Ooutput/test/testing", "-F2_0_0_-1_0", "-N1", "-S103", "-E", "-k"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

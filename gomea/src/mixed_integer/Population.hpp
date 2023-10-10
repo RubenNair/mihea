@@ -10,7 +10,7 @@ using namespace std;
 #include "gomea/src/fitness/fitness.hpp"
 #include "gomea/src/fitness/benchmarks-discrete.hpp"
 #include "gomea/src/fitness/benchmarks-mixed.hpp"
-#include "gomea/src/common/solution_mixed.hpp"
+#include "gomea/src/common/solution_BN.hpp"
 #include "gomea/src/common/partial_solution.hpp"
 #include "gomea/src/common/linkage_model.hpp"
 #include "gomea/src/mixed_integer/iamalgam.hpp"

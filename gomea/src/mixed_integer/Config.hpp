@@ -13,13 +13,13 @@ using namespace std;
 
 #include "gomea/src/common/linkage_model.hpp"
 #include "gomea/src/fitness/fitness.hpp"
-#include "gomea/src/fitness/benchmarks-discrete.hpp"
-#include "gomea/src/fitness/benchmarks-mixed.hpp"
+#include "gomea/src/utils/data_structure.h"
+
 
 namespace gomea{
 namespace mixedinteger{
 
-typedef gomea::fitness::fitness_t<char> fitness_t;
+typedef gomea::fitness::fitness_t<int> fitness_t;
 
 class Config
 {
@@ -68,6 +68,9 @@ public:
     //long long timelimitMilliseconds = -1,
     bool fix_seed = false;
     long long randomSeed = 0;
+
+    bool useBN = false;
+    int discretization_policy_index = 0;
     
     size_t alphabetSize = 2;
     size_t maxArchiveSize = 1000000;
@@ -79,6 +82,11 @@ public:
         numberOfdVariables = 10,
         numberOfcVariables = 10;
     linkage_config_t *linkage_config = NULL;
+
+    size_t maxDiscretizations = -1;
+    size_t maxParents = 6;
+    size_t maxInstantiations = 15;
+    shared_ptr<DataStructure<double>> data = NULL;
 
     private:
         int problemIndex = 0;

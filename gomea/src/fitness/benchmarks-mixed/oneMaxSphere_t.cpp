@@ -6,7 +6,7 @@ namespace fitness{
 
 using namespace gomea;
 
-oneMaxSphere_t::oneMaxSphere_t( int number_of_variables, int number_of_c_variables ) : GBOFitnessFunction_t<char>(number_of_variables)
+oneMaxSphere_t::oneMaxSphere_t( int number_of_variables, int number_of_c_variables ) : GBOFitnessFunction_t<int>(number_of_variables)
 {
 	this->name = "F1: OneMax-Sphere function";
     this->number_of_c_variables = number_of_c_variables;
@@ -38,22 +38,22 @@ vec_t<int> oneMaxSphere_t::inputsToSubfunction( int subfunction_index )
 	return vec;
 }
 		
-double oneMaxSphere_t::subfunction( int subfunction_index, vec_t<char> &variables )
+double oneMaxSphere_t::subfunction( int subfunction_index, vec_t<int> &variables )
 {
 	if(optimization_mode == opt_mode::MAX)
-		return( variables[subfunction_index] == '\001' ? 1.0 : 0.0 );
+		return( variables[subfunction_index] == 1 ? 1.0 : 0.0 );
 	else
-		return( variables[subfunction_index] == '\001' ? 0.0 : 1.0 );
+		return( variables[subfunction_index] == 1 ? 0.0 : 1.0 );
 
     
 }
 
-double oneMaxSphere_t::discrete_subfunction(int subfunction_index, vec_t<char> &variables)
+double oneMaxSphere_t::discrete_subfunction(int subfunction_index, vec_t<int> &variables)
 {
     if(optimization_mode == opt_mode::MAX)
-		return( variables[subfunction_index] == '\001' ? 1.0 : 0.0 );
+		return( variables[subfunction_index] == 1 ? 1.0 : 0.0 );
 	else
-		return( variables[subfunction_index] == '\001' ? 0.0 : 1.0 );
+		return( variables[subfunction_index] == 1 ? 0.0 : 1.0 );
 }
 
 double oneMaxSphere_t::continuous_subfunction(int subfunction_index, vec_t<double> &c_variables)
@@ -61,7 +61,7 @@ double oneMaxSphere_t::continuous_subfunction(int subfunction_index, vec_t<doubl
     return c_variables[subfunction_index] * c_variables[subfunction_index];
 }
 
-void oneMaxSphere_t::evaluationFunction( solution_t<char> *solution )
+void oneMaxSphere_t::evaluationFunction( solution_t<int> *solution )
 {
     // solution = static_cast<solution_mixed*>(solution);
 	solution_mixed *solution_mix = static_cast<solution_mixed*>(solution);
@@ -168,7 +168,7 @@ void oneMaxSphere_t::evaluationFunction( solution_t<char> *solution )
 // 	this->number_of_evaluations += touched_subfunctions.size() / (double) this->getNumberOfSubfunctions();
 // }    
 
-double oneMaxSphere_t::objectiveFunction( int objective_index, solution_t<char> *solution )
+double oneMaxSphere_t::objectiveFunction( int objective_index, solution_t<int> *solution )
 {
     return objectiveFunction(objective_index,solution->fitness_buffers);
 }
@@ -178,7 +178,7 @@ double oneMaxSphere_t::objectiveFunction( int objective_index, vec_t<double> &fi
     return fitness_buffers[objective_index];
 }
 
-double oneMaxSphere_t::constraintFunction( solution_t<char> *solution )
+double oneMaxSphere_t::constraintFunction( solution_t<int> *solution )
 {
     return 0.0;
 }

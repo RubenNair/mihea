@@ -102,7 +102,12 @@ void simpleGAMBIT::run()
             writePopulationToFile(config->folder, currGAMBIT->population, "initial population --------", config->logDebugInformation);
             writeMessageToLogFile(config->folder, countBuildingBlocks(currGAMBIT->population, 5), config->logDebugInformation);
 
-            cout << "[DEBUGGING] GEN: " << gen++ << "\t(probInst) Elitist Fitness: " << currGAMBIT->problemInstance->elitist_objective_value << "\t(sharedInfoPointer) Elitist Fitness: " << currGAMBIT->sharedInformationPointer->elitistFitness  << "\tcurrGAMBIT popsize: " << currGAMBIT->populationSize << endl;
+            cout << "[DEBUGGING] GEN: " << gen++ << "\t(probInst) Elitist Fitness: " << currGAMBIT->problemInstance->elitist_objective_value << "\t(sharedInfoPointer) Elitist Fitness: " << currGAMBIT->sharedInformationPointer->elitistFitness  << "\tcurrGAMBIT popsize: " << currGAMBIT->populationSize << "\telitist discrete variables: ";
+            for(int i = 0; i < currGAMBIT->problemInstance->number_of_variables; ++i)
+            {
+                cout << currGAMBIT->sharedInformationPointer->elitist.variables[i];
+            }
+            cout << endl;
             // gomeaIMSInstance->currGAMBIT = currGAMBIT;
             // gomeaIMSInstance->GAMBITs = GAMBITs;
 
@@ -172,7 +177,9 @@ void simpleGAMBIT::run()
 
             // Check if discrete population has converged to a solution that is not the optimum. If so, terminate that GAMBIT.
             // NOTE: this assumes that for every problem, the optimum has all discrete variables set to 1.
-            currGAMBIT->checkDiscretePopulationConvergedNotOptimal();
+            // That is not the case for BN problems, for example. Therefore, don't perform this check for BN problems.
+            if(!config->useBN)
+                currGAMBIT->checkDiscretePopulationConvergedNotOptimal();
             // if(gen >= 5)
             // {
             //     cout << "[DEBUGGING] SETTING WHOLE DISCRETE POPULATION TO 1!" << endl;
@@ -181,7 +188,7 @@ void simpleGAMBIT::run()
             //     {
             //         for(int j = 0; j < config->numberOfdVariables; j++)
             //         {
-            //             currGAMBIT->population[i]->variables[j] = '\001';
+            //             currGAMBIT->population[i]->variables[j] = 1;
             //         }
             //     }
             //     currGAMBIT->evaluateAllSolutionsInPopulation();
@@ -203,7 +210,7 @@ void simpleGAMBIT::run()
 
         }
         cout << "[EXIT] termination / max number of generations reached." << endl;
-        solution_t<char> *elitist_disc_solution = &GAMBITs[currentGAMBITIndex]->sharedInformationPointer->elitist;
+        solution_t<int> *elitist_disc_solution = &GAMBITs[currentGAMBITIndex]->sharedInformationPointer->elitist;
         writeStatisticsToFile(config->folder, GAMBITs[currentGAMBITIndex]->sharedInformationPointer->elitistSolutionHittingTimeEvaluations, GAMBITs[currentGAMBITIndex]->sharedInformationPointer->elitistSolutionHittingTimeMilliseconds, elitist_disc_solution, GAMBITs[currentGAMBITIndex]->populationSize);
     }
     catch( utils::customException const& )

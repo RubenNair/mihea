@@ -6,7 +6,7 @@ namespace fitness{
 
 using namespace gomea;
 
-DT5BlockFullRotEllipWrongExponent_t::DT5BlockFullRotEllipWrongExponent_t( int number_of_variables, int number_of_c_variables, double a ) : GBOFitnessFunction_t<char>(number_of_variables)
+DT5BlockFullRotEllipWrongExponent_t::DT5BlockFullRotEllipWrongExponent_t( int number_of_variables, int number_of_c_variables, double a ) : GBOFitnessFunction_t<int>(number_of_variables)
 {
 	this->name = "F5: DeceptiveTrap5-BlockRotatedEllipse function (with cross-domain dependencies)";
     this->number_of_c_variables = number_of_c_variables;
@@ -51,22 +51,22 @@ vec_t<int> DT5BlockFullRotEllipWrongExponent_t::inputsToSubfunction( int subfunc
 }
 
 		
-double DT5BlockFullRotEllipWrongExponent_t::subfunction( int subfunction_index, vec_t<char> &variables )
+double DT5BlockFullRotEllipWrongExponent_t::subfunction( int subfunction_index, vec_t<int> &variables )
 {
 	if(optimization_mode == opt_mode::MAX)
-		return( variables[subfunction_index] == '\001' ? 1.0 : 0.0 );
+		return( variables[subfunction_index] == 1 ? 1.0 : 0.0 );
 	else
-		return( variables[subfunction_index] == '\001' ? 0.0 : 1.0 );
+		return( variables[subfunction_index] == 1 ? 0.0 : 1.0 );
 
     
 }
 
 // Assuming subfunction_index is referring to the group of 5 variables for DT5
-double DT5BlockFullRotEllipWrongExponent_t::discrete_subfunction(int subfunction_index, vec_t<char> &variables)
+double DT5BlockFullRotEllipWrongExponent_t::discrete_subfunction(int subfunction_index, vec_t<int> &variables)
 {
 	int sum = 0;
 	for(int i = 0; i < k; i++) {
-		sum += variables[(subfunction_index*k) + i] == '\001' ? 1 : 0;
+		sum += variables[(subfunction_index*k) + i] == 1 ? 1 : 0;
 	}
 
     if(optimization_mode == opt_mode::MAX)
@@ -75,12 +75,12 @@ double DT5BlockFullRotEllipWrongExponent_t::discrete_subfunction(int subfunction
 		return( sum == k ? 0.0 : 1 - ((k-1 - sum) / (double)k) );
 }
 
-double DT5BlockFullRotEllipWrongExponent_t::continuous_subfunction(int subfunction_index, vec_t<char> &variables, vec_t<double> &c_variables)
+double DT5BlockFullRotEllipWrongExponent_t::continuous_subfunction(int subfunction_index, vec_t<int> &variables, vec_t<double> &c_variables)
 {
 	// Convert k discrete (binary) variables to a decimal value to index the ellipsoid centres
     int decimal_value = 0;
     for(int i = 0; i < k; i++) {
-        decimal_value += variables[(subfunction_index*k) + i] == '\001' ? pow(2, k-1-i) : 0;
+        decimal_value += variables[(subfunction_index*k) + i] == 1 ? pow(2, k-1-i) : 0;
     }
     vec_t<double> ellipsoid_centre = ellipsoid_centres[decimal_value];
 
@@ -91,7 +91,7 @@ double DT5BlockFullRotEllipWrongExponent_t::continuous_subfunction(int subfuncti
     return res;
 }
 
-void DT5BlockFullRotEllipWrongExponent_t::evaluationFunction( solution_t<char> *solution )
+void DT5BlockFullRotEllipWrongExponent_t::evaluationFunction( solution_t<int> *solution )
 {
     // solution = static_cast<solution_mixed*>(solution);
 	solution_mixed *solution_mix = static_cast<solution_mixed*>(solution);
@@ -131,12 +131,12 @@ void DT5BlockFullRotEllipWrongExponent_t::evaluationFunction( solution_t<char> *
 	this->number_of_evaluations++;
 }
 
-// void oneMaxSphere_t::partialEvaluationFunction( solution_t<char> *parent, partial_solution_t<char> *solution)
+// void oneMaxSphere_t::partialEvaluationFunction( solution_t<int> *parent, partial_solution_t<int> *solution)
 // {
 //     evaluatePartialSolution(parent, solution);
 // }
 
-// void oneMaxSphere_t::evaluatePartialSolution( solution_t<char> *parent, partial_solution_t<char> *solution)
+// void oneMaxSphere_t::evaluatePartialSolution( solution_t<int> *parent, partial_solution_t<int> *solution)
 // {
 //     parent = static_cast<solution_mixed*>(parent);
 //     solution_mixed *full_parent = static_cast<solution_mixed*>(parent);
@@ -204,7 +204,7 @@ void DT5BlockFullRotEllipWrongExponent_t::evaluationFunction( solution_t<char> *
 // 	this->number_of_evaluations += touched_subfunctions.size() / (double) this->getNumberOfSubfunctions();
 // }    
 
-double DT5BlockFullRotEllipWrongExponent_t::objectiveFunction( int objective_index, solution_t<char> *solution )
+double DT5BlockFullRotEllipWrongExponent_t::objectiveFunction( int objective_index, solution_t<int> *solution )
 {
     return objectiveFunction(objective_index,solution->fitness_buffers);
 }
@@ -214,7 +214,7 @@ double DT5BlockFullRotEllipWrongExponent_t::objectiveFunction( int objective_ind
     return fitness_buffers[objective_index];
 }
 
-double DT5BlockFullRotEllipWrongExponent_t::constraintFunction( solution_t<char> *solution )
+double DT5BlockFullRotEllipWrongExponent_t::constraintFunction( solution_t<int> *solution )
 {
     return 0.0;
 }

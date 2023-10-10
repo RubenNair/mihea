@@ -1,3 +1,5 @@
+// WIP: This is a copy of the DT5Sphere_t class. It is not yet fully adapted to the BN case.
+
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-= Section Includes -=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 #include "gomea/src/fitness/benchmarks-mixed.hpp"
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
@@ -6,112 +8,95 @@ namespace fitness{
 
 using namespace gomea;
 
-DT5Sphere_t::DT5Sphere_t( int number_of_variables, int number_of_c_variables ) : GBOFitnessFunction_t<int>(number_of_variables)
+BNStructureLearning::BNStructureLearning( int number_of_variables, int number_of_c_variables, int problem_index, const shared_ptr<DataStructure<double>> &data, size_t max_number_of_parents, size_t max_number_of_discretizations) : GBOFitnessFunction_t<int>(number_of_variables)
 {
-	this->name = "F3: DeceptiveTrap5-Sphere function";
+	this->name = "Bayesian Network structure learning using density to calculate fitness";
     this->number_of_c_variables = number_of_c_variables;
-	this->vtr = 10e-10;
-	this->use_vtr = true;
-	this->optimization_mode = opt_mode::MIN;
+	this->vtr = 1e308;
+	this->use_vtr = false;
+	this->optimization_mode = opt_mode::MIN; // Since minimization is hardcoded in some spots, easiest way right now is to negate fitness and still minimize. (In original code, maximization)
 	this->initialize();
+	// TODO: initialize density here -> will need more / different parameters to this constructor to do so.
+	this->density = new Density(problem_index, name, data, max_number_of_parents, max_number_of_discretizations);
 }
 
-double DT5Sphere_t::getLowerRangeBound( int dimension )
+double BNStructureLearning::getLowerRangeBound( int dimension )
 {
-	return( -1e308 );
+	return( 0 );
 }
 		
-double DT5Sphere_t::getUpperRangeBound( int dimension )
+double BNStructureLearning::getUpperRangeBound( int dimension )
 {
-	return( 1e308 );
+	return( 0.99 );
 }
 		
-int DT5Sphere_t::getNumberOfSubfunctions()
+int BNStructureLearning::getNumberOfSubfunctions()
 {
 	return number_of_variables;
 }
 		
-vec_t<int> DT5Sphere_t::inputsToSubfunction( int subfunction_index )
+vec_t<int> BNStructureLearning::inputsToSubfunction( int subfunction_index )
 {
 	vec_t<int> vec;
 	vec.push_back(subfunction_index);
 	return vec;
 }
 		
-double DT5Sphere_t::subfunction( int subfunction_index, vec_t<int> &variables )
+double BNStructureLearning::subfunction( int subfunction_index, vec_t<int> &variables )
 {
-	if(optimization_mode == opt_mode::MAX)
-		return( variables[subfunction_index] == 1 ? 1.0 : 0.0 );
-	else
-		return( variables[subfunction_index] == 1 ? 0.0 : 1.0 );
-
-    
+	cout << "ERROR: subfunction() should not be called for BN structure learning." << endl;
+	return -1;    
 }
 
-double DT5Sphere_t::discrete_subfunction(int subfunction_index, vec_t<int> &variables)
+double BNStructureLearning::discrete_subfunction(int subfunction_index, vec_t<int> &variables)
 {
-    int sum = 0;
-	for(int i = 0; i < 5; i++) {
-		sum += variables[(subfunction_index*5) + i] == 1 ? 1 : 0;
-	}
-
-    if(optimization_mode == opt_mode::MAX)
-		return( sum == 5 ? 1.0 : (4 - sum) / 5.0 );
-	else
-		return( sum == 5 ? 0.0 : 1 - ((4 - sum) / 5.0) );
+    cout << "ERROR: discrete_subfunction() should not be called for BN structure learning." << endl;
+	return -1;
 }
 
-double DT5Sphere_t::continuous_subfunction(int subfunction_index, vec_t<double> &c_variables)
+double BNStructureLearning::continuous_subfunction(int subfunction_index, vec_t<double> &c_variables)
 {
-    return c_variables[subfunction_index] * c_variables[subfunction_index];
+    cout << "ERROR: continuous_subfunction() should not be called for BN structure learning." << endl;
+	return -1;
 }
 
-void DT5Sphere_t::evaluationFunction( solution_t<int> *solution )
+void BNStructureLearning::evaluationFunction( solution_t<int> *solution )
 {
-    // solution = static_cast<solution_mixed*>(solution);
-	solution_mixed *solution_mix = static_cast<solution_mixed*>(solution);
-	// solution_m->getNumberOfCVariables();
-    solution_mix->initFitnessBuffers(getNumberOfFitnessBuffers());
-	solution_mix->clearFitnessBuffers();
-	for( int i = 0; i < solution_mix->getNumberOfVariables() / 5; i++ )
-	{
-		int buffer_index = this->getIndexOfFitnessBuffer(i);
-		double fsub = discrete_subfunction(i, solution_mix->variables);
-		// TEST PURE DISCRETE: avoid floating point issues. Assuming differences in fitness value are at least 0.1.
-        if(solution_mix->getNumberOfCVariables() == 0)
-        {
-            fsub = round(fsub * 10);
-        }
-		solution_mix->addToFitnessBuffer(buffer_index, fsub);
-	}
+    // TODO: calculate fitness using density class. Probably need to cast the solution to solution_so type.
+	solution_BN *casted_solution = dynamic_cast<solution_BN *>(solution);
+	density->computeFitness(*casted_solution);
 
-    for( int i = 0; i < solution_mix->getNumberOfCVariables(); i++ )
-    {
-        int buffer_index = this->getIndexOfFitnessBuffer(i);
-        double fsub = continuous_subfunction(i, solution_mix->c_variables);
-        solution_mix->addToFitnessBuffer(buffer_index, fsub);
-    }
-
+	// Copy calculated fitness to fitness buffer so the rest of the code can handle it. 
+	casted_solution->initFitnessBuffers(getNumberOfFitnessBuffers());
+	casted_solution->clearFitnessBuffers();
+	// TODO for now assumed only single objective, but maybe weird way to write it like this.
 	for( int i = 0; i < this->number_of_objectives; i++ )
 	{
-		double ffitness = objectiveFunction( i, solution_mix );
-		solution_mix->setObjectiveValue(ffitness);
+		casted_solution->addToFitnessBuffer(i, casted_solution->getFitness());
+		double ffitness = objectiveFunction( i, casted_solution );
+		casted_solution->setObjectiveValue(ffitness);
 	}
 	double fcons = constraintFunction(solution);
-	solution_mix->setConstraintValue(fcons);
+	casted_solution->setConstraintValue(fcons);
 
 	this->full_number_of_evaluations++;
 	this->number_of_evaluations++;
+	// density->computeFitness(*solution);
+}
+
+const Density *BNStructureLearning::getDensity() const
+{
+	return this->density;
 }
 
 // template<class T>
-// void DT5Sphere_t::partialEvaluationFunction( solution_t<T> *parent, partial_solution_t<T> *solution)
+// void BNStructureLearning::partialEvaluationFunction( solution_t<T> *parent, partial_solution_t<T> *solution)
 // {
 //     evaluatePartialSolution(parent, solution);
 // }
 
 // template<class T>
-// void DT5Sphere_t::evaluatePartialSolution( solution_t<T> *parent, partial_solution_t<T> *solution)
+// void BNStructureLearning::evaluatePartialSolution( solution_t<T> *parent, partial_solution_t<T> *solution)
 // {
 //     parent = static_cast<solution_mixed*>(parent);
 //     solution->initFitnessBuffers(getNumberOfFitnessBuffers());
@@ -178,23 +163,23 @@ void DT5Sphere_t::evaluationFunction( solution_t<int> *solution )
 // 	this->number_of_evaluations += touched_subfunctions.size() / (double) this->getNumberOfSubfunctions();
 // }    
 
-double DT5Sphere_t::objectiveFunction( int objective_index, solution_t<int> *solution )
+double BNStructureLearning::objectiveFunction( int objective_index, solution_t<int> *solution )
 {
     return objectiveFunction(objective_index,solution->fitness_buffers);
 }
 
-double DT5Sphere_t::objectiveFunction( int objective_index, vec_t<double> &fitness_buffers )
+double BNStructureLearning::objectiveFunction( int objective_index, vec_t<double> &fitness_buffers )
 {
     return fitness_buffers[objective_index];
 }
 
-double DT5Sphere_t::constraintFunction( solution_t<int> *solution )
+double BNStructureLearning::constraintFunction( solution_t<int> *solution )
 {
     return 0.0;
 }
 
 // template<class T>
-// void DT5Sphere_t::evaluatePartialSolutionBlackBox(solution_t<T> *parent, partial_solution_t<T> *solution)
+// void BNStructureLearning::evaluatePartialSolutionBlackBox(solution_t<T> *parent, partial_solution_t<T> *solution)
 // {
 //     evaluatePartialSolution(parent, solution);
 // }

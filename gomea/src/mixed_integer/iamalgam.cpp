@@ -3,6 +3,9 @@ using namespace std;
 
 #include "gomea/src/mixed_integer/iamalgam.hpp"
 
+#include "gomea/src/common/solution_BN.hpp"
+#include "gomea/src/fitness/benchmarks-mixed.hpp"
+
 namespace gomea{
 namespace mixedinteger{
 
@@ -68,13 +71,25 @@ void iamalgam::initializeMemory() {
   selections.resize(selection_size);
   for(int i = 0; i < selection_size; i++) 
   {
-    selections[i] = new solution_mixed(config->numberOfVariables, config->alphabetSize, config->numberOfcVariables, problemInstance);
-    selections[i]->randomInit(&gomea::utils::rng);
-    selections[i]->initObjectiveValues(problemInstance->number_of_objectives);
-    if(population[0]->fitness_buffers.size() > 0)
-    {
-      selections[i]->initFitnessBuffers(problemInstance->number_of_objectives);
+    if(config->useBN) {
+      // If useBN flag is true, assume we're dealing with BNs. Static cast problemInstance to BNStructureLearning
+      fitness::BNStructureLearning *BNproblemInstance = dynamic_cast<fitness::BNStructureLearning*>(problemInstance);
+
+      vec_t<double> maxValuesData, minValuesData;
+      vec_t<vec_t<double>> data = config->data->getDataMatrix().getRawMatrix();
+      std::tie(maxValuesData, minValuesData) = findMaxAndMinValuesInData(data);
+
+      selections[i] = new solution_BN(config->numberOfVariables, config->alphabetSize, config->numberOfcVariables, config->data->getColumnType(), BNproblemInstance->getDensity()->getOriginalData()->getColumnNumberOfClasses(), config->discretization_policy_index, config->maxParents, config->maxInstantiations, problemInstance, maxValuesData, minValuesData);
+      selections[i]->initObjectiveValues(problemInstance->number_of_objectives);
+    } else {
+      selections[i] = new solution_mixed(config->numberOfVariables, config->alphabetSize, config->numberOfcVariables, problemInstance);
+      selections[i]->randomInit(&gomea::utils::rng);
+      selections[i]->initObjectiveValues(problemInstance->number_of_objectives);
     }
+    if(population[0]->fitness_buffers.size() > 0)
+      {
+        selections[i]->initFitnessBuffers(problemInstance->number_of_objectives);
+      }
   }
 
   // objective_values_selections      = (double **) malloc( number_of_populations*sizeof( double * ) );
@@ -422,7 +437,10 @@ void iamalgam::makeSelectionsForOnePopulation(int population_index)
       // constraint_values_selections[population_index][i] = constraint_values[population_index][sorted[i]];
       // for( j = 0; j < number_of_parameters; j++ )
         //selections[i] = population[sorted[i]];
-        selections[i]->insertSolution(population[sorted[i]]);
+
+        // selections[i]->insertSolution(population[sorted[i]]);
+        delete selections[i];
+        selections[i] = population[sorted[i]]->clone();
     }
   }
   
@@ -515,7 +533,10 @@ void iamalgam::makeSelectionsForOnePopulationUsingDiversityOnRank0(int populatio
     // objective_values_selections[population_index][i]  = objective_values[population_index][selection_indices[i]];
     // constraint_values_selections[population_index][i] = constraint_values[population_index][selection_indices[i]];
     // selections[i] = population[selection_indices[i]];
-    selections[i]->insertSolution(population[selection_indices[i]]);
+
+    // selections[i]->insertSolution(population[selection_indices[i]]);
+    delete selections[i];
+    selections[i] = population[selection_indices[i]]->clone();
   }
 
   free( nn_distances );
@@ -767,7 +788,10 @@ void iamalgam::copyBestSolutionsToPopulations()
       // population[0]->setConstraintValue(selections[0]->getConstraintValue()); 
 
 
-      population[0]->insertSolution(selections[0]);
+      // population[0]->insertSolution(selections[0]);
+      delete population[0];
+      population[0] = selections[0]->clone();
+
       // RUBEN testing a swap that sets best in selections to front of population, instead of just inserting selections[0] into population[0]
       // solution_mixed *temp = population[0];
       //population[0] = selections[0];
@@ -829,6 +853,13 @@ void iamalgam::generateAndEvaluateNewSolutionsToFillPopulations()
         //   populations[i][j][k] = solution[k];
         for( k = 0; k < number_of_parameters; k++ )
           population[j]->c_variables[k] = solution[k];
+
+        // If we are dealing with a BN, then update the boundaries after changing c_variables
+        if(config->useBN)
+        {
+          solution_BN *casted_sol = dynamic_cast<solution_BN*>(population[j]);
+          casted_sol->updateBoundaries();
+        }
   
         if( (number_of_generations > 0) && (q < number_of_AMS_solutions) )
         {

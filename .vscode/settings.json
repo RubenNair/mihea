@@ -20,7 +20,18 @@
         "array": "cpp",
         "initializer_list": "cpp",
         "utility": "cpp",
-        "stdexcept": "cpp"
+        "stdexcept": "cpp",
+        "chrono": "cpp",
+        "algorithm": "cpp",
+        "limits": "cpp",
+        "optional": "cpp",
+        "istream": "cpp",
+        "ratio": "cpp",
+        "system_error": "cpp",
+        "functional": "cpp",
+        "tuple": "cpp",
+        "type_traits": "cpp",
+        "variant": "cpp"
     },
     "[python]": {
         "editor.defaultFormatter": "ms-python.black-formatter"

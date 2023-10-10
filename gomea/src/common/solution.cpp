@@ -15,6 +15,23 @@ solution_t<char>::solution_t(size_t numberOfVariables_, size_t alphabetSize_) : 
 	fill(variables.begin(), variables.end(), 0);
 }
 
+template<>
+solution_t<int>::solution_t(size_t numberOfVariables_, size_t alphabetSize_) : solution_t(numberOfVariables_)
+{
+	this->alphabetSize = alphabetSize_;
+	fill(variables.begin(), variables.end(), 0);
+}
+
+/*template<class T>
+solution_t<T>::solution_t(vec_t<T> variables, vec_t<double> fitness_buffers, vec_t<double> objective_values, double constraint_value, size_t alphabetSize) : 
+		variables(variables), fitness_buffers(fitness_buffers), objective_values(objective_values), constraint_value(constraint_value), alphabetSize(alphabetSize) {}
+*/
+
+template<class T>
+solution_t<T>::solution_t( const solution_t<T> &other ) : 
+		variables(other.variables), fitness_buffers(other.fitness_buffers), objective_values(other.objective_values), constraint_value(other.constraint_value), alphabetSize(other.alphabetSize) {}
+
+
 /*template<class T>
 std::ostream & operator << (std::ostream &out, const solution_t<T> &individual)
 {
@@ -92,6 +109,12 @@ size_t solution_t<T>::getAlphabetSize()
 
 template<>
 size_t solution_t<char>::getAlphabetSize()
+{
+	return alphabetSize;
+}
+
+template<>
+size_t solution_t<int>::getAlphabetSize()
 {
 	return alphabetSize;
 }

@@ -68,7 +68,7 @@ void initLogFile(string &folder)
     outFile.close();
 }
 
-void writeStatisticsToFile(string &folder, long long numberOfEvaluations, long long time, solution_t<char> *solution, size_t populationSize, bool vtrHit)
+void writeStatisticsToFile(string &folder, long long numberOfEvaluations, long long time, solution_t<int> *solution, size_t populationSize, bool vtrHit)
 {
     ofstream outFile(folder + "/statistics.txt", ofstream::app);
     if (outFile.fail())
@@ -191,7 +191,7 @@ bool allBuildingBlocksStillExist(vec_t<solution_mixed*> population, int k)
         vec_t<int> blocks_to_remove;
         for(int block : blocks)
         {
-            if(population[i]->variables[block] == '\001')
+            if(population[i]->variables[block] == 1)
             {
                 blocks_to_remove.push_back(block);
             }
@@ -363,11 +363,11 @@ void writeMessageToLogFile(string &folder, string message, bool doLog)
     }
 }
 
-void solutionsArchive::checkAlreadyEvaluated(vector<char> &genotype, archiveRecord *result)
+void solutionsArchive::checkAlreadyEvaluated(vector<int> &genotype, archiveRecord *result)
 {
     result->isFound = false;
 
-    unordered_map<vector<char>, double, hashVector >::iterator it = archive.find(genotype);
+    unordered_map<vector<int>, double, hashVector >::iterator it = archive.find(genotype);
     if (it != archive.end())
     {
         result->isFound = true;
@@ -375,7 +375,7 @@ void solutionsArchive::checkAlreadyEvaluated(vector<char> &genotype, archiveReco
     }
 }
 
-void solutionsArchive::insertSolution(vector<char> &genotype, double fitness)
+void solutionsArchive::insertSolution(vector<int> &genotype, double fitness)
 {
     // #if DEBUG
     //  cout << "Inserting solution ";
@@ -384,7 +384,41 @@ void solutionsArchive::insertSolution(vector<char> &genotype, double fitness)
     // #endif
     if (archive.size() >= maxArchiveSize)
         return;
-    archive.insert(pair<vector<char>, double> (genotype, fitness));
+    archive.insert(pair<vector<int>, double> (genotype, fitness));
+}
+
+/**
+ * Calculates the number of links/archs based in the network
+ * @param number_of_nodes The number of nodes (including Continuous and Discrete nodes)
+ * @return The total number of links in the network
+ */
+size_t calculateNumberOfLinks(size_t number_of_nodes) {
+    // Determine the number of links/archs
+    size_t numberOfArchs = 0;
+    for (int i = 0; i < number_of_nodes; ++i) { numberOfArchs += (number_of_nodes - i - 1); }
+    return numberOfArchs;
+}
+
+/**
+ * Find the maximum and minimum values in a 2D array (data).
+ * @return A tuple containing the maximum and minimum values in the data.
+ */
+tuple<vec_t<double>, vec_t<double>> findMaxAndMinValuesInData(vec_t<vec_t<double>> &data) {
+    // Initialize the maximum and minimum values
+    vec_t<double> maxValues(data[0].size(), numeric_limits<double>::min());
+    vec_t<double> minValues(data[0].size(), numeric_limits<double>::max());
+
+    // Loop over the data
+    for (const vec_t<double> &dataPoint : data) {
+        // Loop over the data point
+        for (size_t i = 0; i < dataPoint.size(); ++i) {
+            // Update the maximum and minimum values
+            maxValues[i] = max(maxValues[i], dataPoint[i]);
+            minValues[i] = min(minValues[i], dataPoint[i]);
+        }
+    }
+
+    return make_tuple(maxValues, minValues);
 }
 
 

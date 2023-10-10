@@ -1,5 +1,9 @@
 #include "gomea/src/mixed_integer/Config.hpp"
 
+#include "gomea/src/fitness/benchmarks-discrete.hpp"
+#include "gomea/src/fitness/benchmarks-mixed.hpp"
+#include "gomea/src/fitness/so_benchmarks.h"
+
 namespace gomea{
 namespace mixedinteger{
 
@@ -35,10 +39,10 @@ fitness_t *Config::getFitnessClassDiscrete( int problem_index, int number_of_var
 {
 	switch(problem_index) 
 	{
-		case 00: 
-		return new gomea::fitness::oneMax_t(number_of_variables);
-        case 10:
-        return new gomea::fitness::deceptiveTrap_t(number_of_variables, k);
+		// case 00: 
+		// return new gomea::fitness::oneMax_t(number_of_variables);
+        // case 10:
+        // return new gomea::fitness::deceptiveTrap_t(number_of_variables, k);
         case 1:
         return new gomea::fitness::oneMaxSphere_t(number_of_variables, numberOfcVariables);
         case 2:
@@ -57,12 +61,14 @@ fitness_t *Config::getFitnessClassDiscrete( int problem_index, int number_of_var
         return new gomea::fitness::DT5BlockNOTRotEllip_t(number_of_variables, numberOfcVariables, a_value);
         case 551:
         return new gomea::fitness::DT5BlockNOTRotEllipWrongExponent_t(number_of_variables, numberOfcVariables, a_value);
-        case 555:
-        return new gomea::fitness::DT5BlockRotEllipBBO_t(number_of_variables, numberOfcVariables, a_value);
+        // case 555:
+        // return new gomea::fitness::DT5BlockRotEllipBBO_t(number_of_variables, numberOfcVariables, a_value);
+        case 1000 ... 1099:
+        return new gomea::fitness::BNStructureLearning(numberOfdVariables, numberOfcVariables, problem_index, data, maxParents, maxDiscretizations);
 		default:
 		return NULL;
 	}
-	return new gomea::fitness::oneMax_t(number_of_variables);
+	return new gomea::fitness::oneMaxSphere_t(number_of_variables, numberOfcVariables);
 }
 
 bool Config::parseCommandLine(int argc, char **argv)
@@ -273,10 +279,28 @@ bool Config::parseCommandLine(int argc, char **argv)
     if(linkage_config == NULL) {
         linkage_config = new linkage_config_t();
     }
+
+    // If problem instance path is passed (and problem index over 1000), we're dealing with a Bayesian Network problem. Update config parameters and parse input data.
+    if(problemInstancePath != "" && problemIndex >= 1000) {
+        this->useBN = true;
+        this->alphabetSize = 3; // Discrete variables in solution can be 0, 1 or 2 (A<-/->B, A-->B, A<--B respectively)
+        this->maxDiscretizations = 9; // Maximum number of discretizations for continuous variables. Hardcoded for now.
+
+        // Parse input data (BN structure and data)
+        this->data = initializeDataFromPath(true, problemInstancePath, 0);
+        // determine number of d_variables / c_variables based on data + maxDiscretizations
+        int numNodes = data->getNumberOfDataColumns();
+        this->numberOfdVariables = ((numNodes-1)*numNodes) / 2;
+        this->numberOfVariables = this->numberOfdVariables;
+        this->numberOfcVariables = data->getNumberOfContinuousVariables() * maxDiscretizations;
+    }
+
     fitness = getFitnessClassDiscrete(problemIndex, numberOfVariables);
+
+    
+
     // Override vtr if it was given as command line parameter
     fitness->vtr = this->vtr != 1e+308 ? this->vtr : fitness->vtr; 
-    
 
   return 1;
 }

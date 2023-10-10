@@ -18,7 +18,7 @@ using namespace std;
 namespace gomea{
 namespace discrete{
 
-typedef gomea::fitness::fitness_t<char> fitness_t;
+typedef gomea::fitness::fitness_t<int> fitness_t;
 
 class Config
 {

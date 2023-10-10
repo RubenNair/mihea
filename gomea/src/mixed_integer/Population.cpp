@@ -25,11 +25,11 @@ namespace gomea{namespace mixedinteger{
 //         {
 //             noImprovementStretches[i] = 0;
 
-//             dPopulation[i] = new solution_t<char>(problemInstance->number_of_variables, config->alphabetSize);
+//             dPopulation[i] = new solution_t<int>(problemInstance->number_of_variables, config->alphabetSize);
 //             dPopulation[i]->randomInit(&gomea::utils::rng);
 //             problemInstance->evaluate(dPopulation[i]);
             
-//             offspringdPopulation[i] = new solution_t<char>(problemInstance->number_of_variables, config->alphabetSize);
+//             offspringdPopulation[i] = new solution_t<int>(problemInstance->number_of_variables, config->alphabetSize);
 //             *offspringdPopulation[i] = *dPopulation[i];
 //         }
 			
@@ -71,16 +71,41 @@ Population::Population(Config *config_, fitness_t *problemInstance_, sharedInfor
         for (size_t i = 0; i < populationSize; ++i)
         {
             noImprovementStretches[i] = 0;
+            if(config->useBN) 
+            {
+                // If useBN flag is true, assume we're dealing with BNs. Static cast problemInstance to BNStructureLearning
+                fitness::BNStructureLearning *BNproblemInstance = dynamic_cast<fitness::BNStructureLearning*>(problemInstance);
+                
+                if (BNproblemInstance == nullptr) {
+                    throw std::runtime_error("Failed to cast problemInstance to BNStructureLearning");
+                }
 
-            population[i] = new solution_mixed(config->numberOfVariables, config->alphabetSize, config->numberOfcVariables, problemInstance); // TODO RUBEN: now just assumes amount of d and c variables is equal, getting real number of c variables depends on how fitness_t is handled
-            population[i]->randomInit(&gomea::utils::rng);
-            problemInstance->evaluate(population[i]);
-            // updateElitistAndCheckVTR(population[i]); // TODO RUBEN I think this can be removed, since this call is made at the start of learnDiscreteModel (after calculating average fitness)
+                vec_t<double> maxValuesData, minValuesData;
+                vec_t<vec_t<double>> data = config->data->getDataMatrix().getRawMatrix();
+                std::tie(maxValuesData, minValuesData) = findMaxAndMinValuesInData(data);
+
+                population[i] = new solution_BN(config->numberOfVariables, config->alphabetSize, config->numberOfcVariables, config->data->getColumnType(), BNproblemInstance->getDensity()->getOriginalData()->getColumnNumberOfClasses(), config->discretization_policy_index, config->maxParents, config->maxInstantiations, BNproblemInstance, maxValuesData, minValuesData);
+
+                problemInstance->evaluate(population[i]);
+
+                // Set offspringPopulation[i] to a new solution_BN, just to initialize the necesarry memory.
+                offspringPopulation[i] = new solution_BN(config->numberOfVariables, config->alphabetSize, config->numberOfcVariables, config->data->getColumnType(), BNproblemInstance->getDensity()->getOriginalData()->getColumnNumberOfClasses(), config->discretization_policy_index, config->maxParents, config->maxInstantiations, BNproblemInstance, maxValuesData, minValuesData);
+                *offspringPopulation[i] = *population[i];
+                // offspringPopulation[i] = population[i]->clone();
+            } else
+            {
+                population[i] = new solution_mixed(config->numberOfVariables, config->alphabetSize, config->numberOfcVariables, problemInstance);
+                population[i]->randomInit(&gomea::utils::rng);
+
+                problemInstance->evaluate(population[i]);
+                // updateElitistAndCheckVTR(population[i]); // TODO RUBEN I think this can be removed, since this call is made at the start of learnDiscreteModel (after calculating average fitness)
+                
+                // problemInstance->evaluate(dPopulation[i]); // RUBEN TODO maybe doesn't work like this anymore, depends on how fitness_t is handled
+                
+                offspringPopulation[i] = new solution_mixed(config->numberOfVariables, config->alphabetSize, config->numberOfcVariables, problemInstance);
+                *offspringPopulation[i] = *population[i];
+            }
             
-            // problemInstance->evaluate(dPopulation[i]); // RUBEN TODO maybe doesn't work like this anymore, depends on how fitness_t is handled
-            
-            offspringPopulation[i] = new solution_mixed(config->numberOfVariables, config->alphabetSize, config->numberOfcVariables, problemInstance);
-            *offspringPopulation[i] = *population[i];
         }
 			
 		if( config->linkage_config != NULL && config->numberOfVariables > 0 )
@@ -226,7 +251,11 @@ void Population::copyOffspringToPopulation()
     for(size_t i = 0; i < populationSize; i++)
     {
         // *population[i] = *offspringPopulation[i];
-        population[i]->insertSolution(offspringPopulation[i]);
+        
+        // population[i]->insertSolution(offspringPopulation[i]);
+        delete population[i];
+        population[i] = offspringPopulation[i]->clone();
+
     }
     // *population[0] = sharedInformationPointer->elitist;
 }
@@ -236,7 +265,10 @@ void Population::copyPopulationToOffspring()
     for(size_t i = 0; i < populationSize; i++)
     {
         // *population[i] = *offspringPopulation[i];
-        offspringPopulation[i]->insertSolution(population[i]);
+        
+        // offspringPopulation[i]->insertSolution(population[i]);
+        delete offspringPopulation[i];
+        offspringPopulation[i] = population[i]->clone();
     }
     // *population[0] = sharedInformationPointer->elitist;
 }
@@ -262,10 +294,10 @@ void Population::makeOffspring()
         else
         {
             // TODO RUBEN figure out if this is a valid solution to the problem of matching the function argument of learnLinkageTreeFOS
-            vec_t<solution_t<char>*> casted_population;
+            vec_t<solution_t<int>*> casted_population;
             for(solution_mixed* sol : population) 
             {
-                casted_population.push_back(static_cast<solution_t<char>*>(sol));
+                casted_population.push_back(static_cast<solution_t<int>*>(sol));
             }
 
             FOSInstance->learnLinkageTreeFOS(casted_population, config->alphabetSize );
@@ -312,10 +344,10 @@ void Population::learnDiscreteModel()
         else
         {
             // TODO RUBEN figure out if this is a valid solution to the problem of matching the function argument of learnLinkageTreeFOS
-            vec_t<solution_t<char>*> casted_population;
+            vec_t<solution_t<int>*> casted_population;
             for(solution_mixed* sol : population) 
             {
-                casted_population.push_back(static_cast<solution_t<char>*>(sol));
+                casted_population.push_back(static_cast<solution_t<int>*>(sol));
             }
 
             FOSInstance->learnLinkageTreeFOS(casted_population, config->alphabetSize );
@@ -488,7 +520,7 @@ bool Population::GOM(size_t offspringIndex)
             if (donorIndex == offspringIndex)
                 continue;
 
-            vec_t<char> donorGenes;
+            vec_t<int> donorGenes;
             for(size_t j = 0; j < FOSInstance->elementSize(ind); j++)
             {
                 int variableFromFOS = FOSInstance->FOSStructure[ind][j];
@@ -497,7 +529,7 @@ bool Population::GOM(size_t offspringIndex)
                 if (donorGenes[variableFromFOS] != offspringPopulation[offspringIndex]->variables[variableFromFOS]) // RUBEN: shouldn't donorGenes[j] be donorGenes[variableFromFOS]? -> Made this change myself
                     donorEqualToOffspring = false;
             }
-            partial_solution_t<char> *partial_offspring = new partial_solution_t<char>(donorGenes, FOSInstance->FOSStructure[ind]);
+            partial_solution_t<int> *partial_offspring = new partial_solution_t<int>(donorGenes, FOSInstance->FOSStructure[ind]);
 
             if (!donorEqualToOffspring)
             {
@@ -561,7 +593,7 @@ bool Population::GOMSingleFOS(size_t offspringIndex, size_t FOSIndex)
         if (donorIndex == offspringIndex)
             continue;
 
-        vec_t<char> donorGenes = vec_t<char>(offspringPopulation[offspringIndex]->variables.size());
+        vec_t<int> donorGenes = vec_t<int>(offspringPopulation[offspringIndex]->variables.size());
         // First copy all original genes to donorGenes
         for(size_t i = 0; i < offspringPopulation[offspringIndex]->variables.size(); i++)
             donorGenes[i] = offspringPopulation[offspringIndex]->variables[i];
@@ -575,12 +607,21 @@ bool Population::GOMSingleFOS(size_t offspringIndex, size_t FOSIndex)
             if (donorGenes[variableFromFOS] != offspringPopulation[offspringIndex]->variables[variableFromFOS]) // RUBEN: shouldn't donorGenes[j] be donorGenes[variableFromFOS]? -> Made this change myself
                 donorEqualToOffspring = false;
         }
-        // partial_solution_t<char> *partial_offspring = new partial_solution_t<char>(donorGenes, FOSInstance->FOSStructure[ind]);
+        // partial_solution_t<int> *partial_offspring = new partial_solution_t<int>(donorGenes, FOSInstance->FOSStructure[ind]);
         
 
         if (!donorEqualToOffspring)
         {   
-            solution_mixed *offspring = new solution_mixed(donorGenes, offspringPopulation[offspringIndex]->c_variables);
+            solution_mixed *offspring;
+            if(config->useBN)
+            {
+                solution_BN *offspring_BN = dynamic_cast<solution_BN *>(offspringPopulation[offspringIndex])->clone();
+                offspring_BN->reProcessParametersSolution(donorGenes);
+                offspring = offspring_BN;
+            } else {
+                offspring = new solution_mixed(donorGenes, offspringPopulation[offspringIndex]->c_variables);
+            }
+            
             problemInstance->evaluate(offspring);
             //evaluateSolution(offspringPopulation[offspringIndex], backup, touchedGenes, backup->getObjectiveValue());
             //problemInstance->evaluatePartialSolution(offspringPopulation[offspringIndex], partial_offspring, FOSInstance->getDependentSubfunctions(ind) );
@@ -595,11 +636,17 @@ bool Population::GOMSingleFOS(size_t offspringIndex, size_t FOSIndex)
                 // offspringPopulation[offspringIndex]->insertPartialSolution(partial_offspring);
                 // offspringPopulation[offspringIndex]->variables[variableFromFOS] = population[donorIndex]->variables[variableFromFOS];
                 //*backup = *offspringPopulation[offspringIndex];
-                offspringPopulation[offspringIndex]->insertSolution(offspring);
-                // For GAMBIT_K, also update population with better individual (so it can also be chosen as donor)
-                if(config->dontUseOffspringPopulation)
-                    population[offspringIndex]->insertSolution(offspring);
+                
+                // offspringPopulation[offspringIndex]->insertSolution(offspring);
+                delete offspringPopulation[offspringIndex];
+                offspringPopulation[offspringIndex] = offspring->clone();
 
+                // For GAMBIT_K, also update population with better individual (so it can also be chosen as donor)
+                if(config->dontUseOffspringPopulation) {
+                    // population[offspringIndex]->insertSolution(offspring);
+                    delete population[offspringIndex];
+                    population[offspringIndex] = offspring->clone();
+                }
                 solutionHasChanged = true;
                 updateElitistAndCheckVTR(offspringPopulation[offspringIndex]);
 
@@ -625,7 +672,7 @@ bool Population::FI(size_t offspringIndex)
     for (size_t i = 0; i < FOSInstance->size(); i++)
     {
         int ind = FOSInstance->FOSorder[i];
-        vec_t<char> touchedGenes = vec_t<char>(FOSInstance->elementSize(ind));
+        vec_t<int> touchedGenes = vec_t<int>(FOSInstance->elementSize(ind));
         bool donorEqualToOffspring = true;
         for (size_t j = 0; j < FOSInstance->elementSize(ind); j++)
         {
@@ -634,7 +681,7 @@ bool Population::FI(size_t offspringIndex)
             if (population[offspringIndex]->variables[variableFromFOS] != touchedGenes[j])
                 donorEqualToOffspring = false;
         }
-        gomea::partial_solution_t<char> *partial_offspring = new gomea::partial_solution_t<char>(touchedGenes, FOSInstance->FOSStructure[ind]);
+        gomea::partial_solution_t<int> *partial_offspring = new gomea::partial_solution_t<int>(touchedGenes, FOSInstance->FOSStructure[ind]);
 
         if (!donorEqualToOffspring)
         {
@@ -665,10 +712,10 @@ bool Population::FISingleFOS(size_t offspringIndex, size_t FOSIndex)
     bool solutionHasChanged = 0;
 
     int ind = FOSInstance->FOSorder[FOSIndex];
-    // vec_t<char> touchedGenes = vec_t<char>(FOSInstance->elementSize(ind));
+    // vec_t<int> touchedGenes = vec_t<int>(FOSInstance->elementSize(ind));
     bool donorEqualToOffspring = true;
 
-    vec_t<char> touchedGenes = vec_t<char>(offspringPopulation[offspringIndex]->variables.size());
+    vec_t<int> touchedGenes = vec_t<int>(offspringPopulation[offspringIndex]->variables.size());
     // First copy all original genes to touchedGenes
     for(size_t i = 0; i < offspringPopulation[offspringIndex]->variables.size(); i++)
         touchedGenes[i] = offspringPopulation[offspringIndex]->variables[i];
@@ -680,7 +727,7 @@ bool Population::FISingleFOS(size_t offspringIndex, size_t FOSIndex)
         if (offspringPopulation[offspringIndex]->variables[variableFromFOS] != touchedGenes[variableFromFOS]) 
             donorEqualToOffspring = false;
     }
-    // gomea::partial_solution_t<char> *partial_offspring = new gomea::partial_solution_t<char>(touchedGenes, FOSInstance->FOSStructure[ind]);
+    // gomea::partial_solution_t<int> *partial_offspring = new gomea::partial_solution_t<int>(touchedGenes, FOSInstance->FOSStructure[ind]);
     solution_mixed *offspring = new solution_mixed(touchedGenes, offspringPopulation[offspringIndex]->c_variables);
 
     if (!donorEqualToOffspring)
@@ -707,7 +754,7 @@ bool Population::FISingleFOS(size_t offspringIndex, size_t FOSIndex)
     return solutionHasChanged;
 }
 
-/*void Population::evaluateSolution(solution_mixed *parent, gomea::partial_solution_t<char> *solution ) 
+/*void Population::evaluateSolution(solution_mixed *parent, gomea::partial_solution_t<int> *solution ) 
 {
     checkTimeLimit();
 

@@ -489,6 +489,27 @@ void linkage_model_t::learnLinkageTreeFOS(vec_t<solution_t<char>*> &population, 
 	learnLinkageTreeFOS(MI_matrix,false);
 }
 
+void linkage_model_t::learnLinkageTreeFOS(vec_t<solution_t<int>*> &population, size_t alphabetSize )
+{
+	vec_t<vec_t<double>> MI_matrix;
+
+    /* Compute Mutual Information matrix */
+	if (similarityMeasure == 0) // MI
+	{
+		MI_matrix = computeMIMatrix(population, alphabetSize);
+	}
+	else if (similarityMeasure == 1) // normalized MI
+	{
+		MI_matrix = computeNMIMatrix(population, alphabetSize);
+	}
+	else
+	{
+		throw std::runtime_error("Unknown similarity measure.\n");
+	}
+    
+	learnLinkageTreeFOS(MI_matrix,false);
+}
+
 void linkage_model_t::learnLinkageTreeFOS( vec_t<vec_t<double>> similarity_matrix, bool include_full_fos_element )
 {
 	assert( type == linkage::LINKAGE_TREE );
@@ -811,6 +832,62 @@ vec_t<vec_t<double>> linkage_model_t::computeMIMatrix( vec_t<solution_t<char>*> 
 	return( MI_Matrix );
 }
 
+vec_t<vec_t<double>> linkage_model_t::computeMIMatrix( vec_t<solution_t<int>*> &population, size_t alphabetSize )
+{
+    vec_t<vec_t<double>> MI_Matrix;
+	MI_Matrix.resize(numberOfVariables);        
+    for (size_t i = 0; i < numberOfVariables; ++i)
+        MI_Matrix[i].resize(numberOfVariables);         
+
+    size_t factorSize;
+    double p;
+    
+    /* Compute joint entropy matrix */
+    for (size_t i = 0; i < numberOfVariables; i++)
+    {
+        for (size_t j = i + 1; j < numberOfVariables; j++)
+        {
+            vec_t<size_t> indices{i, j};
+            vec_t<double> factorProbabilities;
+            estimateParametersForSingleBinaryMarginal(population, alphabetSize, indices, factorSize, factorProbabilities);
+
+            MI_Matrix[i][j] = 0.0;
+            for(size_t k = 0; k < factorSize; k++)
+            {
+                p = factorProbabilities[k];
+                if (p > 0)
+                    MI_Matrix[i][j] += -p * log2(p);
+            }
+            MI_Matrix[j][i] = MI_Matrix[i][j];
+        }
+
+        vec_t<size_t> indices{i};
+        vec_t<double> factorProbabilities;
+        estimateParametersForSingleBinaryMarginal(population, alphabetSize, indices, factorSize, factorProbabilities);
+
+        MI_Matrix[i][i] = 0.0;
+        for (size_t k = 0; k < factorSize; k++)
+        {
+            p = factorProbabilities[k];
+            if (p > 0)
+                MI_Matrix[i][i] += -p * log2(p);
+        }
+
+    }
+
+    /* Then transform into mutual information matrix MI(X,Y)=H(X)+H(Y)-H(X,Y) */
+    for (size_t i = 0; i < numberOfVariables; i++)
+    {
+        for (size_t j = i + 1; j < numberOfVariables; j++)
+        {
+            MI_Matrix[i][j] = MI_Matrix[i][i] + MI_Matrix[j][j] - MI_Matrix[i][j];
+            MI_Matrix[j][i] = MI_Matrix[i][j];
+        }
+    }
+
+	return( MI_Matrix );
+}
+
 vec_t<vec_t<double>> linkage_model_t::computeHammingDistanceSimilarityMatrix( vec_t<solution_t<char>*> &population )
 {
     vec_t<vec_t<double>> MI_Matrix;
@@ -838,6 +915,74 @@ vec_t<vec_t<double>> linkage_model_t::computeHammingDistanceSimilarityMatrix( ve
 }
 
 vec_t<vec_t<double>> linkage_model_t::computeNMIMatrix( vec_t<solution_t<char>*> &population, size_t alphabetSize )
+{
+    vec_t<vec_t<double>> MI_Matrix;
+	MI_Matrix.resize(numberOfVariables);        
+    for (size_t i = 0; i < numberOfVariables; ++i)
+    {
+		MI_Matrix[i].resize(numberOfVariables);
+	}
+    
+	double p;
+    
+    /* Compute joint entropy matrix */
+    for (size_t i = 0; i < numberOfVariables; i++)
+    {
+        for (size_t j = i + 1; j < numberOfVariables; j++)
+        {
+            vec_t<double> factorProbabilities_joint;
+            vec_t<double> factorProbabilities_i;
+            vec_t<double> factorProbabilities_j;
+            size_t factorSize_joint, factorSize_i, factorSize_j;
+
+            vec_t<size_t> indices_joint{i, j};
+            estimateParametersForSingleBinaryMarginal(population, alphabetSize, indices_joint, factorSize_joint, factorProbabilities_joint);
+            
+            vec_t<size_t> indices_i{i};
+            estimateParametersForSingleBinaryMarginal(population, alphabetSize, indices_i, factorSize_i, factorProbabilities_i);
+            
+            vec_t<size_t> indices_j{j};
+            estimateParametersForSingleBinaryMarginal(population, alphabetSize, indices_j, factorSize_j, factorProbabilities_j);
+
+            MI_Matrix[i][j] = 0.0;
+            
+            double separate = 0.0, joint = 0.0;
+
+            for(size_t k = 0; k < factorSize_joint; k++)
+            {
+                p = factorProbabilities_joint[k];
+                //cout << i << " " << j << " " << p << std::endl;
+                if (p > 0)
+                    joint += (-p * log2(p));
+            }
+
+            for(size_t k = 0; k < factorSize_i; k++)
+            {
+                p = factorProbabilities_i[k];
+                if (p > 0)
+                    separate += (-p * log2(p));
+            }
+
+            for(size_t k = 0; k < factorSize_j; k++)
+            {
+                p = factorProbabilities_j[k];
+                if (p > 0)
+                    separate += (-p * log2(p));
+            }
+
+            MI_Matrix[i][j] = 0.0;
+            if (joint)
+                MI_Matrix[i][j] = separate / joint - 1;
+            MI_Matrix[j][i] = MI_Matrix[i][j];
+
+        }
+
+    }
+
+	return( MI_Matrix );
+}
+
+vec_t<vec_t<double>> linkage_model_t::computeNMIMatrix( vec_t<solution_t<int>*> &population, size_t alphabetSize )
 {
     vec_t<vec_t<double>> MI_Matrix;
 	MI_Matrix.resize(numberOfVariables);        
@@ -939,6 +1084,35 @@ void linkage_model_t::estimateParametersForSingleBinaryMarginal(vec_t<solution_t
         for (int j = numberOfIndices-1; j >= 0; j--)
         {
             index += (int)population[i]->variables[indices[j]] * power;
+            power *= alphabetSize;
+        }
+
+        result[index] += 1.0;
+    }
+
+    for (size_t i = 0; i < factorSize; i++)
+        result[i] /= (double)population.size();
+}
+
+/**
+ * Estimates the cumulative probability distribution of a
+ * single binary marginal.
+ */
+void linkage_model_t::estimateParametersForSingleBinaryMarginal(vec_t<solution_t<int>*> &population, size_t alphabetSize, vec_t<size_t> &indices, size_t &factorSize, vec_t<double> &result)
+{
+    size_t numberOfIndices = indices.size();
+    factorSize = (int)pow(alphabetSize, numberOfIndices);
+
+    result.resize(factorSize);
+    fill(result.begin(), result.end(), 0.0);
+
+    for (size_t i = 0; i < population.size(); i++)
+    {
+        int index = 0;
+        int power = 1;
+        for (int j = numberOfIndices-1; j >= 0; j--)
+        {
+            index += population[i]->variables[indices[j]] * power;
             power *= alphabetSize;
         }
 

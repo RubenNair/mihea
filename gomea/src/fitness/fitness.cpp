@@ -14,6 +14,12 @@ fitness_t<double>::fitness_t( int number_of_variables ) : fitness_t(number_of_va
 template<>
 fitness_t<double>::fitness_t( int number_of_variables, double vtr ) : fitness_t(number_of_variables,vtr,true,MIN) {}
 
+template<>
+fitness_t<int>::fitness_t( int number_of_variables ) : fitness_t(number_of_variables,0,false,MAX) {}
+template<>
+fitness_t<int>::fitness_t( int number_of_variables, double vtr ) : fitness_t(number_of_variables,vtr,true,MAX) {}
+
+
 template<class T>
 fitness_t<T>::fitness_t( int number_of_variables, double vtr, bool use_vtr, opt_mode optimization_mode )
 	: name("Fitness function"), number_of_variables(number_of_variables), optimization_mode(optimization_mode), vtr(vtr), use_vtr(use_vtr)
@@ -461,5 +467,6 @@ double fitness_t<T>::getVTR()
 
 template class fitness_t<char>;
 template class fitness_t<double>;
+template class fitness_t<int>;
 
 }}
