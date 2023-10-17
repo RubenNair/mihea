@@ -83,28 +83,34 @@ void solution_BN::randomInit(std::mt19937 *rng)
 		variables[i] = (*rng)() % getAlphabetSize();
 	}
 
-    c_variables = {0.2000153015, 0.2000154391, 0.2000154391, 0.2000154391, 0.1999383812, 0, 0, 0};
+    // c_variables = {0.2000153015, 0.2000154391, 0.2000154391, 0.2000154391, 0.1999383812, 0, 0, 0};
 
     for (int i = 0; i < getNumberOfCVariables(); ++i) 
     {
-        c_variables[i] += (*rng)() / (double)(*rng).max() * 0.02 - 0.01; //problemInstance->getLowerRangeBound(i) + ((*rng)() / (double)(*rng).max()) * (problemInstance->getUpperRangeBound(i) - problemInstance->getLowerRangeBound(i)); //
+        c_variables[i] += problemInstance->getLowerRangeBound(i) + ((*rng)() / (double)(*rng).max()) * (problemInstance->getUpperRangeBound(i) - problemInstance->getLowerRangeBound(i)); //(*rng)() / (double)(*rng).max() * 0.02 - 0.01; //
 		// // TODO RUBEN: hardcoded upper and lower bounds for now, should be read from config maybe?
 		// c_variables[i] = -10 + ((*rng)() / (double)(*rng).max()) * 20; 
     }
 
-    // c_variables = {0.1964067626, 0.2012464091, 0.2012464091, 0.2012464091, 0.1998540101, 0, 0, 0};
+    normalize();
+}
 
-    // // hardcoded test of variables
-    // variables = {1, 2, 0, 2, 0, 1};
-    // c_variables = {1.0/6.0, 1.0/6.0, 1.0/6.0, 1.0/6.0, 1.0/6.0, 1.0/6.0, 0, 0, 0, 
-    //                 0.5, 0.5, 0, 0, 0, 0, 0, 0, 
-    //                 0.20, 0.20, 0.20, 0.20, 0.20, 0, 0, 0, 0};
+/**
+ * Normalizes just the c_variables
+*/
+void solution_BN::normalize() 
+{
+    double sum = 0.0;
+    for (int i = 0; i < getNumberOfCVariables(); ++i) 
+    {
+        sum += c_variables[i];
+    }
 
-    // // Hardcoded optimum for certain data test
-    // variables = {1, 2, 0, 2, 0, 1};
-    // c_variables = {0.20, 0.20, 0.20, 0.20, 0.20, 0, 0, 0, 0, 
-    //                 1/3.0, 1/3.0, 1/3.0, 0, 0, 0, 0, 0, 0, 
-    //                 0.50, 0.50, 0, 0, 0, 0, 0, 0, 0};
+    // Normalize the c_variables
+    for (int i = 0; i < getNumberOfCVariables(); ++i) 
+    {
+        c_variables[i] /= sum;
+    }
 }
 
 /**

@@ -87,6 +87,7 @@ class solution_BN : public solution_mixed
 	int getNumberOfCVariables() const;
 	void randomInit(std::mt19937 *rng);
     void randomInit(std::mt19937 *rng, int solution_index);
+    void normalize();
     void updateBoundaries();
     tuple<vec_t<double>, vec_t<double>> findMaxAndMinValuesInData();
 	void insertCVariables( const vec_t<double> &vars_to_insert );

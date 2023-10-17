@@ -55,6 +55,29 @@ DataStructure<T>::DataStructure(const string& path_to_data, const string& path_t
     // Perform checks
     this->check_data_and_info_equal_columns();
 
+    // For each continuous node, save a sorted list of indices referring to the data in the original data vector, sorted on the values for that continuous node
+    this->sorted_data_copies = vector<vector<int>>(this->getNumberOfContinuousVariables());
+    for (size_t node_index = 0; node_index < this->getNumberOfDataColumns(); ++node_index) {
+        // Check if the node is continuous
+        ColumnDataType node_type = this->column_type[node_index];
+        if (node_type == Continuous) {
+            // Retrieve the data of the node
+            vector<T> dataOfNode = this->data.getColumn(node_index);
+
+            // Create a vector of indices
+            vector<int> indices(dataOfNode.size());
+            std::iota(indices.begin(), indices.end(), 0);
+
+            // Sort the indices based on the data
+            std::sort(indices.begin(), indices.end(), [&dataOfNode](int i1, int i2) {return dataOfNode[i1] < dataOfNode[i2];});
+
+            // Save the result
+            this->sorted_data_copies[node_index] = indices;
+        }
+    }
+
+    
+
 }
 
 /**

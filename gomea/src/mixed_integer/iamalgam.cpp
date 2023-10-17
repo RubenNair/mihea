@@ -854,10 +854,11 @@ void iamalgam::generateAndEvaluateNewSolutionsToFillPopulations()
         for( k = 0; k < number_of_parameters; k++ )
           population->solutions[j]->c_variables[k] = solution[k];
 
-        // If we are dealing with a BN, then update the boundaries after changing c_variables
+        // If we are dealing with a BN, then normalize the values and update the boundaries after changing c_variables
         if(config->useBN)
         {
           solution_BN *casted_sol = dynamic_cast<solution_BN*>(population->solutions[j]);
+          casted_sol->normalize();
           casted_sol->updateBoundaries();
         }
   

@@ -59,6 +59,7 @@ private:
 
     // Basic information
     DataMatrix<T> data;                             // Contains the data
+    vector<vector<int>> sorted_data_copies;       // Array of arrays of indexes to data entries, each sorted on a column of a continuous node (used to calculate the boundaries of a solution)
     vector<string> column_names;                    // Names of the columns
     vector<ColumnDataType> column_type;             // Discrete or Continuous data per column
     vector<size_t> column_number_of_classes;        // The number of classes a random variable can take
