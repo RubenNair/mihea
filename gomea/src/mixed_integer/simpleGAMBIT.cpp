@@ -99,13 +99,42 @@ void simpleGAMBIT::run()
             // Pass the GAMBITs (populations) to the GOMEA and iamalgam instances
             // _TODO: maybe it's better to figure out in here which population to use this run, then only pass that one? -> Done
             Population *currGAMBIT = GAMBITs[currentGAMBITIndex];           
-            writePopulationToFile(config->folder, currGAMBIT->population, "initial population --------", config->logDebugInformation);
-            writeMessageToLogFile(config->folder, countBuildingBlocks(currGAMBIT->population, 5), config->logDebugInformation);
+            writePopulationToFile(config->folder, currGAMBIT->population->solutions, "initial population --------", config->logDebugInformation);
+            writeMessageToLogFile(config->folder, countBuildingBlocks(currGAMBIT->population->solutions, 5), config->logDebugInformation);
 
             cout << "[DEBUGGING] GEN: " << gen++ << "\t(probInst) Elitist Fitness: " << currGAMBIT->problemInstance->elitist_objective_value << "\t(sharedInfoPointer) Elitist Fitness: " << currGAMBIT->sharedInformationPointer->elitistFitness  << "\tcurrGAMBIT popsize: " << currGAMBIT->populationSize << "\telitist discrete variables: ";
             for(int i = 0; i < currGAMBIT->problemInstance->number_of_variables; ++i)
             {
                 cout << currGAMBIT->sharedInformationPointer->elitist.variables[i];
+            }
+            if(config->useBN)
+            {
+                // Elitist is not a pointer, so first find the solution with the same fitness in the population. Use those boundaries for printing
+                for(size_t i = 0; i < currGAMBIT->populationSize; ++i)
+                {
+                    if(currGAMBIT->population->solutions[i]->getObjectiveValue() == currGAMBIT->sharedInformationPointer->elitistFitness)
+                    {
+                        solution_BN *elitist_BN = (solution_BN *) currGAMBIT->population->solutions[i];
+                        vec_t<vec_t<double>> el_boundaries = elitist_BN->getBoundaries();
+
+                        cout << "\t elitist boundaries (binsizes: (";
+                        for(size_t i = 0; i < el_boundaries.size()-1; ++i)
+                        {
+                            cout << el_boundaries[i].size() << ", ";
+                        }
+                        cout << el_boundaries[el_boundaries.size()-1].size() << ")): ";
+                        for(size_t i = 0; i < el_boundaries.size(); ++i)
+                        {
+                            for(size_t j = 0; j < el_boundaries[i].size()-1; ++j)
+                            {
+                                cout << el_boundaries[i][j] << ",";
+                            }
+                            cout << el_boundaries[i][el_boundaries[i].size()-1] << ";";
+                        }
+                        break;
+                    }
+                }
+                
             }
             cout << endl;
             // gomeaIMSInstance->currGAMBIT = currGAMBIT;
@@ -159,8 +188,8 @@ void simpleGAMBIT::run()
                     // evaluate all solutions in (new) population -> No longer here; instead in continuous and discrete subparts.
                     // currGAMBIT->evaluateAllSolutionsInPopulation();
 
-                    writePopulationToFile(config->folder, currGAMBIT->offspringPopulation, "OFFSPRING POPULATION After generating DISCRETE population ----------------------------------", config->logDebugInformation);
-                    writeMessageToLogFile(config->folder, "\n" + countBuildingBlocks(currGAMBIT->offspringPopulation, 5) + "\n", config->logDebugInformation);
+                    writePopulationToFile(config->folder, currGAMBIT->offspringPopulation->solutions, "OFFSPRING POPULATION After generating DISCRETE population ----------------------------------", config->logDebugInformation);
+                    writeMessageToLogFile(config->folder, "\n" + countBuildingBlocks(currGAMBIT->offspringPopulation->solutions, 5) + "\n", config->logDebugInformation);
 
                 }
             } else if(config->numberOfcVariables > 0) 

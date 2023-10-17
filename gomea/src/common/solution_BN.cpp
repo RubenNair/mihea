@@ -83,8 +83,46 @@ void solution_BN::randomInit(std::mt19937 *rng)
 		variables[i] = (*rng)() % getAlphabetSize();
 	}
 
+    c_variables = {0.2000153015, 0.2000154391, 0.2000154391, 0.2000154391, 0.1999383812, 0, 0, 0};
+
     for (int i = 0; i < getNumberOfCVariables(); ++i) 
     {
+        c_variables[i] += (*rng)() / (double)(*rng).max() * 0.02 - 0.01; //problemInstance->getLowerRangeBound(i) + ((*rng)() / (double)(*rng).max()) * (problemInstance->getUpperRangeBound(i) - problemInstance->getLowerRangeBound(i)); //
+		// // TODO RUBEN: hardcoded upper and lower bounds for now, should be read from config maybe?
+		// c_variables[i] = -10 + ((*rng)() / (double)(*rng).max()) * 20; 
+    }
+
+    // c_variables = {0.1964067626, 0.2012464091, 0.2012464091, 0.2012464091, 0.1998540101, 0, 0, 0};
+
+    // // hardcoded test of variables
+    // variables = {1, 2, 0, 2, 0, 1};
+    // c_variables = {1.0/6.0, 1.0/6.0, 1.0/6.0, 1.0/6.0, 1.0/6.0, 1.0/6.0, 0, 0, 0, 
+    //                 0.5, 0.5, 0, 0, 0, 0, 0, 0, 
+    //                 0.20, 0.20, 0.20, 0.20, 0.20, 0, 0, 0, 0};
+
+    // // Hardcoded optimum for certain data test
+    // variables = {1, 2, 0, 2, 0, 1};
+    // c_variables = {0.20, 0.20, 0.20, 0.20, 0.20, 0, 0, 0, 0, 
+    //                 1/3.0, 1/3.0, 1/3.0, 0, 0, 0, 0, 0, 0, 
+    //                 0.50, 0.50, 0, 0, 0, 0, 0, 0, 0};
+}
+
+/**
+ * random initialization function of the solution that scales the init range of c_variables with the index of the solution in the population.
+*/
+void solution_BN::randomInit(std::mt19937 *rng, int solution_index)
+{
+    for (int i = 0; i < getNumberOfVariables(); ++i)
+	{
+		variables[i] = (*rng)() % getAlphabetSize();
+	}
+
+    
+
+    for (int i = 0; i < getNumberOfCVariables(); ++i) 
+    {
+        // TODO: Scale upper bound of c_variables with the index of the solution in the population
+        double newUpperBound = problemInstance->getUpperRangeBound(i);
         c_variables[i] = problemInstance->getLowerRangeBound(i) + ((*rng)() / (double)(*rng).max()) * (problemInstance->getUpperRangeBound(i) - problemInstance->getLowerRangeBound(i));
 		// // TODO RUBEN: hardcoded upper and lower bounds for now, should be read from config maybe?
 		// c_variables[i] = -10 + ((*rng)() / (double)(*rng).max()) * 20; 
@@ -108,8 +146,12 @@ void solution_BN::updateBoundaries()
             for(int j = 0; j < maxDiscretizations - 1; j++)
             {
                 int c_var_index = maxDiscretizations * cVarsCount + j;
+                // If c_variables[c_var_index] is 0, skip (because there shouldn't be a bin with 0 width)
+                if(c_variables[c_var_index] == 0) {
+                    continue;
+                }
                 double boundary;
-                if(binwidthUsed + c_variables[c_var_index] >= 1.0) {
+                if(binwidthUsed + c_variables[c_var_index] - 1.0 >= -1e-5) { // Check if adding this binwidth would cause the boundary to exceed 1.0 (rounding to 5-digit precision)
                     break;
                 }
                 else {

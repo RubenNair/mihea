@@ -64,6 +64,8 @@ void BNStructureLearning::evaluationFunction( solution_t<int> *solution )
 {
     // TODO: calculate fitness using density class. Probably need to cast the solution to solution_so type.
 	solution_BN *casted_solution = dynamic_cast<solution_BN *>(solution);
+	// Make sure boundaries are updated before evaluation (TODO not sure if this should be here, but it works for now)
+	casted_solution->updateBoundaries();
 	density->computeFitness(*casted_solution);
 
 	// Copy calculated fitness to fitness buffer so the rest of the code can handle it. 

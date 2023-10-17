@@ -49,10 +49,10 @@ Fitness_BN::Fitness_BN(int problem_index,
             throw runtime_error("The maximum number of discretizations (for continuous variables) must be larger than 1.");
         }
 
-        // Check that we do not have too many samples
-        if (data->getNumberOfDataRows() >= 32767) {
-            throw runtime_error("The maximum number of samples supported are 32767. This is because we encode the solution with 'short'.");
-        }
+        // // Check that we do not have too many samples
+        // if (data->getNumberOfDataRows() >= 32767) {
+        //     throw runtime_error("The maximum number of samples supported are 32767. This is because we encode the solution with 'short'.");
+        // }
 
         this->loglikelihood = numeric_limits<double>::max();
     }

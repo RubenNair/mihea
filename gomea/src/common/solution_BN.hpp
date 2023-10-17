@@ -59,7 +59,8 @@ class solution_BN : public solution_mixed
                  size_t maximum_number_of_Instantiations,
                  fitness_t<int> *problemInstance_,
                  vec_t<double> maxValuesData, vec_t<double> minValuesData);
-    
+    virtual ~solution_BN() = default;
+
     void reProcessParametersSolution(vector<int> newParameters);
     
     bool operator==(const solution_BN &solutionB)
@@ -85,6 +86,7 @@ class solution_BN : public solution_mixed
 
 	int getNumberOfCVariables() const;
 	void randomInit(std::mt19937 *rng);
+    void randomInit(std::mt19937 *rng, int solution_index);
     void updateBoundaries();
     tuple<vec_t<double>, vec_t<double>> findMaxAndMinValuesInData();
 	void insertCVariables( const vec_t<double> &vars_to_insert );

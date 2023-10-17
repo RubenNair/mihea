@@ -21,6 +21,7 @@ class solution_mixed : public solution_t<int>
     solution_mixed( size_t numberOfVariables_, size_t alphabetSize_, size_t numberOfCVariables_, fitness_t<int> *problemInstance_ );
 	//solution_mixed(vec_t<int> &variables, vec_t<double> fitness_buffers, vec_t<double> objective_values, double constraint_value, size_t alphabetSize, vec_t<double> &c_variables, fitness_t<int> *problemInstance);
     solution_mixed( const solution_mixed &other );
+	virtual ~solution_mixed() = default;
 
     bool operator==(const solution_mixed &solutionB)
     {

@@ -3,6 +3,7 @@
 
 #include "gomea/src/mixed_integer/Config.hpp"
 #include "gomea/src/mixed_integer/utils.hpp"
+#include "gomea/src/mixed_integer/Solutionset.hpp"
 // #include "gomea/src/mixed_integer/Population.hpp"
 
 namespace gomea{
@@ -19,7 +20,7 @@ class iamalgam
 
         iamalgam();
         iamalgam(Config *config_);
-        iamalgam(Config *config_, vec_t<solution_mixed*> population_);
+        iamalgam(Config *config_, Solutionset *population_);
         ~iamalgam();
         
         void ezilaitini();
@@ -117,7 +118,7 @@ class iamalgam
         double alpha_AMS;
         double delta_AMS;
         // double ***populations;
-        vec_t<solution_mixed*> population; // NOTE: This population is the *offspringPopulation* from Population.cpp!
+        Solutionset *population; // NOTE: This population is the *offspringPopulation* from Population.cpp!
         double *distribution_multipliers;
         double distribution_multiplier_increase;
         double distribution_multiplier_decrease = 0.9;

@@ -23,7 +23,10 @@ fitness_t<int>::fitness_t( int number_of_variables, double vtr ) : fitness_t(num
 template<class T>
 fitness_t<T>::fitness_t( int number_of_variables, double vtr, bool use_vtr, opt_mode optimization_mode )
 	: name("Fitness function"), number_of_variables(number_of_variables), optimization_mode(optimization_mode), vtr(vtr), use_vtr(use_vtr)
-	{}
+{
+	elitist_objective_value = INFINITY;
+	elitist_constraint_value = INFINITY;
+}
 
 template<class T>
 fitness_t<T>::~fitness_t(){
