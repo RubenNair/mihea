@@ -26,3 +26,4 @@ valgrind*
 venvgomea/
 venv/
 data/
+debug/
