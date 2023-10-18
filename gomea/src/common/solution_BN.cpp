@@ -83,7 +83,9 @@ void solution_BN::randomInit(std::mt19937 *rng)
 		variables[i] = (*rng)() % getAlphabetSize();
 	}
 
-    c_variables = {0.2000153015, 0.2000154391, 0.2000154391, 0.2000154391, 0.1999383812, 0, 0, 0};
+    variables = {2};
+    c_variables = {0.4999638983, 0.5000361017, 0, 0, 0, 0, 0, 0, 0,
+                   0.1999743257, 0.2000157187, 0.2000157187, 0.2000157187, 0.1999785183 , 0, 0, 0, 0};
 
     for (int i = 0; i < getNumberOfCVariables(); ++i) 
     {
