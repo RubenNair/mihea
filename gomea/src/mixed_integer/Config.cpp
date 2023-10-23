@@ -104,7 +104,7 @@ bool Config::parseCommandLine(int argc, char **argv)
 
 
   int c, index;
-  while ((c = getopt_long(argc, argv, "h::k::n::p::X::Y::Q::g::w::e::s::f::P::F::m::l::L::O::T::S::V::I::B::Z::G::M::N::E::", longopts, &index)) != -1)
+  while ((c = getopt_long(argc, argv, "h::k::n::p::X::Y::Q::g::w::e::s::f::P::F::m::u::l::L::o::O::T::S::V::I::B::Z::G::M::N::E::", longopts, &index)) != -1)
   {
     switch (c)
     {
@@ -208,6 +208,9 @@ bool Config::parseCommandLine(int argc, char **argv)
         case 'M':
             maximumNumberOfGenerations = atoi(optarg);
             break;
+        case 'u':
+            useNormalizedCVars = true;
+            break;
         case 'l':
             logDebugInformation = 1;
             break;
@@ -233,6 +236,9 @@ bool Config::parseCommandLine(int argc, char **argv)
                 } 
             }
             break;
+        case 'o':
+            useOptimalSolution = true;
+            break;
         case 'O':
             folder= string(optarg);
             break;
@@ -249,8 +255,8 @@ bool Config::parseCommandLine(int argc, char **argv)
 			}
             break;
         case 'I':
-            problemInstancePath = string(optarg);
-            cout << "problemInstancePath: " << problemInstancePath << endl;
+            this->problemInstancePath = string(optarg);
+            cout << "problemInstancePath: " << this->problemInstancePath << endl;
             break;
         case 'Z':
         {
@@ -281,13 +287,13 @@ bool Config::parseCommandLine(int argc, char **argv)
     }
 
     // If problem instance path is passed (and problem index over 1000), we're dealing with a Bayesian Network problem. Update config parameters and parse input data.
-    if(problemInstancePath != "" && problemIndex >= 1000) {
+    if(this->problemInstancePath != "" && problemIndex >= 1000) {
         this->useBN = true;
         this->alphabetSize = 3; // Discrete variables in solution can be 0, 1 or 2 (A<-/->B, A-->B, A<--B respectively)
         this->maxDiscretizations = 9; // Maximum number of discretizations for continuous variables. Hardcoded for now.
 
         // Parse input data (BN structure and data)
-        this->data = initializeDataFromPath(true, problemInstancePath, 0);
+        this->data = initializeDataFromPath(true, this->problemInstancePath, 0);
         // determine number of d_variables / c_variables based on data + maxDiscretizations
         int numNodes = data->getNumberOfDataColumns();
         this->numberOfdVariables = ((numNodes-1)*numNodes) / 2;
@@ -354,7 +360,7 @@ void Config::printOverview()
   cout << "###################################################\n";
   cout << "#\n";
   cout << "# Problem                      = " << fitness->name << endl;
-  cout << "# Problem Instance Filename    = " << problemInstancePath << endl;
+  cout << "# Problem Instance Filename    = " << this->problemInstancePath << endl;
   cout << "# FOS                          = " << FOSName << endl;
   cout << "# Number of variables          = " << numberOfVariables << endl;
   cout << "# Time Limit (seconds)         = " << maximumNumberOfSeconds << endl;

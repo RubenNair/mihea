@@ -58,7 +58,12 @@ class solution_BN : public solution_mixed
                  size_t maximum_number_of_parents,
                  size_t maximum_number_of_Instantiations,
                  fitness_t<int> *problemInstance_,
-                 vec_t<double> maxValuesData, vec_t<double> minValuesData);
+                 vec_t<double> maxValuesData, vec_t<double> minValuesData,
+                 shared_ptr<DataStructure<double>> data = NULL,
+                 double populationIndexRatio = 0.0,
+                 bool useNormalizedCVars = false,
+                 bool useOptimalSolution = false,
+                 string problemInstancePath = "");
     virtual ~solution_BN() = default;
 
     void reProcessParametersSolution(vector<int> newParameters);
@@ -86,7 +91,8 @@ class solution_BN : public solution_mixed
 
 	int getNumberOfCVariables() const;
 	void randomInit(std::mt19937 *rng);
-    void randomInit(std::mt19937 *rng, int solution_index);
+    void randomInit(std::mt19937 *rng, double populationIndexRatio);
+    void optimalInit();
     void normalize();
     void updateBoundaries();
     tuple<vec_t<double>, vec_t<double>> findMaxAndMinValuesInData();
@@ -145,6 +151,9 @@ class solution_BN : public solution_mixed
     const vec_t<vec_t<double>> &getBoundaries() const;
     const vec_t<double> &getMaxValuesData() const;
     const vec_t<double> &getMinValuesData() const;
+    const shared_ptr<DataStructure<double>> &getDiscretizedData() const;
+
+    void setDiscretizedData(const shared_ptr<DataStructure<double>> &data);
 
     // Setters
     void setFitness(double newFitnessValue);
@@ -172,6 +181,8 @@ class solution_BN : public solution_mixed
     solution_BN( const solution_BN &other );
 
 protected:
+    shared_ptr<DataStructure<double>> data = NULL; // Store the data, to be able to calculate the boundaries based on c_vars and datapoints.
+    shared_ptr<DataStructure<double>> discretizedData = NULL; // Store the discretized data, used for fitness calculation (previously stored in fitness, but gives issues with parallel evaluation)
     vec_t<ColumnDataType> node_data_types; // The type of the node [Discrete/Continuous]
     int number_of_nodes;                    // The number of random variables (nodes)
     size_t number_of_links;                 // The number of links in the bayesian network
@@ -192,6 +203,9 @@ protected:
     vec_t<vec_t<int>> parent_matrix;      // Matrix indicating ingoing links (per row). See the impl. 'findParents()'.
     vec_t<vec_t<int>> adjacency_matrix;   // The adjacency matrix. See the impl. 'findAdjacencyMatrix()'.
     vec_t<vec_t<vec_t<size_t>>> spouse_matrix;   // Matrix indicating the spouses of each child node of node i
+
+    void updateBoundariesBasedOnBinWidths();
+    void updateBoundariesBasedOnNumberOfDataSamples();
 
     // Solution processing methods
     NetworkStructure processParametersSolution(const vector<int> &parametersToProcess,
@@ -230,6 +244,9 @@ protected:
     shared_ptr<DiscretizationPolicy> discretizationPolicy;      // The discretization policy
     vec_t<vec_t<double>> boundaries;                            // Stores the boundaries of the discretization (per node) TODO RUBEN: Make sure this is updated if continuous variables are updated.
     vec_t<double> maxValuesData, minValuesData;   // The maximum and minimum values in the data for each node
+    bool useNormalizedCVars;                                    // Indicates whether the c_vars are normalized or not (and also if boundaries are based on number of samples or on data ranges (bin widths), respectively)
+    bool useOptimalSolution;
+    string problemInstancePath = "";                                 // The path to the problem instance
     
 
 

@@ -2,6 +2,8 @@
 
 #include "gomea/src/common/solution_BN.hpp"
 
+#include "gomea/src/fitness/so_benchmarks.h"
+
 
 using namespace std;
 
@@ -32,7 +34,12 @@ solution_BN::solution_BN(size_t numberOfVariables_,
                          size_t maximum_number_of_parents,
                          size_t maximum_number_of_instantiations,
                          fitness_t<int> *problemInstance_,
-                         vec_t<double> maxValuesData, vec_t<double> minValuesData) : solution_BN(numberOfVariables_, alphabetSize_, numberOfCVariables_, problemInstance_)
+                         vec_t<double> maxValuesData, vec_t<double> minValuesData,
+                         shared_ptr<DataStructure<double>> data,
+                         double populationIndexRatio,
+                         bool useNormalizedCVars,
+                         bool useOptimalSolution,
+                         string problemInstancePath) : solution_BN(numberOfVariables_, alphabetSize_, numberOfCVariables_, problemInstance_)
 {
 	// Set parameters
     this->node_data_types = node_data_types;
@@ -40,6 +47,16 @@ solution_BN::solution_BN(size_t numberOfVariables_,
 
     this->maxValuesData = maxValuesData;
     this->minValuesData = minValuesData;
+
+    this->useNormalizedCVars = useNormalizedCVars;
+    this->useOptimalSolution = useOptimalSolution;
+    this->problemInstancePath = problemInstancePath;
+    
+
+    if(data != NULL) 
+    {
+        this->data = data;
+    }
 
     // Determine parameters
     this->number_of_nodes = (int) node_data_types.size();
@@ -53,8 +70,18 @@ solution_BN::solution_BN(size_t numberOfVariables_,
     // Perform check
 //    assert(number_of_links + number_of_nodes_to_discretize == unprocessedParameters.size());    // Check that all parameters are used
 
-    // Randomly initialize variables
-    randomInit(&gomea::utils::rng);
+    // Initialize variables
+    if(useOptimalSolution)
+    {
+        optimalInit();
+    } else if(populationIndexRatio > 0.0)
+    {
+        randomInit(&gomea::utils::rng, populationIndexRatio);
+    } else
+    {
+        randomInit(&gomea::utils::rng);
+    }
+    
 
     // Process the solution
     NetworkStructure solutionInformation = processParametersSolution(variables, initialNumberOfInstantiations, discretizationPolicyIndex, maximum_number_of_instantiations);
@@ -76,6 +103,38 @@ solution_BN::solution_BN(size_t numberOfVariables_,
     updateBoundaries();
 }
 
+void solution_BN::optimalInit()
+{
+    assert(problemInstancePath != "");
+    string pathOptimalSolution = determinePathOptimalSolution(problemInstancePath, 0);
+
+    string stringOptimalSolution;
+    vec_t<vec_t<double>> optimalBoundaries;
+    retrieveOptimalSolution(pathOptimalSolution, stringOptimalSolution, optimalBoundaries);
+
+    // Convert the string to a vector of ints
+    for(int i = 0; i < getNumberOfVariables(); i++)
+    {
+        variables[i] = stringOptimalSolution[i] - '0';
+    }
+
+    // Store the optimalBoundaries in the boundaries variable. Skip rows that have no elements.
+    vec_t<vec_t<double>> boundaries(this->number_of_nodes_to_discretize);
+    int cVarsCount = 0;
+    for(int i = 0; i < optimalBoundaries.size(); i++)
+    {
+        if(optimalBoundaries[i].size() > 0)
+        {
+            for(int j = 0; j < optimalBoundaries[i].size(); j++)
+            {
+                boundaries[cVarsCount].push_back(optimalBoundaries[i][j]);
+            }
+            cVarsCount++;
+        }
+    }
+    this->boundaries = boundaries;
+}
+
 void solution_BN::randomInit(std::mt19937 *rng)
 {
 	for (int i = 0; i < getNumberOfVariables(); ++i)
@@ -85,6 +144,11 @@ void solution_BN::randomInit(std::mt19937 *rng)
 
     // c_variables = {0.2000153015, 0.2000154391, 0.2000154391, 0.2000154391, 0.1999383812, 0, 0, 0};
 
+    // variables = {1, 2, 0, 2, 0, 1};
+    // c_variables = {0.1987034297, 0.2003387483, 0.2003387483, 0.2003387483, 0.2002803253, 0, 0, 0, 0,
+    //                 0.3343046869, 0.3344275367, 0.3312677764, 0, 0, 0, 0, 0, 0,
+    //                 0.4999268203, 0.5000731797, 0, 0, 0, 0, 0, 0, 0};
+
     for (int i = 0; i < getNumberOfCVariables(); ++i) 
     {
         c_variables[i] += problemInstance->getLowerRangeBound(i) + ((*rng)() / (double)(*rng).max()) * (problemInstance->getUpperRangeBound(i) - problemInstance->getLowerRangeBound(i)); //(*rng)() / (double)(*rng).max() * 0.02 - 0.01; //
@@ -92,7 +156,10 @@ void solution_BN::randomInit(std::mt19937 *rng)
 		// c_variables[i] = -10 + ((*rng)() / (double)(*rng).max()) * 20; 
     }
 
-    normalize();
+    if(useNormalizedCVars)
+    {
+        normalize();
+    }
 }
 
 /**
@@ -100,38 +167,60 @@ void solution_BN::randomInit(std::mt19937 *rng)
 */
 void solution_BN::normalize() 
 {
-    double sum = 0.0;
-    for (int i = 0; i < getNumberOfCVariables(); ++i) 
+    // If we are using the optimal solution, don't normalize (just to make sure they will always match conditions of the optimum)
+    if(useOptimalSolution)
     {
-        sum += c_variables[i];
+        return;
     }
 
-    // Normalize the c_variables
-    for (int i = 0; i < getNumberOfCVariables(); ++i) 
+    int maxDiscretizations = this->c_variables.size() / this->number_of_nodes_to_discretize;
+    int cVarsCount = 0;
+    for(int j = 0; j < this->number_of_nodes; j++)
     {
-        c_variables[i] /= sum;
+        if(node_data_types[j] == Continuous)
+        {
+            double sum = 0.0;
+            for(int i = 0; i < maxDiscretizations; i++)
+            {
+                int c_var_index = maxDiscretizations * cVarsCount + i;
+                sum += c_variables[c_var_index];
+            }
+            for(int i = 0; i < maxDiscretizations; i++)
+            {
+                int c_var_index = maxDiscretizations * cVarsCount + i;
+                c_variables[c_var_index] /= sum;
+            }
+            cVarsCount++;
+        }
     }
 }
 
 /**
  * random initialization function of the solution that scales the init range of c_variables with the index of the solution in the population.
 */
-void solution_BN::randomInit(std::mt19937 *rng, int solution_index)
+void solution_BN::randomInit(std::mt19937 *rng, double populationIndexRatio)
 {
     for (int i = 0; i < getNumberOfVariables(); ++i)
 	{
 		variables[i] = (*rng)() % getAlphabetSize();
 	}
 
-    
+    int maxDiscretizations = getNumberOfCVariables() / this->number_of_nodes_to_discretize;
+    double minUpperRangeBound = 1.0 / maxDiscretizations;
 
     for (int i = 0; i < getNumberOfCVariables(); ++i) 
     {
-        // TODO: Scale upper bound of c_variables with the index of the solution in the population
-        double newUpperBound = problemInstance->getUpperRangeBound(i);
-        c_variables[i] = problemInstance->getLowerRangeBound(i) + ((*rng)() / (double)(*rng).max()) * (problemInstance->getUpperRangeBound(i) - problemInstance->getLowerRangeBound(i));
+        // Scale upper bound of c_variables based on the normalized index of the solution in the population
+        double newUpperBound = minUpperRangeBound + populationIndexRatio * (problemInstance->getUpperRangeBound(i) - minUpperRangeBound);
+        assert(newUpperBound >= problemInstance->getLowerRangeBound(i));
+        c_variables[i] = problemInstance->getLowerRangeBound(i) + ((*rng)() / (double)(*rng).max()) * (newUpperBound - problemInstance->getLowerRangeBound(i));
 		// // TODO RUBEN: hardcoded upper and lower bounds for now, should be read from config maybe?
 		// c_variables[i] = -10 + ((*rng)() / (double)(*rng).max()) * 20; 
+    }
+
+    if(useNormalizedCVars)
+    {
+        normalize();
     }
 }
 
@@ -139,6 +228,72 @@ void solution_BN::randomInit(std::mt19937 *rng, int solution_index)
  * generate the boundary values based on the continuous variables and data.
 */
 void solution_BN::updateBoundaries()
+{
+    // If we are using the optimal solution, don't update the boundaries (just to make sure they will always be the same as optimum)
+    if(useOptimalSolution)
+    {
+        return;
+    }
+
+    if(useNormalizedCVars)
+    {
+        updateBoundariesBasedOnNumberOfDataSamples();
+    } else
+    {
+        updateBoundariesBasedOnBinWidths();
+    }
+}
+
+void solution_BN::updateBoundariesBasedOnNumberOfDataSamples()
+{
+    const int data_size = data->getNumberOfDataRows();
+    double step_size = 1.0 / data_size;
+    int cVarsCount = 0;
+    int maxDiscretizations = this->c_variables.size() / this->number_of_nodes_to_discretize;
+    vec_t<vec_t<double>> boundaries(this->number_of_nodes_to_discretize);
+    for(int i = 0; i < this->number_of_nodes; i++)
+    {
+        if(node_data_types[i] == Continuous)
+        {
+            double binwidthUsed = 0.0;
+            
+            for(int j = 0; j < maxDiscretizations - 1; j++)
+            {
+                int c_var_index = maxDiscretizations * cVarsCount + j;
+                // If c_variables[c_var_index] is 0, skip (because there shouldn't be a bin with 0 width)
+                if(c_variables[c_var_index] == 0) {
+                    continue;
+                }
+                double boundary;
+                if(binwidthUsed + c_variables[c_var_index] - 1.0 >= -1e-5) { // Check if adding this binwidth would cause the boundary to exceed 1.0 (rounding to 5-digit precision). Could give issues if stepsize < 1e-5 (i.e. more than 100.000 samples)!
+                    break;
+                }
+                else {
+                    vec_t<int> sorted_indices = data->getSortedDataIndices()[i];
+                    DataMatrix<double> data_matrix = data->getDataMatrix();
+                    int data_samples_up_to_curr_boundary = (binwidthUsed + c_variables[c_var_index]) / step_size;
+                    // Only add a boundary if there will be at least one data sample in the new bin
+                    if(data_samples_up_to_curr_boundary != (int)(binwidthUsed / step_size) && data_samples_up_to_curr_boundary + 1 < data_size)
+                    {
+                        boundary = (data_matrix.getElement(sorted_indices[data_samples_up_to_curr_boundary], i) + data_matrix.getElement(sorted_indices[data_samples_up_to_curr_boundary + 1], i)) / 2.0;
+                    } else
+                    {  
+                        // Boundary would create a bin without datapoints in it, or be after the last sample in data, so ignore it instead (still adding to binwidthUsed)? (TODO: figure out if that is correct interpretation)
+                        binwidthUsed += c_variables[c_var_index];            
+                        continue;
+                    }
+                } 
+                boundaries[cVarsCount].push_back(boundary);
+                binwidthUsed += c_variables[c_var_index];
+            }
+            cVarsCount++;
+        }
+    }
+
+    this->boundaries = boundaries;
+}
+
+void solution_BN::updateBoundariesBasedOnBinWidths()
 {
     int cVarsCount = 0;
     int maxDiscretizations = this->c_variables.size() / this->number_of_nodes_to_discretize;
@@ -456,11 +611,14 @@ double solution_BN::getNumberOfEvaluations() const { return numberOfEvaluations;
 const vec_t<vec_t<double>> &solution_BN::getBoundaries() const { return boundaries; }
 const vec_t<double> &solution_BN::getMaxValuesData() const { return maxValuesData; }
 const vec_t<double> &solution_BN::getMinValuesData() const { return minValuesData; }
+const shared_ptr<DataStructure<double>> &solution_BN::getDiscretizedData() const { return discretizedData; }
+
 
 
 ///////////////
 /// Setters ///
 ///////////////
+void solution_BN::setDiscretizedData(const shared_ptr<DataStructure<double>> &data) { solution_BN::discretizedData = data; }
 void solution_BN::setFitness(double newFitnessValue) { solution_BN::fitness = newFitnessValue; }
 void solution_BN::setConstraintValue(double newConstraintValue) { solution_BN::constraintValue = newConstraintValue; }
 void solution_BN::setTimeStamp(clock_t timeStamp) { solution_BN::timeStamp = timeStamp; }
@@ -594,7 +752,8 @@ solution_BN::solution_BN( const solution_BN &other ) : solution_mixed(other),
     child_matrix(other.child_matrix), parent_matrix(other.parent_matrix),
     adjacency_matrix(other.adjacency_matrix), spouse_matrix(other.spouse_matrix),
     numberOfDiscretizationsperNode(other.numberOfDiscretizationsperNode), discretizationPolicy(other.discretizationPolicy),
-    boundaries(other.boundaries), maxValuesData(other.maxValuesData), minValuesData(other.minValuesData) {}
+    boundaries(other.boundaries), maxValuesData(other.maxValuesData), minValuesData(other.minValuesData), data(other.data),
+    useNormalizedCVars(other.useNormalizedCVars), useOptimalSolution(other.useOptimalSolution), problemInstancePath(other.problemInstancePath)  {}
 
 
 /*solution_BN::solution_BN( const solution_BN &other ) : solution_mixed(other.variables, other.fitness_buffers, objective_values, constraint_value, alphabetSize, c_variables, problemInstance)

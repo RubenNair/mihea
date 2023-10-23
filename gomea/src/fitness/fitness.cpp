@@ -99,6 +99,44 @@ void fitness_t<T>::evaluate( solution_t<T> *solution )
 		elitist_objective_value = solution->getObjectiveValue();
 		elitist_constraint_value = solution->getConstraintValue();
 	}
+	this->full_number_of_evaluations++;
+	this->number_of_evaluations++;
+}
+
+template<class T>
+void fitness_t<T>::evaluatePopulation( vec_t<solution_t<T>*> solutions, bool skipFirstIndex)
+{
+	checkTermination();
+
+	for( solution_t<T> *solution : solutions )
+		solution->initObjectiveValues( number_of_objectives );
+
+	auto t = utils::getTimestamp();
+
+	#pragma omp parallel for
+	for( size_t i = skipFirstIndex ? 1 : 0; i < solutions.size(); i++ )
+		evaluationFunction( solutions[i] );
+
+	utils::addToTimer("eval_time",t);
+
+	for(size_t i = skipFirstIndex ? 1 : 0; i < solutions.size(); i++ )
+	{
+		if( use_vtr && !vtr_hit_status && solutions[i]->getConstraintValue() == 0 && solutions[i]->getObjectiveValue() <= vtr  )
+		{
+			vtr_hit_status = true;
+			elitist_objective_value = solutions[i]->getObjectiveValue();
+			elitist_constraint_value = solutions[i]->getConstraintValue();
+		}
+
+		if( !vtr_hit_status && betterFitness(solutions[i]->getObjectiveValue(), solutions[i]->getConstraintValue(), elitist_objective_value, elitist_constraint_value) )
+		{
+			elitist_objective_value = solutions[i]->getObjectiveValue();
+			elitist_constraint_value = solutions[i]->getConstraintValue();
+		}
+	}
+
+	this->full_number_of_evaluations += solutions.size();
+	this->number_of_evaluations += solutions.size();
 }
 
 template<class T>

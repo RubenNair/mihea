@@ -86,12 +86,17 @@ Population::Population(Config *config_, fitness_t *problemInstance_, sharedInfor
                 vec_t<vec_t<double>> data = config->data->getDataMatrix().getRawMatrix();
                 std::tie(maxValuesData, minValuesData) = findMaxAndMinValuesInData(data);
 
-                population->solutions[i] = new solution_BN(config->numberOfVariables, config->alphabetSize, config->numberOfcVariables, config->data->getColumnType(), BNproblemInstance->getDensity()->getOriginalData()->getColumnNumberOfClasses(), config->discretization_policy_index, config->maxParents, config->maxInstantiations, BNproblemInstance, maxValuesData, minValuesData);
+                population->solutions[i] = new solution_BN(config->numberOfVariables, config->alphabetSize, config->numberOfcVariables, 
+                                                    config->data->getColumnType(), BNproblemInstance->getDensity()->getOriginalData()->getColumnNumberOfClasses(), 
+                                                    config->discretization_policy_index, config->maxParents, config->maxInstantiations, 
+                                                    BNproblemInstance, maxValuesData, minValuesData, 
+                                                    config->data, (double)i/populationSize, 
+                                                    config->useNormalizedCVars, config->useOptimalSolution, config->problemInstancePath);
 
                 problemInstance->evaluate(population->solutions[i]);
 
-                // Set offspringPopulation[i] to a new solution_BN, just to initialize the necesarry memory.
-                offspringPopulation->solutions[i] = new solution_BN(config->numberOfVariables, config->alphabetSize, config->numberOfcVariables, config->data->getColumnType(), BNproblemInstance->getDensity()->getOriginalData()->getColumnNumberOfClasses(), config->discretization_policy_index, config->maxParents, config->maxInstantiations, BNproblemInstance, maxValuesData, minValuesData);
+                // Set offspringPopulation[i] to a new solution_BN, just to initialize the necessary memory.
+                offspringPopulation->solutions[i] = new solution_BN(config->numberOfVariables, config->alphabetSize, config->numberOfcVariables, config->data->getColumnType(), BNproblemInstance->getDensity()->getOriginalData()->getColumnNumberOfClasses(), config->discretization_policy_index, config->maxParents, config->maxInstantiations, BNproblemInstance, maxValuesData, minValuesData, config->data);
                 *offspringPopulation->solutions[i] = *population->solutions[i];
                 // offspringPopulation[i] = population[i]->clone();
             } else

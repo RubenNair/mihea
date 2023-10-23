@@ -79,7 +79,7 @@ void iamalgam::initializeMemory() {
       vec_t<vec_t<double>> data = config->data->getDataMatrix().getRawMatrix();
       std::tie(maxValuesData, minValuesData) = findMaxAndMinValuesInData(data);
 
-      selections[i] = new solution_BN(config->numberOfVariables, config->alphabetSize, config->numberOfcVariables, config->data->getColumnType(), BNproblemInstance->getDensity()->getOriginalData()->getColumnNumberOfClasses(), config->discretization_policy_index, config->maxParents, config->maxInstantiations, problemInstance, maxValuesData, minValuesData);
+      selections[i] = new solution_BN(config->numberOfVariables, config->alphabetSize, config->numberOfcVariables, config->data->getColumnType(), BNproblemInstance->getDensity()->getOriginalData()->getColumnNumberOfClasses(), config->discretization_policy_index, config->maxParents, config->maxInstantiations, problemInstance, maxValuesData, minValuesData, config->data);
       selections[i]->initObjectiveValues(problemInstance->number_of_objectives);
     } else {
       selections[i] = new solution_mixed(config->numberOfVariables, config->alphabetSize, config->numberOfcVariables, problemInstance);
@@ -858,7 +858,10 @@ void iamalgam::generateAndEvaluateNewSolutionsToFillPopulations()
         if(config->useBN)
         {
           solution_BN *casted_sol = dynamic_cast<solution_BN*>(population->solutions[j]);
-          casted_sol->normalize();
+          if(config->useNormalizedCVars)
+          {
+            casted_sol->normalize();
+          }
           casted_sol->updateBoundaries();
         }
   
@@ -888,14 +891,19 @@ void iamalgam::generateAndEvaluateNewSolutionsToFillPopulations()
               population->solutions[j]->c_variables[k] = solution_AMS[k];
           }
         }
-      
-        problemInstance->evaluate(population->solutions[j]);
         // installedProblemEvaluation( problem_index, populations[i][j], &(objective_values[i][j]), &(constraint_values[i][j]) );
 
         q++;
   
         free( solution );
       }
+
+      vec_t<solution_t<int> *> casted_pop;
+      for(solution_mixed *sol : population->solutions)
+      {
+        casted_pop.push_back(dynamic_cast<solution_t<int>*>(sol));
+      }
+      problemInstance->evaluatePopulation(casted_pop, true);
       // cout << "[DEBUGGING] average fitness after generating new solutions: " << averageFitnessPopulation() << endl;
     }
   }
