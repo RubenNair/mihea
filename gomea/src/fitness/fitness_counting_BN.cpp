@@ -41,7 +41,7 @@ void Fitness_BN::initializeCountMatrices(solution_BN &solution,
             size_t parent_node = solution.getParentMatrix()[node_i][local_parent_index];
 
             // Determine the number of combinations per variable
-            int classes_of_parent_node = (int) data->getColumnNumberOfClasses()[parent_node];
+            int classes_of_parent_node = (int) solution.getDiscretizedData()->getColumnNumberOfClasses()[parent_node];
             max_number_of_combinations_per_variable[node_i] *= classes_of_parent_node;
         }
 
