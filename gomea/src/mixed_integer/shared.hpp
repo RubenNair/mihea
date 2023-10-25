@@ -21,7 +21,7 @@ class sharedInformation
 		bool firstEvaluationEver;
 		double elitistFitness;
 		double elitistConstraintValue;
-		solution_mixed elitist = solution_mixed(1,2,1);
+		solution_mixed *elitist = new solution_mixed(1,2,1);
 
     sharedInformation(int maxArchiveSize)
     {

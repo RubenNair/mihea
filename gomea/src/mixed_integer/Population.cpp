@@ -505,7 +505,7 @@ bool Population::GOM(size_t offspringIndex)
 {
     size_t donorIndex;
     bool solutionHasChanged = false;
-    bool thisIsTheElitistSolution = *offspringPopulation->solutions[offspringIndex] == sharedInformationPointer->elitist;//(sharedInformationPointer->elitistSolutionGOMEAIndex == GOMEAIndex) && (sharedInformationPointer->elitistSolutionOffspringIndex == offspringIndex);
+    bool thisIsTheElitistSolution = *offspringPopulation->solutions[offspringIndex] == *sharedInformationPointer->elitist;//(sharedInformationPointer->elitistSolutionGOMEAIndex == GOMEAIndex) && (sharedInformationPointer->elitistSolutionOffspringIndex == offspringIndex);
     
     *offspringPopulation->solutions[offspringIndex] = *population->solutions[offspringIndex];
             
@@ -579,7 +579,7 @@ bool Population::GOMSingleFOS(size_t offspringIndex, size_t FOSIndex)
 {
     size_t donorIndex;
     bool solutionHasChanged = false;
-    bool thisIsTheElitistSolution = *offspringPopulation->solutions[offspringIndex] == sharedInformationPointer->elitist;//(sharedInformationPointer->elitistSolutionGOMEAIndex == GOMEAIndex) && (sharedInformationPointer->elitistSolutionOffspringIndex == offspringIndex);
+    bool thisIsTheElitistSolution = *offspringPopulation->solutions[offspringIndex] == *sharedInformationPointer->elitist;//(sharedInformationPointer->elitistSolutionGOMEAIndex == GOMEAIndex) && (sharedInformationPointer->elitistSolutionOffspringIndex == offspringIndex);
 
     // *offspringPopulation[offspringIndex] = *population[offspringIndex];
     // offspringPopulation[offspringIndex]->insertSolution(population[offspringIndex]);
@@ -689,7 +689,7 @@ bool Population::FI(size_t offspringIndex)
         for (size_t j = 0; j < FOSInstance->elementSize(ind); j++)
         {
             int variableFromFOS = FOSInstance->FOSStructure[ind][j];
-            touchedGenes[j] = sharedInformationPointer->elitist.variables[variableFromFOS];
+            touchedGenes[j] = sharedInformationPointer->elitist->variables[variableFromFOS];
             if (population->solutions[offspringIndex]->variables[variableFromFOS] != touchedGenes[j])
                 donorEqualToOffspring = false;
         }
@@ -713,7 +713,7 @@ bool Population::FI(size_t offspringIndex)
 
     if (!solutionHasChanged)
     {
-        *offspringPopulation->solutions[offspringIndex] = sharedInformationPointer->elitist;
+        *offspringPopulation->solutions[offspringIndex] = *sharedInformationPointer->elitist;
     }
 
     return solutionHasChanged;
@@ -735,7 +735,7 @@ bool Population::FISingleFOS(size_t offspringIndex, size_t FOSIndex)
     for (size_t j = 0; j < FOSInstance->elementSize(ind); j++)
     {
         int variableFromFOS = FOSInstance->FOSStructure[ind][j];
-        touchedGenes[variableFromFOS] = sharedInformationPointer->elitist.variables[variableFromFOS]; // RUBEN: shouldn't touchedGenes[j] be touchedGenes[variableFromFOS]? -> Made this change myself
+        touchedGenes[variableFromFOS] = sharedInformationPointer->elitist->variables[variableFromFOS]; // RUBEN: shouldn't touchedGenes[j] be touchedGenes[variableFromFOS]? -> Made this change myself
         if (offspringPopulation->solutions[offspringIndex]->variables[variableFromFOS] != touchedGenes[variableFromFOS]) 
             donorEqualToOffspring = false;
     }
@@ -760,7 +760,7 @@ bool Population::FISingleFOS(size_t offspringIndex, size_t FOSIndex)
 
     if (!solutionHasChanged)
     {
-        *offspringPopulation->solutions[offspringIndex] = sharedInformationPointer->elitist;
+        *offspringPopulation->solutions[offspringIndex] = *sharedInformationPointer->elitist;
     }
 
     return solutionHasChanged;
@@ -835,8 +835,8 @@ void Population::updateElitistAndCheckVTR(solution_mixed *solution)
 {
     // RUBEN TODO: use problemInstance elitist here, to be consistent with iAMaLGaM as well.
     /* Update elitist solution */
-    //if (sharedInformationPointer->firstEvaluationEver || (solution->getObjectiveValue() > sharedInformationPointer->elitist.getObjectiveValue()))
-    if (sharedInformationPointer->firstEvaluationEver || problemInstance->betterFitness(solution,&sharedInformationPointer->elitist) )
+    //if (sharedInformationPointer->firstEvaluationEver || (solution->getObjectiveValue() > sharedInformationPointer->elitist->getObjectiveValue()))
+    if (sharedInformationPointer->firstEvaluationEver || problemInstance->betterFitness(solution,sharedInformationPointer->elitist) )
     {
         if(config->printNewElitists)
         {
@@ -851,7 +851,7 @@ void Population::updateElitistAndCheckVTR(solution_mixed *solution)
         sharedInformationPointer->elitistSolutionHittingTimeMilliseconds = utils::getElapsedTimeMilliseconds(sharedInformationPointer->startTime);
         sharedInformationPointer->elitistSolutionHittingTimeEvaluations = problemInstance->number_of_evaluations;
 
-        sharedInformationPointer->elitist = *solution;
+        sharedInformationPointer->elitist = solution;
 		sharedInformationPointer->elitistFitness = solution->getObjectiveValue();
 		sharedInformationPointer->elitistConstraintValue = solution->getConstraintValue();
         

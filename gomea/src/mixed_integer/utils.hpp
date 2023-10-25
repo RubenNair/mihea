@@ -15,7 +15,8 @@
 
 using namespace std;
 
-#include "gomea/src/common/solution_mixed.hpp"
+// #include "gomea/src/common/solution_mixed.hpp"
+#include "gomea/src/common/solution_BN.hpp"
 #include "gomea/src/common/gomea_defs.hpp"
 
 namespace gomea{
@@ -53,9 +54,10 @@ public:
 
 void prepareFolder(string &folder);
 void initElitistFile(string &folder);
-void initStatisticsFile(string &folder);
+void initStatisticsFile(string &folder, bool useBN = false);
 void initLogFile(string &folder);
 void writeStatisticsToFile(string &folder, long long numberOfEvaluations, long long time, solution_t<int> *solution, size_t populationSize, bool vtrHit = false);
+void writeBNStatisticsToFile(string &folder, long long numberOfEvaluations, long long time, solution_BN *solution, size_t populationSize, bool vtrHit = false);
 void writeElitistSolutionToFile(string &folder, long long numberOfEvaluations, long long time, solution_mixed *solution);
 void writePopulationToFile(string &folder, vec_t<solution_mixed*> population, string message, bool doLog = true);
 void writeBuildingBlocksToFile(string &folder, vec_t<solution_mixed*> population, string message, int k, bool doLog = true);
