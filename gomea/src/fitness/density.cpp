@@ -138,7 +138,7 @@ vector<double> Density::loglikelihood_density(solution_BN &solution,
 
         // Complexity score
         int maxParentCombinations = max_number_of_combinations_per_variable[node_index];
-        size_t NumberOfinstantiationsOfNode = this->data->getColumnNumberOfClasses()[node_index];
+        size_t NumberOfinstantiationsOfNode = solution.getDiscretizedData()->getColumnNumberOfClasses()[node_index];
         double complexityScore = (double) maxParentCombinations * (double) (NumberOfinstantiationsOfNode - 1);
 
         // Go over all parent combination
