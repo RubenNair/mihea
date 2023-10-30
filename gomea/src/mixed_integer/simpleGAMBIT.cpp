@@ -117,7 +117,7 @@ void simpleGAMBIT::run()
                         solution_BN *elitist_BN = (solution_BN *) currGAMBIT->population->solutions[i];
                         vec_t<vec_t<double>> el_boundaries = elitist_BN->getBoundaries();
 
-                        cout << "\t elitist boundaries (binsizes: (";
+                        cout << "\t elitist boundaries (#boundaries: (";
                         for(size_t i = 0; i < el_boundaries.size()-1; ++i)
                         {
                             cout << el_boundaries[i].size() << ", ";
