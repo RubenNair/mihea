@@ -41,7 +41,7 @@ void Fitness_BN::initializeCountMatrices(solution_BN &solution,
             size_t parent_node = solution.getParentMatrix()[node_i][local_parent_index];
 
             // Determine the number of combinations per variable
-            int classes_of_parent_node = (int) data->getColumnNumberOfClasses()[parent_node];
+            int classes_of_parent_node = (int) solution.getDiscretizedData()->getColumnNumberOfClasses()[parent_node];
             max_number_of_combinations_per_variable[node_i] *= classes_of_parent_node;
         }
 
@@ -51,7 +51,7 @@ void Fitness_BN::initializeCountMatrices(solution_BN &solution,
         combinations[node_i] = comb;
 
         // Initialize the mijk matrix: mijk[node_i][number_of_combinations_of_i][number_of_classes_of_i]
-        size_t number_of_classes_of_i = this->data->getColumnNumberOfClasses()[node_i];
+        size_t number_of_classes_of_i = solution.getDiscretizedData()->getColumnNumberOfClasses()[node_i];
         vector<vector<int>> ijk(number_of_combinations_of_i, vector<int>(number_of_classes_of_i, 0));
         mijk[node_i] = ijk;
 
@@ -83,7 +83,7 @@ void Fitness_BN::calculatePriorAndConditionalCounts(solution_BN &solution,
                                                  vector<vector<vector<int>>> &mijk) {
     for (int node_i = 0; node_i < this->numberOfNodes; ++node_i) {
         // Determine variables
-        size_t number_of_classes_of_i = this->data->getColumnNumberOfClasses()[node_i];
+        size_t number_of_classes_of_i = solution.getDiscretizedData()->getColumnNumberOfClasses()[node_i];
         int number_of_combinations_of_i = max_number_of_combinations_per_variable[node_i];
 
         // Calculate the probabilities
@@ -153,7 +153,7 @@ void Fitness_BN::findAllCombinationsValues(int node_index,
         bool combinationAlreadyProcessed = true;    // Used as a flag when a new combination has been found.
 
         // Retrieve the sample
-        vector<double> sample_data = this->data->getDataMatrix().getRow(local_sample_index);
+        vector<double> sample_data = solution.getDiscretizedData()->getDataMatrix().getRow(local_sample_index);
 
         // Go over all existing combinations that have been seen until now.
         // If a solution contains a variable that has not been seen yet, a new combination might have been detected.
@@ -211,12 +211,12 @@ void Fitness_BN::computeSampleValue(int node_index,
                                  vector<vector<int>> &m_prior) {
 
     // Initialize variables
-    size_t number_of_classes_of_i = this->data->getColumnNumberOfClasses()[node_index];
+    size_t number_of_classes_of_i = solution.getDiscretizedData()->getColumnNumberOfClasses()[node_index];
 
     // Set the prior probabilities by going over the samples
     for (size_t sampleIndex = 0; sampleIndex < this->getSampleSize(); ++sampleIndex) {
         // Retrieve the random sample
-        vector<double> sample_data = this->data->getDataMatrix().getRow(sampleIndex);
+        vector<double> sample_data = solution.getDiscretizedData()->getDataMatrix().getRow(sampleIndex);
 
         // Value of the node
         int sample_value = (int) sample_data[node_index];
@@ -233,7 +233,7 @@ void Fitness_BN::computeSampleValue(int node_index,
         // Go over all samples
         for (size_t sampleIndex = 0; sampleIndex < this->getSampleSize(); ++sampleIndex) {
             // Retrieve the random sample
-            vector<double> sample_data = this->data->getDataMatrix().getRow(sampleIndex);
+            vector<double> sample_data = solution.getDiscretizedData()->getDataMatrix().getRow(sampleIndex);
 
             // Prepare variables
             vector<int> parents_of_node_i = solution.getParentMatrix()[node_index];

@@ -44,6 +44,7 @@ public:
     const string &getPathData() const;
     const string &getPathInfo() const;
     const DataMatrix<T> &getDataMatrix() const;
+    const vector<vector<int>> &getSortedDataIndices() const;
     const vector<string> &getColumnNames() const;
     const vector<ColumnDataType> &getColumnType() const;
     const vector<size_t> &getColumnNumberOfClasses() const;
@@ -59,6 +60,7 @@ private:
 
     // Basic information
     DataMatrix<T> data;                             // Contains the data
+    vector<vector<int>> sorted_data_indices;       // Array of arrays of indexes to data entries, each sorted on a column of a continuous node (used to calculate the boundaries of a solution)
     vector<string> column_names;                    // Names of the columns
     vector<ColumnDataType> column_type;             // Discrete or Continuous data per column
     vector<size_t> column_number_of_classes;        // The number of classes a random variable can take

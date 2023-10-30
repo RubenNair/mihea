@@ -1,6 +1,6 @@
 CXX=g++
-CXXFLAGS=-g -Wall -std=c++17 -DCPP_STANDALONE -I./ -Igomea/ -IEigen/
-CXXFLAGS_O=-O2 -Wall -std=c++17 -DCPP_STANDALONE -I./ -Igomea/ -IEigen/ #-pg ## For profiling
+CXXFLAGS=-g -fopenmp -Wall -std=c++17 -DCPP_STANDALONE -I./ -Igomea/ -IEigen/
+CXXFLAGS_O=-O2 -fopenmp -Wall -std=c++17 -DCPP_STANDALONE -I./ -Igomea/ -IEigen/ #-pg ## For profiling
 SRCDIR=gomea/src
 OBJDIR=build/obj
 OBJDIR_O=build/obj_o

@@ -91,8 +91,8 @@ void Fitness_BN::discretizeData(solution_BN &solution) {
                                                                                   this->originalData->getColumnType(),  // Todo: Officially this should be discrete data.
                                                                                   instantiationsPerNode,
                                                                                   this->originalData->getNumberOfUniqueValues());
-
-    this->data = result;
+    solution.setDiscretizedData(result);
+    // this->data = result; //RUBEN: I believe this gives issues if evaluating in parallel. For now, set it as class variable of solution instead of fitness.
     
 
     // Determine the boundaries

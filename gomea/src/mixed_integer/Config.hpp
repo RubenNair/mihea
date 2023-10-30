@@ -70,6 +70,8 @@ public:
     long long randomSeed = 0;
 
     bool useBN = false;
+    bool useNormalizedCVars = false;
+    bool useOptimalSolution = false;
     int discretization_policy_index = 0;
     
     size_t alphabetSize = 2;

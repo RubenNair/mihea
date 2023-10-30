@@ -80,9 +80,6 @@ void BNStructureLearning::evaluationFunction( solution_t<int> *solution )
 	}
 	double fcons = constraintFunction(solution);
 	casted_solution->setConstraintValue(fcons);
-
-	this->full_number_of_evaluations++;
-	this->number_of_evaluations++;
 	// density->computeFitness(*solution);
 }
 

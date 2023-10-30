@@ -50,7 +50,7 @@ void simpleGAMBIT::initialize()
     // gomeaIMSInstance = new gomeaIMS(config);
     // iamalgamInstance = new iamalgam(config);
     initElitistFile(config->folder);
-    initStatisticsFile(config->folder);
+    initStatisticsFile(config->folder, config->useBN);
     if(config->logDebugInformation)
     {
         initLogFile(config->folder);
@@ -105,7 +105,7 @@ void simpleGAMBIT::run()
             cout << "[DEBUGGING] GEN: " << gen++ << "\t(probInst) Elitist Fitness: " << currGAMBIT->problemInstance->elitist_objective_value << "\t(sharedInfoPointer) Elitist Fitness: " << currGAMBIT->sharedInformationPointer->elitistFitness  << "\tcurrGAMBIT popsize: " << currGAMBIT->populationSize << "\telitist discrete variables: ";
             for(int i = 0; i < currGAMBIT->problemInstance->number_of_variables; ++i)
             {
-                cout << currGAMBIT->sharedInformationPointer->elitist.variables[i];
+                cout << currGAMBIT->sharedInformationPointer->elitist->variables[i];
             }
             if(config->useBN)
             {
@@ -239,12 +239,25 @@ void simpleGAMBIT::run()
 
         }
         cout << "[EXIT] termination / max number of generations reached." << endl;
-        solution_t<int> *elitist_disc_solution = &GAMBITs[currentGAMBITIndex]->sharedInformationPointer->elitist;
-        writeStatisticsToFile(config->folder, GAMBITs[currentGAMBITIndex]->sharedInformationPointer->elitistSolutionHittingTimeEvaluations, GAMBITs[currentGAMBITIndex]->sharedInformationPointer->elitistSolutionHittingTimeMilliseconds, elitist_disc_solution, GAMBITs[currentGAMBITIndex]->populationSize);
+        if(config->useBN)
+        {
+            solution_BN *elitist_BN = (solution_BN *) GAMBITs[currentGAMBITIndex]->sharedInformationPointer->elitist;
+            writeBNStatisticsToFile(config->folder, GAMBITs[currentGAMBITIndex]->sharedInformationPointer->elitistSolutionHittingTimeEvaluations, GAMBITs[currentGAMBITIndex]->sharedInformationPointer->elitistSolutionHittingTimeMilliseconds, elitist_BN, GAMBITs[currentGAMBITIndex]->populationSize);
+        } else
+        {
+            solution_t<int> *elitist_disc_solution = GAMBITs[currentGAMBITIndex]->sharedInformationPointer->elitist;
+            writeStatisticsToFile(config->folder, GAMBITs[currentGAMBITIndex]->sharedInformationPointer->elitistSolutionHittingTimeEvaluations, GAMBITs[currentGAMBITIndex]->sharedInformationPointer->elitistSolutionHittingTimeMilliseconds, elitist_disc_solution, GAMBITs[currentGAMBITIndex]->populationSize);
+        }
     }
     catch( utils::customException const& )
     {
         cout << "VTR has been hit, terminating the program. (VTR exception has been caught)" << endl;
+        // Temporary fix: for BN, no VTR is used. When timeout happens, this exception is thrown, but nothing written to file.
+        if(config->useBN)
+        {
+            solution_BN *elitist_BN = (solution_BN *) GAMBITs[currentGAMBITIndex]->sharedInformationPointer->elitist;
+            writeBNStatisticsToFile(config->folder, GAMBITs[currentGAMBITIndex]->sharedInformationPointer->elitistSolutionHittingTimeEvaluations, GAMBITs[currentGAMBITIndex]->sharedInformationPointer->elitistSolutionHittingTimeMilliseconds, elitist_BN, GAMBITs[currentGAMBITIndex]->populationSize);
+        }
     }
     
 	hasTerminated = true;

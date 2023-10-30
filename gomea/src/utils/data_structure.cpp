@@ -3,6 +3,7 @@
 //
 
 #include <utility>
+#include <numeric>
 
 #include "gomea/src/utils/data_structure.h"
 
@@ -54,6 +55,29 @@ DataStructure<T>::DataStructure(const string& path_to_data, const string& path_t
 
     // Perform checks
     this->check_data_and_info_equal_columns();
+
+    // For each continuous node, save a sorted list of indices referring to the data in the original data vector, sorted on the values for that continuous node
+    this->sorted_data_indices = vector<vector<int>>(this->getNumberOfDataColumns());
+    for (size_t node_index = 0; node_index < this->getNumberOfDataColumns(); ++node_index) {
+        // Check if the node is continuous
+        ColumnDataType node_type = this->column_type[node_index];
+        if (node_type == Continuous) {
+            // Retrieve the data of the node
+            vector<T> dataOfNode = this->data.getColumn(node_index);
+
+            // Create a vector of indices
+            vector<int> indices(dataOfNode.size());
+            std::iota(indices.begin(), indices.end(), 0);
+
+            // Sort the indices based on the data
+            std::sort(indices.begin(), indices.end(), [&dataOfNode](int i1, int i2) {return dataOfNode[i1] < dataOfNode[i2];});
+
+            // Save the result
+            this->sorted_data_indices[node_index] = indices;
+        }
+    }
+
+    
 
 }
 
@@ -325,6 +349,7 @@ vector<size_t> DataStructure<T>::determineContinuousNodeIndices() const {
 template<typename T> const string &DataStructure<T>::getPathData() const { return path_data; }
 template<typename T> const string &DataStructure<T>::getPathInfo() const { return path_info; }
 template<typename T> const DataMatrix<T> &DataStructure<T>::getDataMatrix() const { return data; }
+template<typename T> const vector<vector<int>> &DataStructure<T>::getSortedDataIndices() const { return sorted_data_indices; }
 template<typename T> const vector<string> &DataStructure<T>::getColumnNames() const { return column_names; }
 template<typename T> const vector<ColumnDataType> &DataStructure<T>::getColumnType() const { return column_type; }
 template<typename T> const vector<size_t> &DataStructure<T>::getColumnNumberOfClasses() const { return column_number_of_classes; }

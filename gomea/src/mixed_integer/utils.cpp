@@ -14,7 +14,7 @@ void prepareFolder(string &folder)
 	// filesystem::create_directories(folder + "/output");
 }
 
-void initStatisticsFile(string &folder)
+void initStatisticsFile(string &folder, bool useBN)
 {
     if (!filesystem::exists(folder))
     {
@@ -29,7 +29,13 @@ void initStatisticsFile(string &folder)
             cerr << "Problems with opening file " << folder + "/elitists.txt!\n";
             exit(0);
         }
-        outFile << "#Evaluations " << "Time,sec. " << "Fitness " << "populationSize " << "VTR hit" << endl;
+        if(useBN)
+        {
+            outFile << "#Evaluations " << "Time,sec. " << "Fitness " << "populationSize " << "#bins per continuous node " << "boundaries " << "VTR hit" << endl;
+        } else 
+        {
+            outFile << "#Evaluations " << "Time,sec. " << "Fitness " << "populationSize " << "VTR hit" << endl;
+        }
         outFile.close();
     }
 }
@@ -78,6 +84,35 @@ void writeStatisticsToFile(string &folder, long long numberOfEvaluations, long l
     }
 
     outFile << (int)numberOfEvaluations << " " << fixed << setprecision(3) << time/1000.0 << " " <<  setprecision(11) << solution->getObjectiveValue() << " " << populationSize << " " << vtrHit;
+    outFile << endl;
+
+    outFile.close();
+}
+
+void writeBNStatisticsToFile(string &folder, long long numberOfEvaluations, long long time, solution_BN *solution, size_t populationSize, bool vtrHit)
+{
+    ofstream outFile(folder + "/statistics.txt", ofstream::app);
+    if (outFile.fail())
+    {
+        cerr << "Problems with opening file " << folder + "/statistics.txt!\n";
+        exit(0);
+    }
+
+    string binsPerContinuousNode = "(";
+    string boundaries = "";
+    for(int i = 0; i < solution->getNumberOfNodesToDiscretize(); i++)
+    {
+        binsPerContinuousNode += to_string(solution->getBoundaries()[i].size()) + ",";
+        for(int j = 0; j < solution->getBoundaries()[i].size(); j++)
+        {
+            boundaries += to_string(solution->getBoundaries()[i][j]) + ",";
+        }
+        boundaries += ";";
+    }
+    binsPerContinuousNode += ")";
+
+
+    outFile << (int)numberOfEvaluations << " " << fixed << setprecision(3) << time/1000.0 << " " <<  setprecision(11) << solution->getObjectiveValue() << " " << populationSize << " " << binsPerContinuousNode << " " << boundaries << " " << vtrHit;
     outFile << endl;
 
     outFile.close();
