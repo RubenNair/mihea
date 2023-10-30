@@ -76,7 +76,7 @@ bool Config::parseCommandLine(int argc, char **argv)
   const struct option longopts[] =
   {
     {"help",        no_argument,         0, 'h'},    
-    {"partial",     no_argument,         0, 'g'},
+    {"guaranteedInitSpread",     no_argument,         0, 'g'},
     {"analyzeFOS",  no_argument,         0, 'w'},
     {"writeElitists",no_argument,        0, 'e'},
     {"saveEvals",   no_argument,         0, 's'},  
@@ -109,7 +109,7 @@ bool Config::parseCommandLine(int argc, char **argv)
     switch (c)
     {
         case 'g':
-            usePartialEvaluations = 1;
+            guaranteedInitSpread = true;
             break;
 		case 'X':
 			useParallelFOSOrder = 1;

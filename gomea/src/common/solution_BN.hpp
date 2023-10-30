@@ -60,9 +60,10 @@ class solution_BN : public solution_mixed
                  fitness_t<int> *problemInstance_,
                  vec_t<double> maxValuesData, vec_t<double> minValuesData,
                  shared_ptr<DataStructure<double>> data = NULL,
-                 double populationIndexRatio = 0.0,
+                 double populationIndexRatio = -1.0,
                  bool useNormalizedCVars = false,
                  bool useOptimalSolution = false,
+                 bool guaranteedInitSpread = false,
                  string problemInstancePath = "");
     virtual ~solution_BN() = default;
 
@@ -240,13 +241,14 @@ protected:
     void removeEdge(int currentNodeIndex, int u, vector<int> &preprocessedParameters);  // Removes edges that cause a cycle in the graph
 
 	// Discretization // RUBEN -> TODO: figure out how to make this work with my discretization policy / representation
-    vec_t<size_t> numberOfDiscretizationsperNode;              // The number of discretizations per node
-    shared_ptr<DiscretizationPolicy> discretizationPolicy;      // The discretization policy
-    vec_t<vec_t<double>> boundaries;                            // Stores the boundaries of the discretization (per node) TODO RUBEN: Make sure this is updated if continuous variables are updated.
-    vec_t<double> maxValuesData, minValuesData;   // The maximum and minimum values in the data for each node
-    bool useNormalizedCVars;                                    // Indicates whether the c_vars are normalized or not (and also if boundaries are based on number of samples or on data ranges (bin widths), respectively)
+    vec_t<size_t> numberOfDiscretizationsperNode;                       // The number of discretizations per node
+    shared_ptr<DiscretizationPolicy> discretizationPolicy;              // The discretization policy
+    vec_t<vec_t<double>> boundaries;                                    // Stores the boundaries of the discretization (per node) TODO RUBEN: Make sure this is updated if continuous variables are updated.
+    vec_t<double> maxValuesData, minValuesData;                         // The maximum and minimum values in the data for each node
+    bool useNormalizedCVars;                                            // Indicates whether the c_vars are normalized or not (and also if boundaries are based on number of samples or on data ranges (bin widths), respectively)
     bool useOptimalSolution;
-    string problemInstancePath = "";                                 // The path to the problem instance
+    bool guaranteedInitSpread;                                          // If true, the c_vars will be initialized such that there is an equal number of solutions in the population for each amount of bins (between 2 and max)
+    string problemInstancePath = "";                                    // The path to the problem instance
     
 
 

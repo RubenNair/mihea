@@ -70,6 +70,15 @@ Population::Population(Config *config_, fitness_t *problemInstance_, sharedInfor
         vec_t<int> allGenes(problemInstance->number_of_variables); // RUBEN TODO might need to change this property of problemInstance, but depends on how fitness_t is handled
         iota(allGenes.begin(), allGenes.end(), 0);
 
+        
+        // Ensure that the population is initialized with a spread of solutions, and that different binsizes are spread among the population to account for potential bias.
+        vec_t<int> rand_indices(populationSize);
+        if(config->guaranteedInitSpread)
+        {
+            iota(rand_indices.begin(), rand_indices.end(), 0);
+            std::shuffle(rand_indices.begin(), rand_indices.end(), gomea::utils::rng);
+        }
+
         for (size_t i = 0; i < populationSize; ++i)
         {
             noImprovementStretches[i] = 0;
@@ -90,8 +99,8 @@ Population::Population(Config *config_, fitness_t *problemInstance_, sharedInfor
                                                     config->data->getColumnType(), BNproblemInstance->getDensity()->getOriginalData()->getColumnNumberOfClasses(), 
                                                     config->discretization_policy_index, config->maxParents, config->maxInstantiations, 
                                                     BNproblemInstance, maxValuesData, minValuesData, 
-                                                    config->data, (double)i/populationSize, 
-                                                    config->useNormalizedCVars, config->useOptimalSolution, config->problemInstancePath);
+                                                    config->data, (double)rand_indices[i]/populationSize, 
+                                                    config->useNormalizedCVars, config->useOptimalSolution, config->guaranteedInitSpread, config->problemInstancePath);
 
                 problemInstance->evaluate(population->solutions[i]);
 

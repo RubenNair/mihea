@@ -1,5 +1,7 @@
 // WIP: Create solution class for BN problems by modifying code below, based on solution_so.cpp from other codebase.
 
+#include <cmath>
+
 #include "gomea/src/common/solution_BN.hpp"
 
 #include "gomea/src/fitness/so_benchmarks.h"
@@ -39,6 +41,7 @@ solution_BN::solution_BN(size_t numberOfVariables_,
                          double populationIndexRatio,
                          bool useNormalizedCVars,
                          bool useOptimalSolution,
+                         bool guaranteedInitSpread,
                          string problemInstancePath) : solution_BN(numberOfVariables_, alphabetSize_, numberOfCVariables_, problemInstance_)
 {
 	// Set parameters
@@ -50,6 +53,7 @@ solution_BN::solution_BN(size_t numberOfVariables_,
 
     this->useNormalizedCVars = useNormalizedCVars;
     this->useOptimalSolution = useOptimalSolution;
+    this->guaranteedInitSpread = guaranteedInitSpread;
     this->problemInstancePath = problemInstancePath;
     
 
@@ -74,7 +78,7 @@ solution_BN::solution_BN(size_t numberOfVariables_,
     if(useOptimalSolution)
     {
         optimalInit();
-    } else if(populationIndexRatio > 0.0)
+    } else if(populationIndexRatio >= 0)
     {
         randomInit(&gomea::utils::rng, populationIndexRatio);
     } else
@@ -196,7 +200,7 @@ void solution_BN::normalize()
 }
 
 /**
- * random initialization function of the solution that scales the init range of c_variables with the index of the solution in the population.
+ * random initialization function of the solution that scales the init of c_variables with the index of the solution in the population.
 */
 void solution_BN::randomInit(std::mt19937 *rng, double populationIndexRatio)
 {
@@ -207,18 +211,34 @@ void solution_BN::randomInit(std::mt19937 *rng, double populationIndexRatio)
 
     int maxDiscretizations = getNumberOfCVariables() / this->number_of_nodes_to_discretize;
     double minUpperRangeBound = 1.0 / maxDiscretizations;
+    
+    // The number of boundaries per node should be between 2 and maxDiscretizations (at least 2 boundaries, since after normalization the latter will be 1 and disregarded)
+    long numberOfBoundariesPerNode = std::lround(populationIndexRatio * (maxDiscretizations - 2) + 2);
 
     for (int i = 0; i < getNumberOfCVariables(); ++i) 
     {
-        // Scale upper bound of c_variables based on the normalized index of the solution in the population
-        double newUpperBound = minUpperRangeBound + populationIndexRatio * (problemInstance->getUpperRangeBound(i) - minUpperRangeBound);
-        assert(newUpperBound >= problemInstance->getLowerRangeBound(i));
-        c_variables[i] = problemInstance->getLowerRangeBound(i) + ((*rng)() / (double)(*rng).max()) * (newUpperBound - problemInstance->getLowerRangeBound(i));
-		// // TODO RUBEN: hardcoded upper and lower bounds for now, should be read from config maybe?
-		// c_variables[i] = -10 + ((*rng)() / (double)(*rng).max()) * 20; 
+        if(guaranteedInitSpread)
+        {
+            int j = i % maxDiscretizations; // Index relative to current continuous node
+            if(j < numberOfBoundariesPerNode)
+            {
+                c_variables[i] = problemInstance->getLowerRangeBound(i) + ((*rng)() / (double)(*rng).max()) * (problemInstance->getUpperRangeBound(i) - problemInstance->getLowerRangeBound(i));
+            } else 
+            {
+                c_variables[i] = 0.0;
+            }
+        } else
+        {
+            // Scale upper bound of c_variables based on the normalized index of the solution in the population
+            double newUpperBound = minUpperRangeBound + populationIndexRatio * (problemInstance->getUpperRangeBound(i) - minUpperRangeBound);
+            assert(newUpperBound >= problemInstance->getLowerRangeBound(i));
+            c_variables[i] = problemInstance->getLowerRangeBound(i) + ((*rng)() / (double)(*rng).max()) * (newUpperBound - problemInstance->getLowerRangeBound(i));
+            // // TODO RUBEN: hardcoded upper and lower bounds for now, should be read from config maybe?
+            // c_variables[i] = -10 + ((*rng)() / (double)(*rng).max()) * 20; 
+        }
     }
 
-    if(useNormalizedCVars)
+    if(useNormalizedCVars || guaranteedInitSpread)
     {
         normalize();
     }
@@ -753,7 +773,8 @@ solution_BN::solution_BN( const solution_BN &other ) : solution_mixed(other),
     adjacency_matrix(other.adjacency_matrix), spouse_matrix(other.spouse_matrix),
     numberOfDiscretizationsperNode(other.numberOfDiscretizationsperNode), discretizationPolicy(other.discretizationPolicy),
     boundaries(other.boundaries), maxValuesData(other.maxValuesData), minValuesData(other.minValuesData), data(other.data),
-    useNormalizedCVars(other.useNormalizedCVars), useOptimalSolution(other.useOptimalSolution), problemInstancePath(other.problemInstancePath)  {}
+    useNormalizedCVars(other.useNormalizedCVars), useOptimalSolution(other.useOptimalSolution), guaranteedInitSpread(other.guaranteedInitSpread),
+    problemInstancePath(other.problemInstancePath)  {}
 
 
 /*solution_BN::solution_BN( const solution_BN &other ) : solution_mixed(other.variables, other.fitness_buffers, objective_values, constraint_value, alphabetSize, c_variables, problemInstance)

@@ -72,6 +72,7 @@ public:
     bool useBN = false;
     bool useNormalizedCVars = false;
     bool useOptimalSolution = false;
+    bool guaranteedInitSpread = false;
     int discretization_policy_index = 0;
     
     size_t alphabetSize = 2;
