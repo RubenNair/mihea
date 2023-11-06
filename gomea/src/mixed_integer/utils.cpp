@@ -74,6 +74,23 @@ void initLogFile(string &folder)
     outFile.close();
 }
 
+void initBoundaryStatsFile(string &folder)
+{
+    if (!filesystem::exists(folder))
+    {
+        prepareFolder(folder);
+    }
+
+    ofstream outFile(folder + "/boundaryStats.txt", ofstream::out);
+    if (outFile.fail())
+    {
+        cerr << "Problems with opening file " << folder + "/boundaryStats.txt!\n";
+        exit(0);
+    }
+    outFile << "#bins per continuous node, " << "Fitness " << endl;
+    outFile.close();
+}
+
 void writeStatisticsToFile(string &folder, long long numberOfEvaluations, long long time, solution_t<int> *solution, size_t populationSize, bool vtrHit)
 {
     ofstream outFile(folder + "/statistics.txt", ofstream::app);
@@ -163,6 +180,35 @@ void writePopulationToFile(string &folder, vec_t<solution_mixed*> population, st
         outFile << endl;
 
         outFile.close();
+    }
+}
+
+void writePopulationBoundaryStatsToFile(string &folder, vec_t<solution_mixed*> population, string message)
+{
+    ofstream outFile(folder + "/boundaryStats.txt", ofstream::app);
+    if (outFile.fail())
+    {
+        cerr << "Problems with opening file " << folder + "/boundaryStats.txt!\n";
+        exit(0);
+    }
+
+    outFile << message << endl;
+    for(size_t i = 0; i < population.size(); i++)
+    {
+        solution_BN *solution = (solution_BN*)population[i];
+        // Check if cast went well
+        if(solution == NULL)
+        {
+            cerr << "Cast to solution_BN failed in writing boundary stats (utils.cpp)!" << endl;
+            exit(0);
+        }
+
+        for(size_t j = 0; j < solution->getBoundaries().size(); j++)
+        {
+            outFile << solution->getBoundaries()[j].size() << " ";
+        }
+        outFile << ", ";
+        outFile << solution->getObjectiveValue() << endl;
     }
 }
 

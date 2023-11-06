@@ -443,8 +443,46 @@ void iamalgam::makeSelectionsForOnePopulation(int population_index)
         selections[i] = population->solutions[sorted[i]]->clone();
     }
   }
-  
+  vec_t<int> numBoundariesInSelections = countBoundaries(selections);
+  // print all elements of boundariesInSelections
+  if(numBoundariesInSelections.size() > 0)
+  {
+    cout << "[iAMaLGaM gen " << number_of_generations << "] Occurrences of different amounts of boundaries in selections: ";
+    for(int i = 0; i < numBoundariesInSelections.size(); i++)
+    {
+      if(numBoundariesInSelections[i] > 0)
+      {
+        cout << i << ": " << numBoundariesInSelections[i] << ", ";
+      }
+    }
+    cout << endl;
+  }
+
+  // For each solution in selections, write the amount of boundaries to a file, together with the fitness value.
+  writePopulationBoundaryStatsToFile(config->folder, selections, "GEN " + to_string(number_of_generations) + " - SELECTIONS");
+
+
   free( sorted );
+}
+
+vec_t<int> iamalgam::countBoundaries(vec_t<solution_mixed *> selections)
+{
+  // cast selections to solution_BN
+  vec_t<int> boundaries_count = vec_t<int>(selections[0]->getNumberOfCVariables(), 0);
+  for(int i = 0; i < selections.size(); i++)
+  {
+    solution_BN *casted_solution = (solution_BN*) selections[i];
+    if(casted_solution == NULL)
+    {
+      // Selections does not contain solution_BNs, so abort counting
+      boundaries_count = vec_t<int>();
+      break;
+    }
+    int numBoundaries = casted_solution->getBoundaries()[0].size();
+    boundaries_count[numBoundaries]++;
+  }
+
+  return boundaries_count;
 }
 
 void iamalgam::makeSelectionsForOnePopulationUsingDiversityOnRank0(int population_index)
@@ -907,6 +945,8 @@ void iamalgam::generateAndEvaluateNewSolutionsToFillPopulations()
       // cout << "[DEBUGGING] average fitness after generating new solutions: " << averageFitnessPopulation() << endl;
     }
   }
+
+  writePopulationBoundaryStatsToFile(config->folder, population->solutions, "GEN " + to_string(number_of_generations) + " - POPULATION");
 
   free( solution_AMS );
 }

@@ -96,6 +96,8 @@ class iamalgam
         void generateNewPopulation(int population_index = 0);
         void checkForDuplicate(string message);
 
+        vec_t<int> countBoundaries(vec_t<solution_mixed *> selections);
+
         // variables from runOnce() in iAMaLGaM-Full-Free.c (might not need all of them)
         bool write_generational_statistics;
         bool write_generational_solutions;

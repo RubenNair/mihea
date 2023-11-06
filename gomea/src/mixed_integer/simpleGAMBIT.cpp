@@ -55,6 +55,10 @@ void simpleGAMBIT::initialize()
     {
         initLogFile(config->folder);
     }
+    if(config->useBN)
+    {
+        initBoundaryStatsFile(config->folder);
+    }
 
     // gomeaIMSInstance->initialize();
     // iamalgamInstance->initialize();
@@ -102,41 +106,33 @@ void simpleGAMBIT::run()
             writePopulationToFile(config->folder, currGAMBIT->population->solutions, "initial population --------", config->logDebugInformation);
             writeMessageToLogFile(config->folder, countBuildingBlocks(currGAMBIT->population->solutions, 5), config->logDebugInformation);
 
-            cout << "[DEBUGGING] GEN: " << gen++ << "\t(probInst) Elitist Fitness: " << currGAMBIT->problemInstance->elitist_objective_value << "\t(sharedInfoPointer) Elitist Fitness: " << currGAMBIT->sharedInformationPointer->elitistFitness  << "\tcurrGAMBIT popsize: " << currGAMBIT->populationSize << "\telitist discrete variables: ";
+            std::streamsize ss = std::cout.precision();
+            cout << "[DEBUGGING] GEN: " << gen++ << "\t(probInst) Elitist Fitness: " << fixed << setprecision(7) << currGAMBIT->problemInstance->elitist_objective_value << setprecision(ss) << "\t(sharedInfoPointer) Elitist Fitness: " << currGAMBIT->sharedInformationPointer->elitistFitness  << "\tcurrGAMBIT popsize: " << currGAMBIT->populationSize << "\telitist discrete variables: ";
             for(int i = 0; i < currGAMBIT->problemInstance->number_of_variables; ++i)
             {
                 cout << currGAMBIT->sharedInformationPointer->elitist->variables[i];
             }
             if(config->useBN)
             {
-                // Elitist is not a pointer, so first find the solution with the same fitness in the population. Use those boundaries for printing
-                for(size_t i = 0; i < currGAMBIT->populationSize; ++i)
-                {
-                    if(currGAMBIT->population->solutions[i]->getObjectiveValue() == currGAMBIT->sharedInformationPointer->elitistFitness)
-                    {
-                        solution_BN *elitist_BN = (solution_BN *) currGAMBIT->population->solutions[i];
-                        vec_t<vec_t<double>> el_boundaries = elitist_BN->getBoundaries();
+                solution_BN *elitist_BN = (solution_BN *) currGAMBIT->sharedInformationPointer->elitist;
+                vec_t<vec_t<double>> el_boundaries = elitist_BN->getBoundaries();
 
-                        cout << "\t elitist boundaries (#boundaries: (";
-                        for(size_t i = 0; i < el_boundaries.size()-1; ++i)
-                        {
-                            cout << el_boundaries[i].size() << ", ";
-                        }
-                        cout << el_boundaries[el_boundaries.size()-1].size() << ")): ";
-                        for(size_t i = 0; i < el_boundaries.size(); ++i)
-                        {
-                            for(size_t j = 0; j < el_boundaries[i].size()-1; ++j)
-                            {
-                                cout << el_boundaries[i][j] << ",";
-                            }
-                            cout << el_boundaries[i][el_boundaries[i].size()-1] << ";";
-                        }
-                        break;
-                    }
+                cout << "\t elitist boundaries (#boundaries: (" << fixed << setprecision(15);
+                for(size_t i = 0; i < el_boundaries.size()-1; ++i)
+                {
+                    cout << el_boundaries[i].size() << ", ";
                 }
-                
+                cout << el_boundaries[el_boundaries.size()-1].size() << ")): ";
+                for(size_t i = 0; i < el_boundaries.size(); ++i)
+                {
+                    for(size_t j = 0; j < el_boundaries[i].size()-1; ++j)
+                    {
+                        cout << el_boundaries[i][j] << ",";
+                    }
+                    cout << el_boundaries[i][el_boundaries[i].size()-1] << ";";
+                }
             }
-            cout << endl;
+            cout << setprecision(ss) << endl;
             // gomeaIMSInstance->currGAMBIT = currGAMBIT;
             // gomeaIMSInstance->GAMBITs = GAMBITs;
 
