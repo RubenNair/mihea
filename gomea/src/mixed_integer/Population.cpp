@@ -72,12 +72,10 @@ Population::Population(Config *config_, fitness_t *problemInstance_, sharedInfor
 
         
         // Ensure that the population is initialized with a spread of solutions, and that different binsizes are spread among the population to account for potential bias.
-        vec_t<int> rand_indices(populationSize);
-        if(config->guaranteedInitSpread)
-        {
-            iota(rand_indices.begin(), rand_indices.end(), 0);
-            std::shuffle(rand_indices.begin(), rand_indices.end(), gomea::utils::rng);
-        }
+        vec_t<int> shuffledIndices(populationSize);
+        iota(shuffledIndices.begin(), shuffledIndices.end(), 0);
+        std::shuffle(shuffledIndices.begin(), shuffledIndices.end(), gomea::utils::rng);
+
 
         for (size_t i = 0; i < populationSize; ++i)
         {
@@ -861,7 +859,10 @@ void Population::updateElitistAndCheckVTR(solution_mixed *solution)
         sharedInformationPointer->elitistSolutionHittingTimeMilliseconds = utils::getElapsedTimeMilliseconds(sharedInformationPointer->startTime);
         sharedInformationPointer->elitistSolutionHittingTimeEvaluations = problemInstance->number_of_evaluations;
 
-        sharedInformationPointer->elitist = solution;
+        // Replace sharedInformationPointer->elitist with (a new copy of) the solution
+        delete sharedInformationPointer->elitist;
+        sharedInformationPointer->elitist = solution->clone();
+        
 		sharedInformationPointer->elitistFitness = solution->getObjectiveValue();
 		sharedInformationPointer->elitistConstraintValue = solution->getConstraintValue();
         
