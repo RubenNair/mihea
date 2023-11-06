@@ -64,7 +64,7 @@ fitness_t *Config::getFitnessClassDiscrete( int problem_index, int number_of_var
         // case 555:
         // return new gomea::fitness::DT5BlockRotEllipBBO_t(number_of_variables, numberOfcVariables, a_value);
         case 1000 ... 1099:
-        return new gomea::fitness::BNStructureLearning(numberOfdVariables, numberOfcVariables, problem_index, data, maxParents, maxDiscretizations);
+        return new gomea::fitness::BNStructureLearning(numberOfdVariables, numberOfcVariables, problem_index, data, maxParents, maxDiscretizations, transformCVariables);
 		default:
 		return NULL;
 	}
@@ -149,6 +149,9 @@ bool Config::parseCommandLine(int argc, char **argv)
             break;
         case 'f':
             useForcedImprovements = atoi(optarg);
+            break;
+        case 'r':
+            runIndex = atoi(optarg);
             break;
         case 'n':
             basePopulationSize = atoi(optarg);
@@ -251,6 +254,9 @@ bool Config::parseCommandLine(int argc, char **argv)
         case 'O':
             folder= string(optarg);
             break;
+        case 't':
+            transformCVariables = true;
+            break;
         case 'T':
             maximumNumberOfSeconds = atof(optarg);
             break;
@@ -302,7 +308,7 @@ bool Config::parseCommandLine(int argc, char **argv)
         this->maxDiscretizations = 9; // Maximum number of discretizations for continuous variables. Hardcoded for now.
 
         // Parse input data (BN structure and data)
-        this->data = initializeDataFromPath(true, this->problemInstancePath, 0);
+        this->data = initializeDataFromPath(true, this->problemInstancePath, runIndex);
         // determine number of d_variables / c_variables based on data + maxDiscretizations
         int numNodes = data->getNumberOfDataColumns();
         this->numberOfdVariables = ((numNodes-1)*numNodes) / 2;

@@ -48,6 +48,7 @@ public:
         saveEvaluations                    = 0,
         logDebugInformation                = 0,
         useForcedImprovements              = 0,
+        runIndex                           = 0,
         dontUseOffspringPopulation         = 0,
         printHelp                          = 0,
 		maximumNumberOfEvaluations		   = -1,
@@ -75,6 +76,7 @@ public:
     bool useNormalizedCVars = false;
     bool useOptimalSolution = false;
     bool guaranteedInitSpread = false;
+    bool transformCVariables = false;
     int discretization_policy_index = 0;
     
     size_t alphabetSize = 2;

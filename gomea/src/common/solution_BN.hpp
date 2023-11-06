@@ -63,9 +63,11 @@ class solution_BN : public solution_mixed
                  shared_ptr<DataStructure<double>> data = NULL,
                  double populationIndexRatio = -1.0,
                  bool useNormalizedCVars = false,
+                 bool transformCVariables = false,
                  bool useOptimalSolution = false,
                  bool guaranteedInitSpread = false,
-                 string problemInstancePath = "");
+                 string problemInstancePath = "",
+                 int runIndex = 0);
     virtual ~solution_BN() = default;
 
     void reProcessParametersSolution(vector<int> newParameters);
@@ -212,6 +214,7 @@ protected:
 
     void updateBoundariesBasedOnBinWidths();
     void updateBoundariesBasedOnNumberOfDataSamples();
+    void execTransformationCVariables();
 
     // Solution processing methods
     NetworkStructure processParametersSolution(const vector<int> &parametersToProcess,
@@ -251,9 +254,11 @@ protected:
     vec_t<vec_t<double>> boundaries;                                    // Stores the boundaries of the discretization (per node) TODO RUBEN: Make sure this is updated if continuous variables are updated.
     vec_t<double> maxValuesData, minValuesData;                         // The maximum and minimum values in the data for each node
     bool useNormalizedCVars;                                            // Indicates whether the c_vars are normalized or not (and also if boundaries are based on number of samples or on data ranges (bin widths), respectively)
+    bool transformCVariables;                                           // Indicates whether c_vars are transformed for iamalgam (initialized in [0,1], also calculate boundaries in this range, but otherwise map using f(x) = 1/x)
     bool useOptimalSolution;
     bool guaranteedInitSpread;                                          // If true, the c_vars will be initialized such that there is an equal number of solutions in the population for each amount of bins (between 2 and max)
     string problemInstancePath = "";                                    // The path to the problem instance
+    int runIndex;                                                       
     
 
 

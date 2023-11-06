@@ -8,13 +8,14 @@ namespace fitness{
 
 using namespace gomea;
 
-BNStructureLearning::BNStructureLearning( int number_of_variables, int number_of_c_variables, int problem_index, const shared_ptr<DataStructure<double>> &data, size_t max_number_of_parents, size_t max_number_of_discretizations) : GBOFitnessFunction_t<int>(number_of_variables)
+BNStructureLearning::BNStructureLearning( int number_of_variables, int number_of_c_variables, int problem_index, const shared_ptr<DataStructure<double>> &data, size_t max_number_of_parents, size_t max_number_of_discretizations, bool transformCVariables) : GBOFitnessFunction_t<int>(number_of_variables)
 {
 	this->name = "Bayesian Network structure learning using density to calculate fitness";
     this->number_of_c_variables = number_of_c_variables;
 	this->vtr = 1e308;
 	this->use_vtr = false;
 	this->optimization_mode = opt_mode::MIN; // Since minimization is hardcoded in some spots, easiest way right now is to negate fitness and still minimize. (In original code, maximization)
+	this->transformCVariables = transformCVariables;
 	this->initialize();
 	// TODO: initialize density here -> will need more / different parameters to this constructor to do so.
 	this->density = new Density(problem_index, name, data, max_number_of_parents, max_number_of_discretizations);
@@ -22,12 +23,12 @@ BNStructureLearning::BNStructureLearning( int number_of_variables, int number_of
 
 double BNStructureLearning::getLowerRangeBound( int dimension )
 {
-	return( 0 );
+	return( this->transformCVariables ? 1.0 : 0.0 );
 }
 		
 double BNStructureLearning::getUpperRangeBound( int dimension )
 {
-	return( 0.99 );
+	return( this->transformCVariables ? INFINITY : 0.99 );
 }
 		
 int BNStructureLearning::getNumberOfSubfunctions()
