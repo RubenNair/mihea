@@ -79,7 +79,7 @@ void iamalgam::initializeMemory() {
       vec_t<vec_t<double>> data = config->data->getDataMatrix().getRawMatrix();
       std::tie(maxValuesData, minValuesData) = findMaxAndMinValuesInData(data);
 
-      selections[i] = new solution_BN(config->numberOfVariables, config->alphabetSize, config->numberOfcVariables, config->data->getColumnType(), BNproblemInstance->getDensity()->getOriginalData()->getColumnNumberOfClasses(), config->discretization_policy_index, config->maxParents, config->maxInstantiations, problemInstance, maxValuesData, minValuesData, config->data);
+      selections[i] = new solution_BN(config->numberOfVariables, config->alphabetSize, config->numberOfcVariables, config->data->getColumnType(), BNproblemInstance->getDensity()->getOriginalData()->getColumnNumberOfClasses(), config->discretization_policy_index, config->maxParents, config->maxInstantiations, problemInstance, maxValuesData, minValuesData, config->lower_user_range, config->upper_user_range, config->data);
       selections[i]->initObjectiveValues(problemInstance->number_of_objectives);
     } else {
       selections[i] = new solution_mixed(config->numberOfVariables, config->alphabetSize, config->numberOfcVariables, problemInstance);
@@ -1152,7 +1152,7 @@ double *iamalgam::generateNewSolution( int population_index )
     {
       result = (double *) malloc( number_of_parameters*sizeof( double ) );
       for( i = 0; i < number_of_parameters; i++ )
-        result[i] = problemInstance->getLowerRangeBound(i) + ((gomea::utils::rng)() / (double)(gomea::utils::rng).max()) * (problemInstance->getUpperRangeBound(i) - problemInstance->getLowerRangeBound(i));
+        result[i] = 1.0 / (config->lower_user_range + ((gomea::utils::rng)() / (double)(gomea::utils::rng).max()) * (config->upper_user_range - config->lower_user_range));
         // result[i] = lower_init_ranges[i] + (upper_init_ranges[i] - lower_init_ranges[i])*randomRealUniform01();
     }
     else

@@ -37,6 +37,7 @@ solution_BN::solution_BN(size_t numberOfVariables_,
                          size_t maximum_number_of_instantiations,
                          fitness_t<int> *problemInstance_,
                          vec_t<double> maxValuesData, vec_t<double> minValuesData,
+                         double lower_user_range, double upper_user_range,
                          shared_ptr<DataStructure<double>> data,
                          double populationIndexRatio,
                          bool useNormalizedCVars,
@@ -50,6 +51,9 @@ solution_BN::solution_BN(size_t numberOfVariables_,
 
     this->maxValuesData = maxValuesData;
     this->minValuesData = minValuesData;
+
+    this->lower_user_range = lower_user_range;
+    this->upper_user_range = upper_user_range;
 
     this->useNormalizedCVars = useNormalizedCVars;
     this->useOptimalSolution = useOptimalSolution;
@@ -155,7 +159,7 @@ void solution_BN::randomInit(std::mt19937 *rng)
 
     for (int i = 0; i < getNumberOfCVariables(); ++i) 
     {
-        c_variables[i] += problemInstance->getLowerRangeBound(i) + ((*rng)() / (double)(*rng).max()) * (problemInstance->getUpperRangeBound(i) - problemInstance->getLowerRangeBound(i)); //(*rng)() / (double)(*rng).max() * 0.02 - 0.01; //
+        c_variables[i] += lower_user_range + ((*rng)() / (double)(*rng).max()) * (upper_user_range - lower_user_range); //(*rng)() / (double)(*rng).max() * 0.02 - 0.01; //
 		// // TODO RUBEN: hardcoded upper and lower bounds for now, should be read from config maybe?
 		// c_variables[i] = -10 + ((*rng)() / (double)(*rng).max()) * 20; 
     }
@@ -222,7 +226,7 @@ void solution_BN::randomInit(std::mt19937 *rng, double populationIndexRatio)
             int j = i % maxDiscretizations; // Index relative to current continuous node
             if(j < numberOfBoundariesPerNode)
             {
-                c_variables[i] = problemInstance->getLowerRangeBound(i) + ((*rng)() / (double)(*rng).max()) * (problemInstance->getUpperRangeBound(i) - problemInstance->getLowerRangeBound(i));
+                c_variables[i] = lower_user_range + ((*rng)() / (double)(*rng).max()) * (upper_user_range - lower_user_range);
             } else 
             {
                 c_variables[i] = 0.0;
@@ -230,9 +234,9 @@ void solution_BN::randomInit(std::mt19937 *rng, double populationIndexRatio)
         } else
         {
             // Scale upper bound of c_variables based on the normalized index of the solution in the population
-            double newUpperBound = minUpperRangeBound + populationIndexRatio * (problemInstance->getUpperRangeBound(i) - minUpperRangeBound);
-            assert(newUpperBound >= problemInstance->getLowerRangeBound(i));
-            c_variables[i] = problemInstance->getLowerRangeBound(i) + ((*rng)() / (double)(*rng).max()) * (newUpperBound - problemInstance->getLowerRangeBound(i));
+            double newUpperBound = minUpperRangeBound + populationIndexRatio * (upper_user_range - minUpperRangeBound);
+            assert(newUpperBound >= lower_user_range);
+            c_variables[i] = lower_user_range + ((*rng)() / (double)(*rng).max()) * (newUpperBound - lower_user_range);
             // // TODO RUBEN: hardcoded upper and lower bounds for now, should be read from config maybe?
             // c_variables[i] = -10 + ((*rng)() / (double)(*rng).max()) * 20; 
         }

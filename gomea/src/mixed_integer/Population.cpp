@@ -98,14 +98,15 @@ Population::Population(Config *config_, fitness_t *problemInstance_, sharedInfor
                 population->solutions[i] = new solution_BN(config->numberOfVariables, config->alphabetSize, config->numberOfcVariables, 
                                                     config->data->getColumnType(), BNproblemInstance->getDensity()->getOriginalData()->getColumnNumberOfClasses(), 
                                                     config->discretization_policy_index, config->maxParents, config->maxInstantiations, 
-                                                    BNproblemInstance, maxValuesData, minValuesData, 
-                                                    config->data, (double)rand_indices[i]/populationSize, 
-                                                    config->useNormalizedCVars, config->useOptimalSolution, config->guaranteedInitSpread, config->problemInstancePath);
+                                                    BNproblemInstance, maxValuesData, minValuesData,
+                                                    config->lower_user_range, config->upper_user_range, 
+                                                    config->data, (double)shuffledIndices[i]/populationSize, 
+                                                    config->useNormalizedCVars, config->transformCVariables, config->useOptimalSolution, config->guaranteedInitSpread, config->problemInstancePath);
 
                 problemInstance->evaluate(population->solutions[i]);
 
                 // Set offspringPopulation[i] to a new solution_BN, just to initialize the necessary memory.
-                offspringPopulation->solutions[i] = new solution_BN(config->numberOfVariables, config->alphabetSize, config->numberOfcVariables, config->data->getColumnType(), BNproblemInstance->getDensity()->getOriginalData()->getColumnNumberOfClasses(), config->discretization_policy_index, config->maxParents, config->maxInstantiations, BNproblemInstance, maxValuesData, minValuesData, config->data);
+                offspringPopulation->solutions[i] = new solution_BN(config->numberOfVariables, config->alphabetSize, config->numberOfcVariables, config->data->getColumnType(), BNproblemInstance->getDensity()->getOriginalData()->getColumnNumberOfClasses(), config->discretization_policy_index, config->maxParents, config->maxInstantiations, BNproblemInstance, maxValuesData, minValuesData, config->lower_user_range, config->upper_user_range, config->data);
                 *offspringPopulation->solutions[i] = *population->solutions[i];
                 // offspringPopulation[i] = population[i]->clone();
             } else

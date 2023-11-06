@@ -98,13 +98,16 @@ bool Config::parseCommandLine(int argc, char **argv)
     {"similarityMeasure", required_argument,   0, 'Z'}, 
     {"useForcedImprovements", required_argument,   0, 'f'}, 
     {"GPUIndex", required_argument,   0, 'G'}, 
+    {"LowerInit", required_argument,   0, 'a'},
+    {"UpperInit", required_argument,   0, 'b'},
+    {"TransformCVariables", no_argument,   0, 't'},  
                
     {0,             0,                   0,  0 }
   };
 
 
   int c, index;
-  while ((c = getopt_long(argc, argv, "h::k::n::p::X::Y::Q::g::w::e::s::f::P::F::m::u::l::L::o::O::T::S::V::I::B::Z::G::M::N::E::", longopts, &index)) != -1)
+  while ((c = getopt_long(argc, argv, "h::k::n::p::X::Y::Q::g::w::e::s::f::r::P::F::m::u::l::L::o::O::t::T::S::V::I::B::Z::G::M::N::E::a::b::", longopts, &index)) != -1)
   {
     switch (c)
     {
@@ -137,6 +140,12 @@ bool Config::parseCommandLine(int argc, char **argv)
             break;
         case 'h':
             printHelp = 1;
+            break;
+        case 'a':
+            lower_user_range = atof(optarg);
+            break;
+        case 'b':
+            upper_user_range = atof(optarg);
             break;
         case 'f':
             useForcedImprovements = atoi(optarg);

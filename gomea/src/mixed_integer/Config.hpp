@@ -53,6 +53,8 @@ public:
 		maximumNumberOfEvaluations		   = -1,
 		maximumNumberOfGenerations		   = -1;
 	double maximumNumberOfSeconds = -1;
+    double     lower_user_range = 0.0,                              /* The initial lower range-bound indicated by the user (same for all dimensions). */
+			   upper_user_range = 1.0;                              /* The initial upper range-bound indicated by the user (same for all dimensions). */
     double vtr = 1e+308;
     size_t k = 1, s = 1,   
         FOSIndex = 0;

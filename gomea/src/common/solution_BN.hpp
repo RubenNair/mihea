@@ -59,6 +59,7 @@ class solution_BN : public solution_mixed
                  size_t maximum_number_of_Instantiations,
                  fitness_t<int> *problemInstance_,
                  vec_t<double> maxValuesData, vec_t<double> minValuesData,
+                 double lower_user_range, double upper_user_range,
                  shared_ptr<DataStructure<double>> data = NULL,
                  double populationIndexRatio = -1.0,
                  bool useNormalizedCVars = false,
@@ -196,6 +197,10 @@ protected:
     clock_t timeStamp;                      // The time stamp when a solution was evaluated
     size_t numberOfFullEvaluations;         // The number of full evaluations executed to get the solution
 	double numberOfEvaluations;             // The number of (partial) evaluations executed to get this solution
+
+    // Init lower and upper bound
+    double lower_user_range;
+    double upper_user_range;
 
 	// Bayesian network structure
     vec_t<size_t> number_of_parents;       // The number of parents of each random variable
