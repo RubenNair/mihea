@@ -1192,8 +1192,17 @@ double *iamalgam::generateNewSolution( int population_index )
     {
       result = (double *) malloc( number_of_parameters*sizeof( double ) );
       for( i = 0; i < number_of_parameters; i++ )
-        result[i] = 1.0 / (config->lower_user_range + ((gomea::utils::rng)() / (double)(gomea::utils::rng).max()) * (config->upper_user_range - config->lower_user_range));
+      {
+        if(config->transformCVariables)
+        {
+          result[i] = 1.0 / (config->lower_user_range + ((gomea::utils::rng)() / (double)(gomea::utils::rng).max()) * (config->upper_user_range - config->lower_user_range));
+        }
+        else
+        {
+          result[i] = config->lower_user_range + ((gomea::utils::rng)() / (double)(gomea::utils::rng).max()) * (config->upper_user_range - config->lower_user_range);
+        }
         // result[i] = lower_init_ranges[i] + (upper_init_ranges[i] - lower_init_ranges[i])*randomRealUniform01();
+      }
     }
     else
     {
