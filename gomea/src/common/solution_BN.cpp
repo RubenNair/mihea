@@ -99,6 +99,12 @@ solution_BN::solution_BN(size_t numberOfVariables_,
         execTransformationCVariables();
     }
     
+    // if using normalized c_vars, do normalization after potential transformation
+    //  (so it is done on the transformed values, similar to how it will be called from iamalgam)
+    if(useNormalizedCVars)
+    {
+        normalize();
+    }
 
     // Process the solution
     NetworkStructure solutionInformation = processParametersSolution(variables, initialNumberOfInstantiations, discretizationPolicyIndex, maximum_number_of_instantiations);
@@ -152,6 +158,7 @@ void solution_BN::optimalInit()
     this->boundaries = boundaries;
 }
 
+// I think this is not used currently, always pass a populationIndex for testing
 void solution_BN::randomInit(std::mt19937 *rng)
 {
 	for (int i = 0; i < getNumberOfVariables(); ++i)
@@ -190,6 +197,12 @@ void solution_BN::normalize()
         return;
     }
 
+    // Normalize in [0, 1] range, so if variables were transformed, temporarily transform them back
+    if(transformCVariables)
+    {
+        execTransformationCVariables();
+    }
+
     int maxDiscretizations = this->c_variables.size() / this->number_of_nodes_to_discretize;
     int cVarsCount = 0;
     for(int j = 0; j < this->number_of_nodes; j++)
@@ -209,6 +222,11 @@ void solution_BN::normalize()
             }
             cVarsCount++;
         }
+    }
+
+    if(transformCVariables)
+    {
+        execTransformationCVariables();
     }
 }
 
@@ -269,12 +287,10 @@ void solution_BN::randomInit(std::mt19937 *rng, double populationIndexRatio)
         }
     }
 
-    if(useNormalizedCVars || guaranteedInitSpread)
-    {
-        normalize();
-    }
     if(guaranteedInitSpread)
     {
+        normalize();
+
         // Initialize the rest of the c_variables (that will not be used due to normalization) to random values instead of 0.0
         for (int i = 0; i < getNumberOfCVariables(); ++i) 
         {
