@@ -319,7 +319,7 @@ void solution_BN::updateBoundaries()
         execTransformationCVariables();
     }
 
-    if(useNormalizedCVars)
+    if(guaranteedInitSpread)
     {
         updateBoundariesBasedOnNumberOfDataSamples();
     } else
