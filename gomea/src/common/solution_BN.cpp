@@ -187,9 +187,10 @@ void solution_BN::randomInit(std::mt19937 *rng)
 }
 
 /**
- * Normalizes just the c_variables
+ * Normalizes just the c_variables, the first numberOfBins variables for each continuous node.
+ * If numberOfBins is -1, all c_variables are normalized.
 */
-void solution_BN::normalize() 
+void solution_BN::normalize(int numberOfBins) 
 {
     // If we are using the optimal solution, don't normalize (just to make sure they will always match conditions of the optimum)
     if(useOptimalSolution)
@@ -198,7 +199,9 @@ void solution_BN::normalize()
     }
 
     // Normalize in [0, 1] range, so if variables were transformed, temporarily transform them back
-    if(transformCVariables)
+    // For now, if numberOfBins is not -1, it means we are in init stage of transformedCVariables - guaranteedSpread combo (method 2 init 3)
+    // In which case the variables are not yet transformed, and therefore they shouldn't be transformed in this function (will be handled after)
+    if(transformCVariables && numberOfBins == -1)
     {
         execTransformationCVariables();
     }
@@ -212,6 +215,10 @@ void solution_BN::normalize()
             double sum = 0.0;
             for(int i = 0; i < maxDiscretizations; i++)
             {
+                if(numberOfBins != -1 && i >= numberOfBins)
+                {
+                    break;
+                }
                 int c_var_index = maxDiscretizations * cVarsCount + i;
                 sum += c_variables[c_var_index];
             }
@@ -223,8 +230,8 @@ void solution_BN::normalize()
             cVarsCount++;
         }
     }
-
-    if(transformCVariables)
+    // See previous comment about transformation in this function
+    if(transformCVariables && numberOfBins == -1)
     {
         execTransformationCVariables();
     }
@@ -268,14 +275,7 @@ void solution_BN::randomInit(std::mt19937 *rng, double populationIndexRatio)
     {
         if(guaranteedInitSpread)
         {
-            int j = i % maxDiscretizations; // Index relative to current continuous node
-            if(j < numberOfBoundariesPerNode)
-            {
-                c_variables[i] = lower_user_range + ((*rng)() / (double)(*rng).max()) * (upper_user_range - lower_user_range);
-            } else 
-            {
-                c_variables[i] = 0.0;
-            }
+            c_variables[i] = lower_user_range + ((*rng)() / (double)(*rng).max()) * (upper_user_range - lower_user_range);
         } else
         {
             // Scale upper bound of c_variables based on the normalized index of the solution in the population
@@ -289,16 +289,7 @@ void solution_BN::randomInit(std::mt19937 *rng, double populationIndexRatio)
 
     if(guaranteedInitSpread)
     {
-        normalize();
-
-        // Initialize the rest of the c_variables (that will not be used due to normalization) to random values instead of 0.0
-        for (int i = 0; i < getNumberOfCVariables(); ++i) 
-        {
-            if(c_variables[i] == 0.0)
-            {
-                c_variables[i] = lower_user_range + ((*rng)() / (double)(*rng).max()) * (upper_user_range - lower_user_range);
-            }
-        }
+        normalize(numberOfBoundariesPerNode);
     }
 }
 

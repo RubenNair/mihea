@@ -97,7 +97,7 @@ class solution_BN : public solution_mixed
 	void randomInit(std::mt19937 *rng);
     void randomInit(std::mt19937 *rng, double populationIndexRatio);
     void optimalInit();
-    void normalize();
+    void normalize(int numberOfBins = -1);
     void updateBoundaries();
     tuple<vec_t<double>, vec_t<double>> findMaxAndMinValuesInData();
 	void insertCVariables( const vec_t<double> &vars_to_insert );
