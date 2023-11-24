@@ -1,5 +1,7 @@
 // WIP: Create solution class for BN problems by modifying code below, based on solution_so.cpp from other codebase.
 
+#include <cmath>
+
 #include "gomea/src/common/solution_BN.hpp"
 
 #include "gomea/src/fitness/so_benchmarks.h"
@@ -35,11 +37,15 @@ solution_BN::solution_BN(size_t numberOfVariables_,
                          size_t maximum_number_of_instantiations,
                          fitness_t<int> *problemInstance_,
                          vec_t<double> maxValuesData, vec_t<double> minValuesData,
+                         double lower_user_range, double upper_user_range,
                          shared_ptr<DataStructure<double>> data,
                          double populationIndexRatio,
                          bool useNormalizedCVars,
+                         bool transformCVariables,
                          bool useOptimalSolution,
-                         string problemInstancePath) : solution_BN(numberOfVariables_, alphabetSize_, numberOfCVariables_, problemInstance_)
+                         bool guaranteedInitSpread,
+                         string problemInstancePath,
+                         int runIndex) : solution_BN(numberOfVariables_, alphabetSize_, numberOfCVariables_, problemInstance_)
 {
 	// Set parameters
     this->node_data_types = node_data_types;
@@ -48,9 +54,15 @@ solution_BN::solution_BN(size_t numberOfVariables_,
     this->maxValuesData = maxValuesData;
     this->minValuesData = minValuesData;
 
+    this->lower_user_range = lower_user_range;
+    this->upper_user_range = upper_user_range;
+
     this->useNormalizedCVars = useNormalizedCVars;
+    this->transformCVariables = transformCVariables;
     this->useOptimalSolution = useOptimalSolution;
+    this->guaranteedInitSpread = guaranteedInitSpread;
     this->problemInstancePath = problemInstancePath;
+    this->runIndex = runIndex;
     
 
     if(data != NULL) 
@@ -74,14 +86,25 @@ solution_BN::solution_BN(size_t numberOfVariables_,
     if(useOptimalSolution)
     {
         optimalInit();
-    } else if(populationIndexRatio > 0.0)
+    } else if(populationIndexRatio >= 0)
     {
         randomInit(&gomea::utils::rng, populationIndexRatio);
     } else
     {
         randomInit(&gomea::utils::rng);
     }
+
+    if(transformCVariables)
+    {
+        execTransformationCVariables();
+    }
     
+    // if using normalized c_vars, do normalization after potential transformation
+    //  (so it is done on the transformed values, similar to how it will be called from iamalgam)
+    if(useNormalizedCVars)
+    {
+        normalize();
+    }
 
     // Process the solution
     NetworkStructure solutionInformation = processParametersSolution(variables, initialNumberOfInstantiations, discretizationPolicyIndex, maximum_number_of_instantiations);
@@ -106,7 +129,7 @@ solution_BN::solution_BN(size_t numberOfVariables_,
 void solution_BN::optimalInit()
 {
     assert(problemInstancePath != "");
-    string pathOptimalSolution = determinePathOptimalSolution(problemInstancePath, 0);
+    string pathOptimalSolution = determinePathOptimalSolution(problemInstancePath, runIndex);
 
     string stringOptimalSolution;
     vec_t<vec_t<double>> optimalBoundaries;
@@ -135,6 +158,7 @@ void solution_BN::optimalInit()
     this->boundaries = boundaries;
 }
 
+// I think this is not used currently, always pass a populationIndex for testing
 void solution_BN::randomInit(std::mt19937 *rng)
 {
 	for (int i = 0; i < getNumberOfVariables(); ++i)
@@ -151,7 +175,7 @@ void solution_BN::randomInit(std::mt19937 *rng)
 
     for (int i = 0; i < getNumberOfCVariables(); ++i) 
     {
-        c_variables[i] += problemInstance->getLowerRangeBound(i) + ((*rng)() / (double)(*rng).max()) * (problemInstance->getUpperRangeBound(i) - problemInstance->getLowerRangeBound(i)); //(*rng)() / (double)(*rng).max() * 0.02 - 0.01; //
+        c_variables[i] += lower_user_range + ((*rng)() / (double)(*rng).max()) * (upper_user_range - lower_user_range); //(*rng)() / (double)(*rng).max() * 0.02 - 0.01; //
 		// // TODO RUBEN: hardcoded upper and lower bounds for now, should be read from config maybe?
 		// c_variables[i] = -10 + ((*rng)() / (double)(*rng).max()) * 20; 
     }
@@ -163,14 +187,23 @@ void solution_BN::randomInit(std::mt19937 *rng)
 }
 
 /**
- * Normalizes just the c_variables
+ * Normalizes just the c_variables, the first numberOfBins variables for each continuous node.
+ * If numberOfBins is -1, all c_variables are normalized.
 */
-void solution_BN::normalize() 
+void solution_BN::normalize(int numberOfBins) 
 {
     // If we are using the optimal solution, don't normalize (just to make sure they will always match conditions of the optimum)
     if(useOptimalSolution)
     {
         return;
+    }
+
+    // Normalize in [0, 1] range, so if variables were transformed, temporarily transform them back
+    // For now, if numberOfBins is not -1, it means we are in init stage of transformedCVariables - guaranteedSpread combo (method 2 init 3)
+    // In which case the variables are not yet transformed, and therefore they shouldn't be transformed in this function (will be handled after)
+    if(transformCVariables && numberOfBins == -1)
+    {
+        execTransformationCVariables();
     }
 
     int maxDiscretizations = this->c_variables.size() / this->number_of_nodes_to_discretize;
@@ -182,6 +215,10 @@ void solution_BN::normalize()
             double sum = 0.0;
             for(int i = 0; i < maxDiscretizations; i++)
             {
+                if(numberOfBins != -1 && i >= numberOfBins)
+                {
+                    break;
+                }
                 int c_var_index = maxDiscretizations * cVarsCount + i;
                 sum += c_variables[c_var_index];
             }
@@ -193,34 +230,66 @@ void solution_BN::normalize()
             cVarsCount++;
         }
     }
+    // See previous comment about transformation in this function
+    if(transformCVariables && numberOfBins == -1)
+    {
+        execTransformationCVariables();
+    }
+}
+
+void solution_BN::execTransformationCVariables()
+{
+    if(transformCVariables)
+    {
+        for(int i = 0; i < getNumberOfCVariables(); i++)
+        {
+            c_variables[i] = 1.0 / c_variables[i];
+        }
+    }
 }
 
 /**
- * random initialization function of the solution that scales the init range of c_variables with the index of the solution in the population.
+ * random initialization function of the solution that scales the init of c_variables with the index of the solution in the population.
 */
 void solution_BN::randomInit(std::mt19937 *rng, double populationIndexRatio)
 {
-    for (int i = 0; i < getNumberOfVariables(); ++i)
-	{
-		variables[i] = (*rng)() % getAlphabetSize();
-	}
+    if(problemInstancePath == "network7")
+    {
+        // This network has the network structure fixed in the Yi-Chun Chen paper, so fix it here as well.
+        variables = {0, 1, 1};
+    } else
+    {
+        for (int i = 0; i < getNumberOfVariables(); ++i)
+        {
+            variables[i] = (*rng)() % getAlphabetSize();
+        }
+    }
 
     int maxDiscretizations = getNumberOfCVariables() / this->number_of_nodes_to_discretize;
     double minUpperRangeBound = 1.0 / maxDiscretizations;
+    
+    // The number of boundaries per node should be between 2 and maxDiscretizations (at least 2 boundaries, since after normalization the latter will be 1 and disregarded)
+    long numberOfBoundariesPerNode = std::lround(populationIndexRatio * (maxDiscretizations - 2) + 2);
 
     for (int i = 0; i < getNumberOfCVariables(); ++i) 
     {
-        // Scale upper bound of c_variables based on the normalized index of the solution in the population
-        double newUpperBound = minUpperRangeBound + populationIndexRatio * (problemInstance->getUpperRangeBound(i) - minUpperRangeBound);
-        assert(newUpperBound >= problemInstance->getLowerRangeBound(i));
-        c_variables[i] = problemInstance->getLowerRangeBound(i) + ((*rng)() / (double)(*rng).max()) * (newUpperBound - problemInstance->getLowerRangeBound(i));
-		// // TODO RUBEN: hardcoded upper and lower bounds for now, should be read from config maybe?
-		// c_variables[i] = -10 + ((*rng)() / (double)(*rng).max()) * 20; 
+        if(guaranteedInitSpread)
+        {
+            c_variables[i] = lower_user_range + ((*rng)() / (double)(*rng).max()) * (upper_user_range - lower_user_range);
+        } else
+        {
+            // Scale upper bound of c_variables based on the normalized index of the solution in the population
+            double newUpperBound = minUpperRangeBound + populationIndexRatio * (upper_user_range - minUpperRangeBound);
+            assert(newUpperBound >= lower_user_range);
+            c_variables[i] = lower_user_range + ((*rng)() / (double)(*rng).max()) * (newUpperBound - lower_user_range);
+            // // TODO RUBEN: hardcoded upper and lower bounds for now, should be read from config maybe?
+            // c_variables[i] = -10 + ((*rng)() / (double)(*rng).max()) * 20; 
+        }
     }
 
-    if(useNormalizedCVars)
+    if(guaranteedInitSpread)
     {
-        normalize();
+        normalize(numberOfBoundariesPerNode);
     }
 }
 
@@ -235,12 +304,24 @@ void solution_BN::updateBoundaries()
         return;
     }
 
-    if(useNormalizedCVars)
+    // If c_variables are transformed, transform them back to get them in [0, 1] range for calculating the boundaries
+    if(transformCVariables)
+    {
+        execTransformationCVariables();
+    }
+
+    if(guaranteedInitSpread)
     {
         updateBoundariesBasedOnNumberOfDataSamples();
     } else
     {
         updateBoundariesBasedOnBinWidths();
+    }
+
+    // Transform back if necessary
+    if(transformCVariables)
+    {
+        execTransformationCVariables();
     }
 }
 
@@ -752,8 +833,10 @@ solution_BN::solution_BN( const solution_BN &other ) : solution_mixed(other),
     child_matrix(other.child_matrix), parent_matrix(other.parent_matrix),
     adjacency_matrix(other.adjacency_matrix), spouse_matrix(other.spouse_matrix),
     numberOfDiscretizationsperNode(other.numberOfDiscretizationsperNode), discretizationPolicy(other.discretizationPolicy),
-    boundaries(other.boundaries), maxValuesData(other.maxValuesData), minValuesData(other.minValuesData), data(other.data),
-    useNormalizedCVars(other.useNormalizedCVars), useOptimalSolution(other.useOptimalSolution), problemInstancePath(other.problemInstancePath)  {}
+    boundaries(other.boundaries), maxValuesData(other.maxValuesData), minValuesData(other.minValuesData), 
+    lower_user_range(other.lower_user_range), upper_user_range(other.upper_user_range), data(other.data),
+    useNormalizedCVars(other.useNormalizedCVars), transformCVariables(other.transformCVariables), useOptimalSolution(other.useOptimalSolution), guaranteedInitSpread(other.guaranteedInitSpread),
+    problemInstancePath(other.problemInstancePath), runIndex(other.runIndex)  {}
 
 
 /*solution_BN::solution_BN( const solution_BN &other ) : solution_mixed(other.variables, other.fitness_buffers, objective_values, constraint_value, alphabetSize, c_variables, problemInstance)

@@ -59,11 +59,15 @@ class solution_BN : public solution_mixed
                  size_t maximum_number_of_Instantiations,
                  fitness_t<int> *problemInstance_,
                  vec_t<double> maxValuesData, vec_t<double> minValuesData,
+                 double lower_user_range, double upper_user_range,
                  shared_ptr<DataStructure<double>> data = NULL,
-                 double populationIndexRatio = 0.0,
+                 double populationIndexRatio = -1.0,
                  bool useNormalizedCVars = false,
+                 bool transformCVariables = false,
                  bool useOptimalSolution = false,
-                 string problemInstancePath = "");
+                 bool guaranteedInitSpread = false,
+                 string problemInstancePath = "",
+                 int runIndex = 0);
     virtual ~solution_BN() = default;
 
     void reProcessParametersSolution(vector<int> newParameters);
@@ -93,7 +97,7 @@ class solution_BN : public solution_mixed
 	void randomInit(std::mt19937 *rng);
     void randomInit(std::mt19937 *rng, double populationIndexRatio);
     void optimalInit();
-    void normalize();
+    void normalize(int numberOfBins = -1);
     void updateBoundaries();
     tuple<vec_t<double>, vec_t<double>> findMaxAndMinValuesInData();
 	void insertCVariables( const vec_t<double> &vars_to_insert );
@@ -196,6 +200,10 @@ protected:
     size_t numberOfFullEvaluations;         // The number of full evaluations executed to get the solution
 	double numberOfEvaluations;             // The number of (partial) evaluations executed to get this solution
 
+    // Init lower and upper bound
+    double lower_user_range;
+    double upper_user_range;
+
 	// Bayesian network structure
     vec_t<size_t> number_of_parents;       // The number of parents of each random variable
     vec_t<size_t> number_of_children;      // The number of children of each random variable
@@ -206,6 +214,7 @@ protected:
 
     void updateBoundariesBasedOnBinWidths();
     void updateBoundariesBasedOnNumberOfDataSamples();
+    void execTransformationCVariables();
 
     // Solution processing methods
     NetworkStructure processParametersSolution(const vector<int> &parametersToProcess,
@@ -240,13 +249,16 @@ protected:
     void removeEdge(int currentNodeIndex, int u, vector<int> &preprocessedParameters);  // Removes edges that cause a cycle in the graph
 
 	// Discretization // RUBEN -> TODO: figure out how to make this work with my discretization policy / representation
-    vec_t<size_t> numberOfDiscretizationsperNode;              // The number of discretizations per node
-    shared_ptr<DiscretizationPolicy> discretizationPolicy;      // The discretization policy
-    vec_t<vec_t<double>> boundaries;                            // Stores the boundaries of the discretization (per node) TODO RUBEN: Make sure this is updated if continuous variables are updated.
-    vec_t<double> maxValuesData, minValuesData;   // The maximum and minimum values in the data for each node
-    bool useNormalizedCVars;                                    // Indicates whether the c_vars are normalized or not (and also if boundaries are based on number of samples or on data ranges (bin widths), respectively)
+    vec_t<size_t> numberOfDiscretizationsperNode;                       // The number of discretizations per node
+    shared_ptr<DiscretizationPolicy> discretizationPolicy;              // The discretization policy
+    vec_t<vec_t<double>> boundaries;                                    // Stores the boundaries of the discretization (per node) TODO RUBEN: Make sure this is updated if continuous variables are updated.
+    vec_t<double> maxValuesData, minValuesData;                         // The maximum and minimum values in the data for each node
+    bool useNormalizedCVars;                                            // Indicates whether the c_vars are normalized or not (and also if boundaries are based on number of samples or on data ranges (bin widths), respectively)
+    bool transformCVariables;                                           // Indicates whether c_vars are transformed for iamalgam (initialized in [0,1], also calculate boundaries in this range, but otherwise map using f(x) = 1/x)
     bool useOptimalSolution;
-    string problemInstancePath = "";                                 // The path to the problem instance
+    bool guaranteedInitSpread;                                          // If true, the c_vars will be initialized such that there is an equal number of solutions in the population for each amount of bins (between 2 and max)
+    string problemInstancePath = "";                                    // The path to the problem instance
+    int runIndex;                                                       
     
 
 

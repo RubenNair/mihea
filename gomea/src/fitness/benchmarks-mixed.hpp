@@ -387,7 +387,7 @@ class BNStructureLearning: public GBOFitnessFunction_t<int>
 {
 	public:
 		BNStructureLearning( int number_of_variables, int number_of_c_variables );
-		BNStructureLearning( int number_of_variables, int number_of_c_variables, int problem_index, const shared_ptr<DataStructure<double>> &data, size_t max_number_of_parents, size_t max_number_of_discretizations);
+		BNStructureLearning( int number_of_variables, int number_of_c_variables, int problem_index, const shared_ptr<DataStructure<double>> &data, size_t max_number_of_parents, size_t max_number_of_discretizations, bool transformCVariables = false);
 		int getNumberOfSubfunctions(); 
 		vec_t<int> inputsToSubfunction( int subfunction_index );
 		int number_of_c_variables;
@@ -399,6 +399,7 @@ class BNStructureLearning: public GBOFitnessFunction_t<int>
 		
 	private:
 		Density *density;
+		bool transformCVariables;
 		double subfunction( int subfunction_index, vec_t<int> &variables );
 		double discrete_subfunction(int subfunction_index, vec_t<int> &variables);
 		double continuous_subfunction(int subfunction_index, vec_t<double> &c_variables);

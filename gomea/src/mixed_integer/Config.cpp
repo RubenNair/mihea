@@ -64,7 +64,7 @@ fitness_t *Config::getFitnessClassDiscrete( int problem_index, int number_of_var
         // case 555:
         // return new gomea::fitness::DT5BlockRotEllipBBO_t(number_of_variables, numberOfcVariables, a_value);
         case 1000 ... 1099:
-        return new gomea::fitness::BNStructureLearning(numberOfdVariables, numberOfcVariables, problem_index, data, maxParents, maxDiscretizations);
+        return new gomea::fitness::BNStructureLearning(numberOfdVariables, numberOfcVariables, problem_index, data, maxParents, maxDiscretizations, transformCVariables);
 		default:
 		return NULL;
 	}
@@ -76,7 +76,7 @@ bool Config::parseCommandLine(int argc, char **argv)
   const struct option longopts[] =
   {
     {"help",        no_argument,         0, 'h'},    
-    {"partial",     no_argument,         0, 'g'},
+    {"guaranteedInitSpread",     no_argument,         0, 'g'},
     {"analyzeFOS",  no_argument,         0, 'w'},
     {"writeElitists",no_argument,        0, 'e'},
     {"saveEvals",   no_argument,         0, 's'},  
@@ -98,18 +98,21 @@ bool Config::parseCommandLine(int argc, char **argv)
     {"similarityMeasure", required_argument,   0, 'Z'}, 
     {"useForcedImprovements", required_argument,   0, 'f'}, 
     {"GPUIndex", required_argument,   0, 'G'}, 
+    {"LowerInit", required_argument,   0, 'a'},
+    {"UpperInit", required_argument,   0, 'b'},
+    {"TransformCVariables", no_argument,   0, 't'},  
                
     {0,             0,                   0,  0 }
   };
 
 
   int c, index;
-  while ((c = getopt_long(argc, argv, "h::k::n::p::X::Y::Q::g::w::e::s::f::P::F::m::u::l::L::o::O::T::S::V::I::B::Z::G::M::N::E::", longopts, &index)) != -1)
+  while ((c = getopt_long(argc, argv, "h::k::n::p::X::Y::Q::g::w::e::s::f::r::P::F::m::u::l::L::o::O::t::T::S::V::I::B::Z::G::M::N::E::a::b::", longopts, &index)) != -1)
   {
     switch (c)
     {
         case 'g':
-            usePartialEvaluations = 1;
+            guaranteedInitSpread = true;
             break;
 		case 'X':
 			useParallelFOSOrder = 1;
@@ -138,8 +141,17 @@ bool Config::parseCommandLine(int argc, char **argv)
         case 'h':
             printHelp = 1;
             break;
+        case 'a':
+            lower_user_range = atof(optarg);
+            break;
+        case 'b':
+            upper_user_range = atof(optarg);
+            break;
         case 'f':
             useForcedImprovements = atoi(optarg);
+            break;
+        case 'r':
+            runIndex = atoi(optarg);
             break;
         case 'n':
             basePopulationSize = atoi(optarg);
@@ -242,6 +254,9 @@ bool Config::parseCommandLine(int argc, char **argv)
         case 'O':
             folder= string(optarg);
             break;
+        case 't':
+            transformCVariables = true;
+            break;
         case 'T':
             maximumNumberOfSeconds = atof(optarg);
             break;
@@ -293,7 +308,7 @@ bool Config::parseCommandLine(int argc, char **argv)
         this->maxDiscretizations = 9; // Maximum number of discretizations for continuous variables. Hardcoded for now.
 
         // Parse input data (BN structure and data)
-        this->data = initializeDataFromPath(true, this->problemInstancePath, 0);
+        this->data = initializeDataFromPath(true, this->problemInstancePath, runIndex);
         // determine number of d_variables / c_variables based on data + maxDiscretizations
         int numNodes = data->getNumberOfDataColumns();
         this->numberOfdVariables = ((numNodes-1)*numNodes) / 2;

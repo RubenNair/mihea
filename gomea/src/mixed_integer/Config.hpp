@@ -48,11 +48,14 @@ public:
         saveEvaluations                    = 0,
         logDebugInformation                = 0,
         useForcedImprovements              = 0,
+        runIndex                           = 0,
         dontUseOffspringPopulation         = 0,
         printHelp                          = 0,
 		maximumNumberOfEvaluations		   = -1,
 		maximumNumberOfGenerations		   = -1;
 	double maximumNumberOfSeconds = -1;
+    double     lower_user_range = 0.0,                              /* The initial lower range-bound indicated by the user (same for all dimensions). */
+			   upper_user_range = 1.0;                              /* The initial upper range-bound indicated by the user (same for all dimensions). */
     double vtr = 1e+308;
     size_t k = 1, s = 1,   
         FOSIndex = 0;
@@ -72,6 +75,8 @@ public:
     bool useBN = false;
     bool useNormalizedCVars = false;
     bool useOptimalSolution = false;
+    bool guaranteedInitSpread = false;
+    bool transformCVariables = false;
     int discretization_policy_index = 0;
     
     size_t alphabetSize = 2;

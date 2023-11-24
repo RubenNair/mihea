@@ -79,7 +79,7 @@ void iamalgam::initializeMemory() {
       vec_t<vec_t<double>> data = config->data->getDataMatrix().getRawMatrix();
       std::tie(maxValuesData, minValuesData) = findMaxAndMinValuesInData(data);
 
-      selections[i] = new solution_BN(config->numberOfVariables, config->alphabetSize, config->numberOfcVariables, config->data->getColumnType(), BNproblemInstance->getDensity()->getOriginalData()->getColumnNumberOfClasses(), config->discretization_policy_index, config->maxParents, config->maxInstantiations, problemInstance, maxValuesData, minValuesData, config->data);
+      selections[i] = new solution_BN(config->numberOfVariables, config->alphabetSize, config->numberOfcVariables, config->data->getColumnType(), BNproblemInstance->getDensity()->getOriginalData()->getColumnNumberOfClasses(), config->discretization_policy_index, config->maxParents, config->maxInstantiations, problemInstance, maxValuesData, minValuesData, config->lower_user_range, config->upper_user_range, config->data);
       selections[i]->initObjectiveValues(problemInstance->number_of_objectives);
     } else {
       selections[i] = new solution_mixed(config->numberOfVariables, config->alphabetSize, config->numberOfcVariables, problemInstance);
@@ -443,8 +443,44 @@ void iamalgam::makeSelectionsForOnePopulation(int population_index)
         selections[i] = population->solutions[sorted[i]]->clone();
     }
   }
-  
+  vec_t<int> numBoundariesInSelections = countBoundaries(selections);
+  // print all elements of boundariesInSelections
+  if(numBoundariesInSelections.size() > 0)
+  {
+    cout << "[iAMaLGaM gen " << number_of_generations << "] Occurrences of different amounts of boundaries in selections: ";
+    for(int i = 0; i < numBoundariesInSelections.size(); i++)
+    {
+      if(numBoundariesInSelections[i] > 0)
+      {
+        cout << i << ": " << numBoundariesInSelections[i] << ", ";
+      }
+    }
+    cout << endl;
+  }
+
+
+
   free( sorted );
+}
+
+vec_t<int> iamalgam::countBoundaries(vec_t<solution_mixed *> selections)
+{
+  // cast selections to solution_BN
+  vec_t<int> boundaries_count = vec_t<int>(selections[0]->getNumberOfCVariables(), 0);
+  for(int i = 0; i < selections.size(); i++)
+  {
+    solution_BN *casted_solution = (solution_BN*) selections[i];
+    if(casted_solution == NULL)
+    {
+      // Selections does not contain solution_BNs, so abort counting
+      boundaries_count = vec_t<int>();
+      break;
+    }
+    int numBoundaries = casted_solution->getBoundaries()[0].size();
+    boundaries_count[numBoundaries]++;
+  }
+
+  return boundaries_count;
 }
 
 void iamalgam::makeSelectionsForOnePopulationUsingDiversityOnRank0(int population_index)
@@ -1152,8 +1188,17 @@ double *iamalgam::generateNewSolution( int population_index )
     {
       result = (double *) malloc( number_of_parameters*sizeof( double ) );
       for( i = 0; i < number_of_parameters; i++ )
-        result[i] = problemInstance->getLowerRangeBound(i) + ((gomea::utils::rng)() / (double)(gomea::utils::rng).max()) * (problemInstance->getUpperRangeBound(i) - problemInstance->getLowerRangeBound(i));
+      {
+        if(config->transformCVariables)
+        {
+          result[i] = 1.0 / (config->lower_user_range + ((gomea::utils::rng)() / (double)(gomea::utils::rng).max()) * (config->upper_user_range - config->lower_user_range));
+        }
+        else
+        {
+          result[i] = config->lower_user_range + ((gomea::utils::rng)() / (double)(gomea::utils::rng).max()) * (config->upper_user_range - config->lower_user_range);
+        }
         // result[i] = lower_init_ranges[i] + (upper_init_ranges[i] - lower_init_ranges[i])*randomRealUniform01();
+      }
     }
     else
     {
@@ -1685,12 +1730,15 @@ void iamalgam::learnContinuousModel(int population_index)
 {
   // First, make sure there is only 1 population by checking the number_of_populations and population_index
   assert(number_of_populations == 1 && population_index == 0);
+  writePopulationBoundaryStatsToFile(config->folder, population->solutions, "GEN " + to_string(number_of_generations) + " - POPULATION");
+
   // checkForDuplicate("IAMALGAM 1");
   computeRanksForOnePopulation(population_index); // Moved from where comment // computeRanks(); is.
   // checkForDuplicate("IAMALGAM 2");
   // TODO figure out if this is correct placement for making selections
   makeSelectionsForOnePopulation(population_index);
   writePopulationToFile(config->folder, selections, "SELECTIONS in iamalgam ----------------------------------", config->logDebugInformation);  
+  writePopulationBoundaryStatsToFile(config->folder, selections, "GEN " + to_string(number_of_generations) + " - SELECTIONS");
   // checkForDuplicate("IAMALGAM 3");
   // estimateParametersAllPopulations();
   estimateParameters(population_index);

@@ -70,6 +70,13 @@ Population::Population(Config *config_, fitness_t *problemInstance_, sharedInfor
         vec_t<int> allGenes(problemInstance->number_of_variables); // RUBEN TODO might need to change this property of problemInstance, but depends on how fitness_t is handled
         iota(allGenes.begin(), allGenes.end(), 0);
 
+        
+        // Ensure that the population is initialized with a spread of solutions, and that different binsizes are spread among the population to account for potential bias.
+        vec_t<int> shuffledIndices(populationSize);
+        iota(shuffledIndices.begin(), shuffledIndices.end(), 0);
+        std::shuffle(shuffledIndices.begin(), shuffledIndices.end(), gomea::utils::rng);
+
+
         for (size_t i = 0; i < populationSize; ++i)
         {
             noImprovementStretches[i] = 0;
@@ -89,14 +96,15 @@ Population::Population(Config *config_, fitness_t *problemInstance_, sharedInfor
                 population->solutions[i] = new solution_BN(config->numberOfVariables, config->alphabetSize, config->numberOfcVariables, 
                                                     config->data->getColumnType(), BNproblemInstance->getDensity()->getOriginalData()->getColumnNumberOfClasses(), 
                                                     config->discretization_policy_index, config->maxParents, config->maxInstantiations, 
-                                                    BNproblemInstance, maxValuesData, minValuesData, 
-                                                    config->data, (double)i/populationSize, 
-                                                    config->useNormalizedCVars, config->useOptimalSolution, config->problemInstancePath);
+                                                    BNproblemInstance, maxValuesData, minValuesData,
+                                                    config->lower_user_range, config->upper_user_range, 
+                                                    config->data, (double)shuffledIndices[i]/populationSize, 
+                                                    config->useNormalizedCVars, config->transformCVariables, config->useOptimalSolution, config->guaranteedInitSpread, config->problemInstancePath);
 
                 problemInstance->evaluate(population->solutions[i]);
 
                 // Set offspringPopulation[i] to a new solution_BN, just to initialize the necessary memory.
-                offspringPopulation->solutions[i] = new solution_BN(config->numberOfVariables, config->alphabetSize, config->numberOfcVariables, config->data->getColumnType(), BNproblemInstance->getDensity()->getOriginalData()->getColumnNumberOfClasses(), config->discretization_policy_index, config->maxParents, config->maxInstantiations, BNproblemInstance, maxValuesData, minValuesData, config->data);
+                offspringPopulation->solutions[i] = new solution_BN(config->numberOfVariables, config->alphabetSize, config->numberOfcVariables, config->data->getColumnType(), BNproblemInstance->getDensity()->getOriginalData()->getColumnNumberOfClasses(), config->discretization_policy_index, config->maxParents, config->maxInstantiations, BNproblemInstance, maxValuesData, minValuesData, config->lower_user_range, config->upper_user_range, config->data);
                 *offspringPopulation->solutions[i] = *population->solutions[i];
                 // offspringPopulation[i] = population[i]->clone();
             } else
@@ -851,7 +859,10 @@ void Population::updateElitistAndCheckVTR(solution_mixed *solution)
         sharedInformationPointer->elitistSolutionHittingTimeMilliseconds = utils::getElapsedTimeMilliseconds(sharedInformationPointer->startTime);
         sharedInformationPointer->elitistSolutionHittingTimeEvaluations = problemInstance->number_of_evaluations;
 
-        sharedInformationPointer->elitist = solution;
+        // Replace sharedInformationPointer->elitist with (a new copy of) the solution
+        delete sharedInformationPointer->elitist;
+        sharedInformationPointer->elitist = solution->clone();
+        
 		sharedInformationPointer->elitistFitness = solution->getObjectiveValue();
 		sharedInformationPointer->elitistConstraintValue = solution->getConstraintValue();
         
