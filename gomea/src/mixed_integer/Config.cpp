@@ -71,6 +71,52 @@ fitness_t *Config::getFitnessClassDiscrete( int problem_index, int number_of_var
 	return new gomea::fitness::oneMaxSphere_t(number_of_variables, numberOfcVariables);
 }
 
+void Config::setMethodInitParams(int settingIndex)
+{
+    // TODO set parameters for each method, easier than giving individual flags in command line.
+    switch(settingIndex)
+    {
+        case 0:
+        // Method 1, init 1
+        
+        break;
+        case 1:
+        // Method 1, init 2
+
+        break;
+        case 2:
+        // Method 1, init 3
+        
+        break;
+        case 3:
+        // Method 2, init 1
+
+        break;
+        case 4:
+        // Method 2, init 2
+
+        break;
+        case 5:
+        // Method 2, init 3
+
+        break;
+        case 6:
+        // Method 3, init 1
+
+        break;
+        case 7:
+        // Method 3, init 2
+
+        break;
+        case 8:
+        // Method 3, init 3
+
+        break;
+        default:
+        return;
+    }
+}
+
 bool Config::parseCommandLine(int argc, char **argv)
 {
   const struct option longopts[] =
@@ -115,10 +161,10 @@ bool Config::parseCommandLine(int argc, char **argv)
             guaranteedInitSpread = true;
             break;
 		case 'X':
-			useParallelFOSOrder = 1;
+			maxDiscretizations = atoi(optarg);
 			break;
 		case 'Y':
-			fixFOSOrderForPopulation = 1;
+			extraCVarForNumberOfBins = true;
 			break;
 		case 'Q':
 			popUpdatesDuringGOM = 1;
@@ -305,7 +351,7 @@ bool Config::parseCommandLine(int argc, char **argv)
     if(this->problemInstancePath != "" && problemIndex >= 1000) {
         this->useBN = true;
         this->alphabetSize = 3; // Discrete variables in solution can be 0, 1 or 2 (A<-/->B, A-->B, A<--B respectively)
-        this->maxDiscretizations = 9; // Maximum number of discretizations for continuous variables. Hardcoded for now.
+        this->maxDiscretizations = maxDiscretizations == -1 ? 9 : maxDiscretizations; // Maximum number of discretizations for continuous variables. Default at 9, only set if not given as commmand line argument.
 
         // Parse input data (BN structure and data)
         this->data = initializeDataFromPath(true, this->problemInstancePath, runIndex);
@@ -313,7 +359,12 @@ bool Config::parseCommandLine(int argc, char **argv)
         int numNodes = data->getNumberOfDataColumns();
         this->numberOfdVariables = ((numNodes-1)*numNodes) / 2;
         this->numberOfVariables = this->numberOfdVariables;
-        this->numberOfcVariables = data->getNumberOfContinuousVariables() * maxDiscretizations;
+        if(this->extraCVarForNumberOfBins)
+        {
+            this->numberOfcVariables = data->getNumberOfContinuousVariables() * (maxDiscretizations + 1);
+        } else {
+            this->numberOfcVariables = data->getNumberOfContinuousVariables() * maxDiscretizations;
+        }
     }
 
     fitness = getFitnessClassDiscrete(problemIndex, numberOfVariables);

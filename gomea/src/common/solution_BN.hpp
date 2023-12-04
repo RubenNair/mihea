@@ -66,6 +66,7 @@ class solution_BN : public solution_mixed
                  bool transformCVariables = false,
                  bool useOptimalSolution = false,
                  bool guaranteedInitSpread = false,
+                 bool extraCVarForNumberOfBins = false,
                  string problemInstancePath = "",
                  int runIndex = 0);
     virtual ~solution_BN() = default;
@@ -257,6 +258,7 @@ protected:
     bool transformCVariables;                                           // Indicates whether c_vars are transformed for iamalgam (initialized in [0,1], also calculate boundaries in this range, but otherwise map using f(x) = 1/x)
     bool useOptimalSolution;
     bool guaranteedInitSpread;                                          // If true, the c_vars will be initialized such that there is an equal number of solutions in the population for each amount of bins (between 2 and max)
+    bool extraCVarForNumberOfBins;                                      // If true, an extra c_var is added to the solution per continuous node to indicate the number of bins (between 2 and max)
     string problemInstancePath = "";                                    // The path to the problem instance
     int runIndex;                                                       
     

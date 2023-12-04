@@ -31,6 +31,7 @@ public:
     ~Config();
 
     fitness_t *getFitnessClassDiscrete(int problem_index, int number_of_variables);
+    void setMethodInitParams(int settingIndex);
     bool parseCommandLine(int argc, char **argv);
     void checkOptions();
     void printUsage();
@@ -77,6 +78,7 @@ public:
     bool useOptimalSolution = false;
     bool guaranteedInitSpread = false;
     bool transformCVariables = false;
+    bool extraCVarForNumberOfBins = false;
     int discretization_policy_index = 0;
     
     size_t alphabetSize = 2;

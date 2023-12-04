@@ -44,6 +44,7 @@ solution_BN::solution_BN(size_t numberOfVariables_,
                          bool transformCVariables,
                          bool useOptimalSolution,
                          bool guaranteedInitSpread,
+                         bool extraCVarForNumberOfBins,
                          string problemInstancePath,
                          int runIndex) : solution_BN(numberOfVariables_, alphabetSize_, numberOfCVariables_, problemInstance_)
 {
@@ -161,29 +162,30 @@ void solution_BN::optimalInit()
 // I think this is not used currently, always pass a populationIndex for testing
 void solution_BN::randomInit(std::mt19937 *rng)
 {
-	for (int i = 0; i < getNumberOfVariables(); ++i)
-	{
-		variables[i] = (*rng)() % getAlphabetSize();
-	}
+    randomInit(rng, -1);
+	// for (int i = 0; i < getNumberOfVariables(); ++i)
+	// {
+	// 	variables[i] = (*rng)() % getAlphabetSize();
+	// }
 
-    // c_variables = {0.2000153015, 0.2000154391, 0.2000154391, 0.2000154391, 0.1999383812, 0, 0, 0};
+    // // c_variables = {0.2000153015, 0.2000154391, 0.2000154391, 0.2000154391, 0.1999383812, 0, 0, 0};
 
-    // variables = {1, 2, 0, 2, 0, 1};
-    // c_variables = {0.1987034297, 0.2003387483, 0.2003387483, 0.2003387483, 0.2002803253, 0, 0, 0, 0,
-    //                 0.3343046869, 0.3344275367, 0.3312677764, 0, 0, 0, 0, 0, 0,
-    //                 0.4999268203, 0.5000731797, 0, 0, 0, 0, 0, 0, 0};
+    // // variables = {1, 2, 0, 2, 0, 1};
+    // // c_variables = {0.1987034297, 0.2003387483, 0.2003387483, 0.2003387483, 0.2002803253, 0, 0, 0, 0,
+    // //                 0.3343046869, 0.3344275367, 0.3312677764, 0, 0, 0, 0, 0, 0,
+    // //                 0.4999268203, 0.5000731797, 0, 0, 0, 0, 0, 0, 0};
 
-    for (int i = 0; i < getNumberOfCVariables(); ++i) 
-    {
-        c_variables[i] += lower_user_range + ((*rng)() / (double)(*rng).max()) * (upper_user_range - lower_user_range); //(*rng)() / (double)(*rng).max() * 0.02 - 0.01; //
-		// // TODO RUBEN: hardcoded upper and lower bounds for now, should be read from config maybe?
-		// c_variables[i] = -10 + ((*rng)() / (double)(*rng).max()) * 20; 
-    }
+    // for (int i = 0; i < getNumberOfCVariables(); ++i) 
+    // {
+    //     c_variables[i] += lower_user_range + ((*rng)() / (double)(*rng).max()) * (upper_user_range - lower_user_range); //(*rng)() / (double)(*rng).max() * 0.02 - 0.01; //
+	// 	// // TODO RUBEN: hardcoded upper and lower bounds for now, should be read from config maybe?
+	// 	// c_variables[i] = -10 + ((*rng)() / (double)(*rng).max()) * 20; 
+    // }
 
-    if(useNormalizedCVars)
-    {
-        normalize();
-    }
+    // if(useNormalizedCVars)
+    // {
+    //     normalize();
+    // }
 }
 
 /**
@@ -206,7 +208,17 @@ void solution_BN::normalize(int numberOfBins)
         execTransformationCVariables();
     }
 
-    int maxDiscretizations = this->c_variables.size() / this->number_of_nodes_to_discretize;
+    int maxDiscretizations;
+    int offset = 0;
+    if(extraCVarForNumberOfBins)
+    {
+        maxDiscretizations = (this->c_variables.size() / this->number_of_nodes_to_discretize) - 1;
+        offset = this->number_of_nodes_to_discretize;
+    } else
+    {
+        maxDiscretizations = this->c_variables.size() / this->number_of_nodes_to_discretize;
+    }
+    
     int cVarsCount = 0;
     for(int j = 0; j < this->number_of_nodes; j++)
     {
@@ -219,12 +231,12 @@ void solution_BN::normalize(int numberOfBins)
                 {
                     break;
                 }
-                int c_var_index = maxDiscretizations * cVarsCount + i;
+                int c_var_index = offset + maxDiscretizations * cVarsCount + i;
                 sum += c_variables[c_var_index];
             }
             for(int i = 0; i < maxDiscretizations; i++)
             {
-                int c_var_index = maxDiscretizations * cVarsCount + i;
+                int c_var_index = offset + maxDiscretizations * cVarsCount + i;
                 c_variables[c_var_index] /= sum;
             }
             cVarsCount++;
@@ -243,6 +255,11 @@ void solution_BN::execTransformationCVariables()
     {
         for(int i = 0; i < getNumberOfCVariables(); i++)
         {
+            if(extraCVarForNumberOfBins && i < this->number_of_nodes_to_discretize)
+            {
+                continue;
+            }
+            
             c_variables[i] = 1.0 / c_variables[i];
         }
     }
@@ -269,10 +286,20 @@ void solution_BN::randomInit(std::mt19937 *rng, double populationIndexRatio)
     double minUpperRangeBound = 1.0 / maxDiscretizations;
     
     // The number of boundaries per node should be between 2 and maxDiscretizations (at least 2 boundaries, since after normalization the latter will be 1 and disregarded)
-    long numberOfBoundariesPerNode = std::lround(populationIndexRatio * (maxDiscretizations - 2) + 2);
+    long numberOfBoundariesPerNode = fmin(std::lround(populationIndexRatio * (maxDiscretizations - 1) + 1.5), maxDiscretizations);
 
     for (int i = 0; i < getNumberOfCVariables(); ++i) 
     {
+        if(extraCVarForNumberOfBins)
+        {
+           // For each continuous node, there is an extra c-variable at the start of the array to indicate the amount of bins for that node.
+           // First initialize these variables to the correct value (i.e. the same for all solutions)
+              if(i < this->number_of_nodes_to_discretize)
+              {
+                c_variables[i] = numberOfBoundariesPerNode;
+                continue;
+              }
+        }
         if(guaranteedInitSpread)
         {
             c_variables[i] = lower_user_range + ((*rng)() / (double)(*rng).max()) * (upper_user_range - lower_user_range);
@@ -330,17 +357,30 @@ void solution_BN::updateBoundariesBasedOnNumberOfDataSamples()
     const int data_size = data->getNumberOfDataRows();
     double step_size = 1.0 / data_size;
     int cVarsCount = 0;
-    int maxDiscretizations = this->c_variables.size() / this->number_of_nodes_to_discretize;
+    int offset = 0;
+    int maxDiscretizations;
+    int loopCondition = maxDiscretizations - 1;
+    if(extraCVarForNumberOfBins)
+    {
+        maxDiscretizations = (this->c_variables.size() / this->number_of_nodes_to_discretize) - 1;
+        offset = this->number_of_nodes_to_discretize;
+    }
+    else 
+    {
+        maxDiscretizations = this->c_variables.size() / this->number_of_nodes_to_discretize;
+    }
+    
     vec_t<vec_t<double>> boundaries(this->number_of_nodes_to_discretize);
     for(int i = 0; i < this->number_of_nodes; i++)
     {
         if(node_data_types[i] == Continuous)
         {
             double binwidthUsed = 0.0;
-            
-            for(int j = 0; j < maxDiscretizations - 1; j++)
+            int loopCondition = extraCVarForNumberOfBins ? std::lround(c_variables[cVarsCount]) : loopCondition;
+
+            for(int j = 0; j < loopCondition; j++)
             {
-                int c_var_index = maxDiscretizations * cVarsCount + j;
+                int c_var_index = offset + maxDiscretizations * cVarsCount + j;
                 // If c_variables[c_var_index] is 0, skip (because there shouldn't be a bin with 0 width)
                 if(c_variables[c_var_index] == 0) {
                     continue;
@@ -379,15 +419,30 @@ void solution_BN::updateBoundariesBasedOnBinWidths()
     int cVarsCount = 0;
     int maxDiscretizations = this->c_variables.size() / this->number_of_nodes_to_discretize;
     vec_t<vec_t<double>> boundaries(this->number_of_nodes_to_discretize);
+    int offset = 0;
+    int maxDiscretizations;
+    int loopCondition = maxDiscretizations - 1;
+    if(extraCVarForNumberOfBins)
+    {
+        maxDiscretizations = (this->c_variables.size() / this->number_of_nodes_to_discretize) - 1;
+        offset = this->number_of_nodes_to_discretize;
+    }
+    else 
+    {
+        maxDiscretizations = this->c_variables.size() / this->number_of_nodes_to_discretize;
+    }
+    
     for(int i = 0; i < this->number_of_nodes; i++)
     {
         if(node_data_types[i] == Continuous)
         {
             double binwidthUsed = 0.0;
             double range = maxValuesData[i] - minValuesData[i];
-            for(int j = 0; j < maxDiscretizations - 1; j++)
+            int loopCondition = extraCVarForNumberOfBins ? std::lround(c_variables[cVarsCount]) : loopCondition;
+
+            for(int j = 0; j < loopCondition; j++)
             {
-                int c_var_index = maxDiscretizations * cVarsCount + j;
+                int c_var_index = offset + maxDiscretizations * cVarsCount + j;
                 // If c_variables[c_var_index] is 0, skip (because there shouldn't be a bin with 0 width)
                 if(c_variables[c_var_index] == 0) {
                     continue;
@@ -835,7 +890,8 @@ solution_BN::solution_BN( const solution_BN &other ) : solution_mixed(other),
     numberOfDiscretizationsperNode(other.numberOfDiscretizationsperNode), discretizationPolicy(other.discretizationPolicy),
     boundaries(other.boundaries), maxValuesData(other.maxValuesData), minValuesData(other.minValuesData), 
     lower_user_range(other.lower_user_range), upper_user_range(other.upper_user_range), data(other.data),
-    useNormalizedCVars(other.useNormalizedCVars), transformCVariables(other.transformCVariables), useOptimalSolution(other.useOptimalSolution), guaranteedInitSpread(other.guaranteedInitSpread),
+    useNormalizedCVars(other.useNormalizedCVars), transformCVariables(other.transformCVariables), 
+    useOptimalSolution(other.useOptimalSolution), guaranteedInitSpread(other.guaranteedInitSpread), extraCVarForNumberOfBins(other.extraCVarForNumberOfBins),
     problemInstancePath(other.problemInstancePath), runIndex(other.runIndex)  {}
 
 
