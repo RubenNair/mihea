@@ -62,6 +62,7 @@ solution_BN::solution_BN(size_t numberOfVariables_,
     this->transformCVariables = transformCVariables;
     this->useOptimalSolution = useOptimalSolution;
     this->guaranteedInitSpread = guaranteedInitSpread;
+    this->extraCVarForNumberOfBins = extraCVarForNumberOfBins;
     this->problemInstancePath = problemInstancePath;
     this->runIndex = runIndex;
     
@@ -159,33 +160,32 @@ void solution_BN::optimalInit()
     this->boundaries = boundaries;
 }
 
-// I think this is not used currently, always pass a populationIndex for testing
+// Only used in situations like initializing offspringpopulation, where the exact values don't matter (just that the arrays are initialized)
 void solution_BN::randomInit(std::mt19937 *rng)
 {
-    randomInit(rng, -1);
-	// for (int i = 0; i < getNumberOfVariables(); ++i)
-	// {
-	// 	variables[i] = (*rng)() % getAlphabetSize();
-	// }
+	for (int i = 0; i < getNumberOfVariables(); ++i)
+	{
+		variables[i] = (*rng)() % getAlphabetSize();
+	}
 
-    // // c_variables = {0.2000153015, 0.2000154391, 0.2000154391, 0.2000154391, 0.1999383812, 0, 0, 0};
+    // c_variables = {0.2000153015, 0.2000154391, 0.2000154391, 0.2000154391, 0.1999383812, 0, 0, 0};
 
-    // // variables = {1, 2, 0, 2, 0, 1};
-    // // c_variables = {0.1987034297, 0.2003387483, 0.2003387483, 0.2003387483, 0.2002803253, 0, 0, 0, 0,
-    // //                 0.3343046869, 0.3344275367, 0.3312677764, 0, 0, 0, 0, 0, 0,
-    // //                 0.4999268203, 0.5000731797, 0, 0, 0, 0, 0, 0, 0};
+    // variables = {1, 2, 0, 2, 0, 1};
+    // c_variables = {0.1987034297, 0.2003387483, 0.2003387483, 0.2003387483, 0.2002803253, 0, 0, 0, 0,
+    //                 0.3343046869, 0.3344275367, 0.3312677764, 0, 0, 0, 0, 0, 0,
+    //                 0.4999268203, 0.5000731797, 0, 0, 0, 0, 0, 0, 0};
 
-    // for (int i = 0; i < getNumberOfCVariables(); ++i) 
-    // {
-    //     c_variables[i] += lower_user_range + ((*rng)() / (double)(*rng).max()) * (upper_user_range - lower_user_range); //(*rng)() / (double)(*rng).max() * 0.02 - 0.01; //
-	// 	// // TODO RUBEN: hardcoded upper and lower bounds for now, should be read from config maybe?
-	// 	// c_variables[i] = -10 + ((*rng)() / (double)(*rng).max()) * 20; 
-    // }
+    for (int i = 0; i < getNumberOfCVariables(); ++i) 
+    {
+        c_variables[i] += lower_user_range + ((*rng)() / (double)(*rng).max()) * (upper_user_range - lower_user_range); //(*rng)() / (double)(*rng).max() * 0.02 - 0.01; //
+		// // TODO RUBEN: hardcoded upper and lower bounds for now, should be read from config maybe?
+		// c_variables[i] = -10 + ((*rng)() / (double)(*rng).max()) * 20; 
+    }
 
-    // if(useNormalizedCVars)
-    // {
-    //     normalize();
-    // }
+    if(useNormalizedCVars)
+    {
+        normalize();
+    }
 }
 
 /**
@@ -417,7 +417,6 @@ void solution_BN::updateBoundariesBasedOnNumberOfDataSamples()
 void solution_BN::updateBoundariesBasedOnBinWidths()
 {
     int cVarsCount = 0;
-    int maxDiscretizations = this->c_variables.size() / this->number_of_nodes_to_discretize;
     vec_t<vec_t<double>> boundaries(this->number_of_nodes_to_discretize);
     int offset = 0;
     int maxDiscretizations;

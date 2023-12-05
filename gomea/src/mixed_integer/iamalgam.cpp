@@ -912,7 +912,7 @@ void iamalgam::generateAndEvaluateNewSolutionsToFillPopulations()
             for( k = 0; k < number_of_parameters; k++ )
             {
               solution_AMS[k] = solution[k] + shrink_factor*delta_AMS*distribution_multipliers[i]*ams_vectors[i][k];
-              if( !isParameterInRangeBounds( solution_AMS[k], k ) )
+              if( !isParameterInRangeBounds( solution_AMS[k], k ) && (config->extraCVarForNumberOfBins && k >= config->data->getNumberOfContinuousVariables()))
               {
                 out_of_range = 1;
                 break;
@@ -1216,7 +1216,12 @@ double *iamalgam::generateNewSolution( int population_index )
     }
     
     ready = 1;
-    for( i = 0; i < number_of_parameters; i++ )
+    int startIndex = 0;
+    if(config->extraCVarForNumberOfBins)
+    {
+      startIndex = config->data->getNumberOfContinuousVariables();
+    }
+    for( i = startIndex; i < number_of_parameters; i++ )
     {
       if( !isParameterInRangeBounds( result[i], i ) )
       {
