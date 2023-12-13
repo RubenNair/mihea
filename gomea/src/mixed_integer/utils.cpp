@@ -502,5 +502,169 @@ tuple<vec_t<double>, vec_t<double>> findMaxAndMinValuesInData(vec_t<vec_t<double
     return make_tuple(maxValues, minValues);
 }
 
+void writeRunCompletedFile(string &folder, const long long numberOfEvaluations, const clock_t startTime, bool doLog) {
+    if(!doLog) 
+    {
+        return;
+    }
+    // Determine and create run completed file path
+    string filepath = folder + "completed.txt";
+    ofstream completedFile;
+    completedFile.open(filepath, ofstream::out | ofstream::trunc);
+
+    clock_t currentTime = clock();
+
+    // Write some closing statistics
+    completedFile << "         Time / Evaluations / " << endl
+        << setw(13) << scientific << setprecision(3) << (double(currentTime - startTime) / CLOCKS_PER_SEC) << " / "
+        << setw(13) << fixed << numberOfEvaluations << " / ";
+
+    completedFile.close();
+}
+
+///////////////////////
+/// Copy data files ///
+///////////////////////
+/**
+ * Copies the data files to the run folder for post-processing
+ * @param pathToDataDir The path to the data dir
+ * @param targetDir The target run dir
+ * @param problemName The problem name
+ * @param runIndex the run index
+ */
+void copyDataFilesToTargetDir(const string& pathToDataDir, const string &targetDir, const string &problemName, int runIndex) {
+    // Determine the file paths
+    string pathData = determinePathData(pathToDataDir, problemName, runIndex);
+    string pathDataInfo = determinePathInfo(pathToDataDir, problemName, runIndex);
+    string pathOptimalSolution = determinePathOptimalSolution(pathToDataDir, problemName, runIndex);
+
+    // Copy the files
+    copyFile(pathData, targetDir + "data.txt");
+    copyFile(pathDataInfo, targetDir + "data_info.txt");
+    copyFile(pathOptimalSolution, targetDir + "optimal_solution.txt");
+}
+
+/**
+ * Determines the path of the data based on the problem name and run index
+ * @param pathToDataDir The path to the data folder
+ * @param problemName The (base) name of the problem
+ * @param runIndex The run index
+ * @return The path to the data
+ */
+string determinePathData(const string& pathToDataDir, const string &problemName, int runIndex) {
+    std::ostringstream result;
+    result << pathToDataDir << "/" << problemName << "/" << problemName << "_run" << runIndex << ".txt";
+    return result.str();
+}
+
+/**
+ * Determines the path of the data info based on the problem name and run index
+ * @param pathToDataDir The path to the data folder
+ * @param problemName The (base) name of the problem
+ * @param runIndex The run index
+ * @return The path to the info of the data
+ */
+string determinePathInfo(const string& pathToDataDir, const string &problemName, int runIndex) {
+    std::ostringstream result;
+    result << pathToDataDir << "/" << problemName << "/" << problemName << "_run" << runIndex << "_info.txt";
+    return result.str();
+}
+
+/**
+ * Determines the path of the reference solution based on the problem name and run index
+ * @param pathToDataDir The path to the data folder
+ * @param problemName The (base) name of the problem
+ * @param runIndex The run index
+ * @return The path to the reference solution
+ */
+string determinePathOptimalSolution(const string& pathToDataDir, const string &problemName, int runIndex) {
+    std::ostringstream result;
+    result << pathToDataDir << "/" << problemName << "/" << problemName << "_run" << runIndex << "_optimalSolution.txt";
+    return result.str();
+}
+
+/**
+ * Copies files from inputPath to outputPat
+ * @param inputPath The input file
+ * @param outputPath The output file
+ * @return bool if the operation has succeeded
+ */
+bool copyFile(const string &inputPath, const string &outputPath) {
+    ifstream inputFile(inputPath, ios::binary);
+    ofstream outputFile(outputPath, ios::binary | std::ios::trunc); // Overwrite existing file
+
+    // Check if the file exists
+    if (!inputFile) {
+        cout << "Input file does not exist." << endl;
+        return false;
+    }
+
+    if (!outputFile) {
+        cout << "Unable to create output file." << endl;
+        return false;
+    }
+
+    // Copy the content
+    outputFile << inputFile.rdbuf();
+
+    // Close the files
+    inputFile.close();
+    outputFile.close();
+
+    return true;
+}
+
+/**
+ * Writes the parameters of a run to a file
+ * @param options The options given by the use
+ * @param userInput The parameter input given by the user
+ * @param fitnessFunction The fitness function that is retrieved
+ */
+void writeParametersFile(string &folder, Config *config, const Density *fitnessFunction, bool doLog) {
+    if(!doLog)
+    {
+        return;
+    }
+    // Determine and create parameters file path
+    string filepath = folder + "parameters.txt";
+    ofstream parameters_file;
+    parameters_file.open(filepath, ofstream::out | ofstream::trunc);
+
+    // Write parameters to file
+    string text;
+    text += "Algorithm:pGAMBIT, ";
+    text += "Model:Linkage Tree - No Local Search, ";
+    text += "DiscretizationPolicy:ParentPolicy, "; // TODO placeholder, maybe extract this from config
+    text += "ProblemIndex:1004, "; // TODO if other problemindices are used, change this
+    text += "ProblemName:BNStructureLearning, ";
+    text += "FitnessFunction:Density, ";
+    text += "PartialEvaluations:" + to_string(false) + ", ";
+    text += "PopulationSize:" + to_string(-1) + ", "; // Todo: Change this if we make the population size a variable
+    text += "Nodes:" + to_string(fitnessFunction->getNumberOfNodes()) + ", ";
+    text += "NumberOfLinks:" + to_string(fitnessFunction->getNumberOfLinks()) + ", ";
+    text += "NumberOfDiscretizations:" + to_string(fitnessFunction->getNumberOfNodesToDiscretize()) + ", ";
+    text += "NumberOfParameters:" + to_string(config->numberOfdVariables + config->numberOfcVariables) + ", ";
+    text += "SampleSize:" + to_string(config->data->getNumberOfDataRows()) + ", ";
+    text += "MaximumNumberOfParents:" + to_string(fitnessFunction->getMaximumNumberOfParents()) + ", ";
+    text += "MaximumNumberOfDiscretizations:" + to_string(fitnessFunction->getMaxNumberOfDiscretizations()) + ", ";
+    text += "MaxEvaluations:" + to_string(config->maximumNumberOfEvaluations) + ", ";
+    text += "MaxTime:" + to_string(config->maximumNumberOfSeconds) + ", ";
+    text += "vtrUsed:" + to_string(config->fitness->use_vtr) + ", ";
+    text += "vtr:" + to_string(config->vtr) + ", ";
+    text += "Post-processingRequired:1, ";
+    text += "PostRunDiscretizationPolicy:No Discretization, ";
+    text += "LinkageModelIndex:-1, ";
+    text += "LocalSearchIndex:-1, ";
+    text += "FitnessFunctionIndex:-1, ";
+    text += "DiscretizationPolicyIndex:0, ";
+    text += "RunIndex:-1, ";
+    text += "Seed:" + to_string(config->randomSeed) + ", ";
+    text += "DataPath:" + fitnessFunction->getFitnessFunctionBaseName() + ", ";
+    parameters_file << text << endl;
+
+    // Close file
+    parameters_file.close();
+}
+
 
 }}

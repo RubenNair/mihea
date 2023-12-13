@@ -3,6 +3,8 @@
 using namespace std;
 
 #include "gomea/src/mixed_integer/simpleGAMBIT.hpp"
+#include "gomea/src/fitness/benchmarks-mixed.hpp"
+#include "gomea/src/utils/time.hpp"
 
 namespace gomea{
 namespace mixedinteger{
@@ -82,7 +84,7 @@ void simpleGAMBIT::ezilaitini()
 // This method performs the integrated algorithm from the GAMBIT (2014) paper.
 void simpleGAMBIT::run()
 {
-
+    clock_t clock_start_time = clock();
     initialize();
     
     int gen = 0;
@@ -239,6 +241,11 @@ void simpleGAMBIT::run()
         {
             solution_BN *elitist_BN = (solution_BN *) GAMBITs[currentGAMBITIndex]->sharedInformationPointer->elitist;
             writeBNStatisticsToFile(config->folder, GAMBITs[currentGAMBITIndex]->sharedInformationPointer->elitistSolutionHittingTimeEvaluations, GAMBITs[currentGAMBITIndex]->sharedInformationPointer->elitistSolutionHittingTimeMilliseconds, elitist_BN, GAMBITs[currentGAMBITIndex]->populationSize);
+            gomea::fitness::BNStructureLearning *BN_fitness = (gomea::fitness::BNStructureLearning *) config->fitness;
+            writeParametersFile(config->folder, config, BN_fitness->getDensity());
+            copyDataFilesToTargetDir(determinePathData("./data", config->problemInstancePath, config->runIndex), config->folder, config->problemInstancePath, config->runIndex);
+            writeRunCompletedFile(config->folder, problemInstance->number_of_evaluations, clock_start_time);
+
         } else
         {
             solution_t<int> *elitist_disc_solution = GAMBITs[currentGAMBITIndex]->sharedInformationPointer->elitist;
@@ -253,6 +260,10 @@ void simpleGAMBIT::run()
         {
             solution_BN *elitist_BN = (solution_BN *) GAMBITs[currentGAMBITIndex]->sharedInformationPointer->elitist;
             writeBNStatisticsToFile(config->folder, GAMBITs[currentGAMBITIndex]->sharedInformationPointer->elitistSolutionHittingTimeEvaluations, GAMBITs[currentGAMBITIndex]->sharedInformationPointer->elitistSolutionHittingTimeMilliseconds, elitist_BN, GAMBITs[currentGAMBITIndex]->populationSize);
+            gomea::fitness::BNStructureLearning *BN_fitness = (gomea::fitness::BNStructureLearning *) config->fitness;
+            writeParametersFile(config->folder, config, BN_fitness->getDensity());
+            copyDataFilesToTargetDir(determinePathData("./data", config->problemInstancePath, config->runIndex), config->folder, config->problemInstancePath, config->runIndex);
+            writeRunCompletedFile(config->folder, problemInstance->number_of_evaluations, clock_start_time);
         }
     }
     

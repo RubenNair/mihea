@@ -18,6 +18,7 @@ using namespace std;
 // #include "gomea/src/common/solution_mixed.hpp"
 #include "gomea/src/common/solution_BN.hpp"
 #include "gomea/src/common/gomea_defs.hpp"
+#include "gomea/src/fitness/density.h"
 
 namespace gomea{
 namespace mixedinteger{
@@ -71,4 +72,13 @@ void writeVectorToFile(string &folder, double *vector, int length, string messag
 void writeMessageToLogFile(string &folder, string message, bool doLog = true);
 size_t calculateNumberOfLinks(size_t number_of_nodes);
 tuple<vec_t<double>, vec_t<double>> findMaxAndMinValuesInData(vec_t<vec_t<double>> &data);
+
+void writeRunCompletedFile(string &folder, const long long numberOfEvaluations, const clock_t startTime, bool doLog = false);
+void copyDataFilesToTargetDir(const string& pathToDataDir, const string &targetDir, const string &problemName, int runIndex);
+string determinePathData(const string& pathToDataDir, const string &problemName, int runIndex);
+string determinePathInfo(const string& pathToDataDir, const string &problemName, int runIndex);
+string determinePathOptimalSolution(const string& pathToDataDir, const string &problemName, int runIndex);
+bool copyFile(const string &inputPath, const string &outputPath);
+void writeParametersFile(string &folder, Config *config, const Density *fitnessFunction, bool doLog = false);
+
 }}
