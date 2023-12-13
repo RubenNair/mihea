@@ -912,7 +912,7 @@ void iamalgam::generateAndEvaluateNewSolutionsToFillPopulations()
             for( k = 0; k < number_of_parameters; k++ )
             {
               solution_AMS[k] = solution[k] + shrink_factor*delta_AMS*distribution_multipliers[i]*ams_vectors[i][k];
-              if( !isParameterInRangeBounds( solution_AMS[k], k ) && (config->extraCVarForNumberOfBins && k >= config->data->getNumberOfContinuousVariables()))
+              if( !isParameterInRangeBounds( solution_AMS[k], k, (config->extraCVarForNumberOfBins && k < config->data->getNumberOfContinuousVariables())))
               {
                 out_of_range = 1;
                 break;
@@ -1216,14 +1216,9 @@ double *iamalgam::generateNewSolution( int population_index )
     }
     
     ready = 1;
-    int startIndex = 0;
-    if(config->extraCVarForNumberOfBins)
+    for( i = 0; i < number_of_parameters; i++ )
     {
-      startIndex = config->data->getNumberOfContinuousVariables();
-    }
-    for( i = startIndex; i < number_of_parameters; i++ )
-    {
-      if( !isParameterInRangeBounds( result[i], i ) )
+      if( !isParameterInRangeBounds( result[i], i, (config->extraCVarForNumberOfBins && i < config->data->getNumberOfContinuousVariables()) ) )
       {
         ready = 0;
         break;
@@ -1304,17 +1299,28 @@ double iamalgam::vectorDotProduct( double *vector0, double *vector1, int n0 )
   return( result );
 }
 
-bool iamalgam::isParameterInRangeBounds( double parameter, int dimension )
+bool iamalgam::isParameterInRangeBounds( double parameter, int dimension, bool is_extra_cvar)
 {
-  
-  if( parameter < problemInstance->getLowerRangeBound(dimension) ||
-      parameter > problemInstance->getUpperRangeBound(dimension) ||
-      isnan( parameter ) )
+  if(is_extra_cvar)
   {
-    return( false );
+    long rounded_parameter = std::lround(parameter);
+    if( rounded_parameter < 1 || rounded_parameter > config->maxDiscretizations )
+    {
+      return( false );
+    }
+    return( true );
   }
-  
-  return( true );
+  else
+  {
+    if( parameter < problemInstance->getLowerRangeBound(dimension) ||
+        parameter > problemInstance->getUpperRangeBound(dimension) ||
+        isnan( parameter ) )
+    {
+      return( false );
+    }
+    
+    return( true );
+  }
 }
 
 void iamalgam::adaptDistributionMultipliers()

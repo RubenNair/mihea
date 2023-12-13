@@ -78,39 +78,43 @@ void Config::setMethodInitParams(int settingIndex)
     {
         case 0:
         // Method 1, init 1
-        
+        // No flags needed, default settings
         break;
         case 1:
         // Method 1, init 2
-
+        useNormalizedCVars = true;
         break;
         case 2:
         // Method 1, init 3
-        
+        guaranteedInitSpread = true;
         break;
         case 3:
         // Method 2, init 1
-
+        transformCVariables = true;
         break;
         case 4:
         // Method 2, init 2
-
+        transformCVariables = true;
+        useNormalizedCVars = true;
         break;
         case 5:
         // Method 2, init 3
-
+        transformCVariables = true;
+        guaranteedInitSpread = true;
         break;
         case 6:
         // Method 3, init 1
-
+        extraCVarForNumberOfBins = true;
         break;
         case 7:
         // Method 3, init 2
-
+        extraCVarForNumberOfBins = true;
+        useNormalizedCVars = true;
         break;
         case 8:
         // Method 3, init 3
-
+        extraCVarForNumberOfBins = true;
+        guaranteedInitSpread = true;
         break;
         default:
         return;
@@ -194,7 +198,8 @@ bool Config::parseCommandLine(int argc, char **argv)
             upper_user_range = atof(optarg);
             break;
         case 'f':
-            useForcedImprovements = atoi(optarg);
+            // useForcedImprovements = atoi(optarg);
+            forceNBoundariesUsed = true;
             break;
         case 'r':
             runIndex = atoi(optarg);
@@ -261,7 +266,8 @@ bool Config::parseCommandLine(int argc, char **argv)
             break;
         }
         case 'm':
-            maximumFOSSetSize = atoi(optarg);
+            // maximumFOSSetSize = atoi(optarg);
+            setMethodInitParams(atoi(optarg));
             break;
         case 'M':
             maximumNumberOfGenerations = atoi(optarg);

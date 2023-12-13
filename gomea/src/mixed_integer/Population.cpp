@@ -71,10 +71,6 @@ Population::Population(Config *config_, fitness_t *problemInstance_, sharedInfor
         iota(allGenes.begin(), allGenes.end(), 0);
 
         
-        // Ensure that the population is initialized with a spread of solutions, and that different binsizes are spread among the population to account for potential bias.
-        vec_t<int> shuffledIndices(populationSize);
-        iota(shuffledIndices.begin(), shuffledIndices.end(), 0);
-        std::shuffle(shuffledIndices.begin(), shuffledIndices.end(), gomea::utils::rng);
 
 
         for (size_t i = 0; i < populationSize; ++i)
@@ -98,8 +94,8 @@ Population::Population(Config *config_, fitness_t *problemInstance_, sharedInfor
                                                     config->discretization_policy_index, config->maxParents, config->maxInstantiations, 
                                                     BNproblemInstance, maxValuesData, minValuesData,
                                                     config->lower_user_range, config->upper_user_range, 
-                                                    config->data, (double)shuffledIndices[i]/populationSize, 
-                                                    config->useNormalizedCVars, config->transformCVariables, config->useOptimalSolution, config->guaranteedInitSpread, config->extraCVarForNumberOfBins, config->problemInstancePath);
+                                                    config->data, (double)i / populationSize, 
+                                                    config->useNormalizedCVars, config->transformCVariables, config->useOptimalSolution, config->guaranteedInitSpread, config->extraCVarForNumberOfBins, config->forceNBoundariesUsed, config->problemInstancePath);
 
                 problemInstance->evaluate(population->solutions[i]);
 

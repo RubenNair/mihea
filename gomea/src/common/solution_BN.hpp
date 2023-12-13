@@ -67,6 +67,7 @@ class solution_BN : public solution_mixed
                  bool useOptimalSolution = false,
                  bool guaranteedInitSpread = false,
                  bool extraCVarForNumberOfBins = false,
+                 bool forceNBoundariesUsed = false,
                  string problemInstancePath = "",
                  int runIndex = 0);
     virtual ~solution_BN() = default;
@@ -259,6 +260,7 @@ protected:
     bool useOptimalSolution;
     bool guaranteedInitSpread;                                          // If true, the c_vars will be initialized such that there is an equal number of solutions in the population for each amount of bins (between 2 and max)
     bool extraCVarForNumberOfBins;                                      // If true, an extra c_var is added to the solution per continuous node to indicate the number of bins (between 2 and max)
+    bool forceNBoundariesUsed;                                          // If true, the amount of bins used will be equal to the value of the extra c-variable(s).
     string problemInstancePath = "";                                    // The path to the problem instance
     int runIndex;                                                       
     

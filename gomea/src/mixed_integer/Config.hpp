@@ -79,6 +79,7 @@ public:
     bool guaranteedInitSpread = false;
     bool transformCVariables = false;
     bool extraCVarForNumberOfBins = false;
+    bool forceNBoundariesUsed = false; // If extraCVarForNumberOfBins is true, this will force the amount of bins used to be equal to the value of the extra c-variable(s).
     int discretization_policy_index = 0;
     
     size_t alphabetSize = 2;

@@ -74,7 +74,7 @@ class iamalgam
         double random1DNormalUnit();
         double *matrixVectorMultiplication( double **matrix, double *vector, int n0, int n1 );
         double vectorDotProduct( double *vector0, double *vector1, int n0 );
-        bool isParameterInRangeBounds(double parameter, int dimension);
+        bool isParameterInRangeBounds(double parameter, int dimension, bool is_extra_cvar = false);
         void computeRanks();
         void adaptDistributionMultipliers();
         void adaptDistributionMultipliersForOnePopulation(int i = 0); // Not from Peter's code, but I think it makes sense to extract this into a separate function for GAMBIT
