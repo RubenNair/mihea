@@ -304,7 +304,7 @@ void solution_BN::randomInit(std::mt19937 *rng, double populationIndexRatio)
            // First initialize these variables to the correct value (i.e. the same for all solutions)
               if(i < this->number_of_nodes_to_discretize)
               {
-                c_variables[i] = numberOfBoundariesPerNode;
+                c_variables[i] = maxDiscretizations;
                 continue;
               }
         }
