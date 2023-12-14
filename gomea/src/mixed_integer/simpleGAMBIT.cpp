@@ -202,6 +202,11 @@ void simpleGAMBIT::run()
             
             currGAMBIT->numberOfGenerations++;
 
+            if(currGAMBIT->iamalgamInstance->number_of_generations > 0 && currGAMBIT->iamalgamInstance->number_of_generations % 100 == 0)
+            {
+                writeElitistSolutionToFile(config->folder, currGAMBIT->sharedInformationPointer->elitistSolutionHittingTimeEvaluations, currGAMBIT->sharedInformationPointer->elitistSolutionHittingTimeMilliseconds, currGAMBIT->sharedInformationPointer->elitist);
+            }
+
             // Check if discrete population has converged to a solution that is not the optimum. If so, terminate that GAMBIT.
             // NOTE: this assumes that for every problem, the optimum has all discrete variables set to 1.
             // That is not the case for BN problems, for example. Therefore, don't perform this check for BN problems.
@@ -241,10 +246,10 @@ void simpleGAMBIT::run()
         {
             solution_BN *elitist_BN = (solution_BN *) GAMBITs[currentGAMBITIndex]->sharedInformationPointer->elitist;
             writeBNStatisticsToFile(config->folder, GAMBITs[currentGAMBITIndex]->sharedInformationPointer->elitistSolutionHittingTimeEvaluations, GAMBITs[currentGAMBITIndex]->sharedInformationPointer->elitistSolutionHittingTimeMilliseconds, elitist_BN, GAMBITs[currentGAMBITIndex]->populationSize);
-            gomea::fitness::BNStructureLearning *BN_fitness = (gomea::fitness::BNStructureLearning *) config->fitness;
-            writeParametersFile(config->folder, config, BN_fitness->getDensity());
-            copyDataFilesToTargetDir(determinePathData("./data", config->problemInstancePath, config->runIndex), config->folder, config->problemInstancePath, config->runIndex);
-            writeRunCompletedFile(config->folder, problemInstance->number_of_evaluations, clock_start_time);
+            // gomea::fitness::BNStructureLearning *BN_fitness = (gomea::fitness::BNStructureLearning *) config->fitness;
+            // writeParametersFile(config->folder, config, BN_fitness->getDensity());
+            // copyDataFilesToTargetDir(determinePathData("./data", config->problemInstancePath, config->runIndex), config->folder, config->problemInstancePath, config->runIndex);
+            // writeRunCompletedFile(config->folder, problemInstance->number_of_evaluations, clock_start_time);
 
         } else
         {
