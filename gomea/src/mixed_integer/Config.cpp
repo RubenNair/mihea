@@ -121,6 +121,24 @@ void Config::setMethodInitParams(int settingIndex)
     }
 }
 
+void Config::setOptimizerName()
+{
+    string name = "Method";
+
+    if(transformCVariables) name += "2";
+    else if(extraCVarForNumberOfBins) name += "3";
+    else name += "1";
+
+    if(forceNBoundariesUsed) name += "*";
+
+    name += "_init";
+    if(useNormalizedCVars) name += "2";
+    else if(guaranteedInitSpread) name += "3";
+    else name += "1";
+
+    optimizerName = name;
+}
+
 bool Config::parseCommandLine(int argc, char **argv)
 {
   const struct option longopts[] =
@@ -375,7 +393,7 @@ bool Config::parseCommandLine(int argc, char **argv)
 
     fitness = getFitnessClassDiscrete(problemIndex, numberOfVariables);
 
-    
+    setOptimizerName();
 
     // Override vtr if it was given as command line parameter
     fitness->vtr = this->vtr != 1e+308 ? this->vtr : fitness->vtr; 

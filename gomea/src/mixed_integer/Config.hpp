@@ -36,6 +36,8 @@ public:
     void checkOptions();
     void printUsage();
     void printOverview();
+
+    void setOptimizerName();
     
 	fitness_t *fitness;
 	int usePartialEvaluations              = 0,                  
@@ -97,6 +99,8 @@ public:
     size_t maxParents = 6;
     size_t maxInstantiations = 15;
     shared_ptr<DataStructure<double>> data = NULL;
+
+    string optimizerName;
 
     private:
         int problemIndex = 0;
