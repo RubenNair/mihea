@@ -778,7 +778,6 @@ const vec_t<ColumnDataType> &solution_BN::getNodeDataTypes() const { return node
 const vec_t<size_t> &solution_BN::getNumberOfDiscretizationsperNode() const { return numberOfDiscretizationsperNode; }
 const shared_ptr<DiscretizationPolicy> &solution_BN::getDiscretizationPolicy() const { return discretizationPolicy; }
 vec_t<int> solution_BN::getNetworkParameters() const { vec_t<int> result(variables.begin(), variables.begin() + number_of_links); return result; }
-clock_t solution_BN::getTimeStamp() const { return timeStamp; }
 size_t solution_BN::getNumberOfFullEvaluations() const { return numberOfFullEvaluations; }
 double solution_BN::getNumberOfEvaluations() const { return numberOfEvaluations; }
 const vec_t<vec_t<double>> &solution_BN::getBoundaries() const { return boundaries; }
@@ -794,7 +793,6 @@ const shared_ptr<DataStructure<double>> &solution_BN::getDiscretizedData() const
 void solution_BN::setDiscretizedData(const shared_ptr<DataStructure<double>> &data) { solution_BN::discretizedData = data; }
 void solution_BN::setFitness(double newFitnessValue) { solution_BN::fitness = newFitnessValue; }
 void solution_BN::setConstraintValue(double newConstraintValue) { solution_BN::constraintValue = newConstraintValue; }
-void solution_BN::setTimeStamp(clock_t timeStamp) { solution_BN::timeStamp = timeStamp; }
 void solution_BN::setNumberOfFullEvaluations(size_t numberOfFullEvaluations) { solution_BN::numberOfFullEvaluations = numberOfFullEvaluations; }
 void solution_BN::setNumberOfEvaluations(double numberOfEvaluations) { solution_BN::numberOfEvaluations = numberOfEvaluations; }
 void solution_BN::setDiscretizationPolicy(const shared_ptr<DiscretizationPolicy> &discretizationPolicy) { solution_BN::discretizationPolicy = discretizationPolicy; }
@@ -871,7 +869,6 @@ solution_BN *solution_BN::clone() {
                                           this->maximum_number_of_parents,
                                           this->fitness,
                                           this->constraintValue,
-                                          this->timeStamp,
                                           this->numberOfFullEvaluations,
                                           this->numberOfEvaluations,
                                           this->number_of_parents,
@@ -898,7 +895,7 @@ solution_BN *solution_BN::clone() {
     const vec_t<ColumnDataType> &nodeDataTypes, int numberOfNodes,
     size_t numberOfLinks, size_t numberOfNodesToDiscretize, int maximumNumberOfParents,
     double fitness, double constraintValue,
-    clock_t timeStamp, size_t numberOfFullEvaluations, double numberOfEvaluations,
+    size_t numberOfFullEvaluations, double numberOfEvaluations,
     const vec_t<size_t> &numberOfParents, const vec_t<size_t> &numberOfChildren,
     const vec_t<vec_t<int>> &childMatrix, const vec_t<vec_t<int>> &parentMatrix,
     const vec_t<vec_t<int>> &adjacencyMatrix, const vec_t<vec_t<vec_t<size_t>>> &spouse_matrix,
@@ -909,7 +906,7 @@ solution_BN *solution_BN::clone() {
     node_data_types(nodeDataTypes), number_of_nodes(numberOfNodes), number_of_links(numberOfLinks),
     number_of_nodes_to_discretize(numberOfNodesToDiscretize), maximum_number_of_parents(maximumNumberOfParents),
     fitness(fitness), constraintValue(constraintValue),
-    timeStamp(timeStamp), numberOfFullEvaluations(numberOfFullEvaluations), numberOfEvaluations(numberOfEvaluations),
+    numberOfFullEvaluations(numberOfFullEvaluations), numberOfEvaluations(numberOfEvaluations),
     number_of_parents(numberOfParents), number_of_children(numberOfChildren),
     child_matrix(childMatrix), parent_matrix(parentMatrix),
     adjacency_matrix(adjacencyMatrix), spouse_matrix(spouse_matrix),
@@ -920,7 +917,7 @@ solution_BN::solution_BN( const solution_BN &other ) : solution_mixed(other),
     node_data_types(other.node_data_types), number_of_nodes(other.number_of_nodes), number_of_links(other.number_of_links),
     number_of_nodes_to_discretize(other.number_of_nodes_to_discretize), maximum_number_of_parents(other.maximum_number_of_parents),
     fitness(other.fitness), constraintValue(other.constraintValue),
-    timeStamp(other.timeStamp), numberOfFullEvaluations(other.numberOfFullEvaluations), numberOfEvaluations(other.numberOfEvaluations),
+    numberOfFullEvaluations(other.numberOfFullEvaluations), numberOfEvaluations(other.numberOfEvaluations),
     number_of_parents(other.number_of_parents), number_of_children(other.number_of_children),
     child_matrix(other.child_matrix), parent_matrix(other.parent_matrix),
     adjacency_matrix(other.adjacency_matrix), spouse_matrix(other.spouse_matrix),
@@ -941,7 +938,6 @@ solution_BN::solution_BN( const solution_BN &other ) : solution_mixed(other),
     this->maximum_number_of_parents = other.maximumNumberOfParents;
     this->fitness = other.fitness;
     this->constraintValue = other.constraintValue;
-    this->timeStamp = other.timeStamp;
     this->numberOfFullEvaluations = other.numberOfFullEvaluations; 
     this->numberOfEvaluations = other.numberOfEvaluations;
     this->number_of_parents = other.numberOfParents;

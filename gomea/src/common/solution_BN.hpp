@@ -151,7 +151,6 @@ class solution_BN : public solution_mixed
     const vec_t<ColumnDataType> &getNodeDataTypes() const;
     const vec_t<size_t> &getNumberOfDiscretizationsperNode() const;
     const shared_ptr<DiscretizationPolicy> &getDiscretizationPolicy() const;
-    clock_t getTimeStamp() const;
     size_t getNumberOfFullEvaluations() const;
     double getNumberOfEvaluations() const;
     const vec_t<vec_t<double>> &getBoundaries() const;
@@ -165,7 +164,6 @@ class solution_BN : public solution_mixed
     void setFitness(double newFitnessValue);
     void setFitnessPerNode(const vec_t<double> &newFitnessPerNode);
     void setConstraintValue(double newConstraintValue);
-    void setTimeStamp(clock_t timeStamp);
     void setNumberOfFullEvaluations(size_t numberOfFullEvaluations);
     void setNumberOfEvaluations(double numberOfEvaluations);
     void setDiscretizationPolicy(const shared_ptr<DiscretizationPolicy> &discretizationPolicy);
@@ -176,7 +174,7 @@ class solution_BN : public solution_mixed
                 const vec_t<ColumnDataType> &nodeDataTypes, int numberOfNodes,
                 size_t numberOfLinks, size_t numberOfNodesToDiscretize, int maximumNumberOfParents, double fitness,
                 double constraintValue,
-                clock_t timeStamp, size_t numberOfFullEvaluations, double numberOfEvaluations,
+                size_t numberOfFullEvaluations, double numberOfEvaluations,
                 const vec_t<size_t> &numberOfParents, const vec_t<size_t> &numberOfChildren,
                 const vec_t<vec_t<int>> &childMatrix, const vec_t<vec_t<int>> &parentMatrix,
                 const vec_t<vec_t<int>> &adjacencyMatrix, const vec_t<vec_t<vec_t<size_t>>> &spouse_matrix,
@@ -198,7 +196,7 @@ protected:
     // Fitness
     double fitness;                         // The fitness of the solution
     double constraintValue;                 // The constraint value of the solution
-    clock_t timeStamp;                      // The time stamp when a solution was evaluated
+    
     size_t numberOfFullEvaluations;         // The number of full evaluations executed to get the solution
 	double numberOfEvaluations;             // The number of (partial) evaluations executed to get this solution
 

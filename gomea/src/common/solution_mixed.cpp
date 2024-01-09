@@ -20,7 +20,7 @@ solution_mixed::solution_mixed( size_t numberOfVariables_, size_t alphabetSize_,
 }*/
 
 solution_mixed::solution_mixed( const solution_mixed &other ) :
-		solution_t(other), c_variables(other.c_variables), problemInstance(other.problemInstance)
+		solution_t(other), c_variables(other.c_variables), problemInstance(other.problemInstance), timeStamp(other.timeStamp), numberOfFullEvaluations(other.numberOfFullEvaluations)
 {}
 
 void solution_mixed::randomInit(std::mt19937 *rng)
@@ -94,5 +94,11 @@ solution_mixed *solution_mixed::clone() {
 	return new solution_mixed(*this);
 }
 
+
+clock_t solution_mixed::getTimeStamp() const { return timeStamp; }
+size_t solution_mixed::getNumberOfFullEvaluations() const { return numberOfFullEvaluations; }
+
+void solution_mixed::setTimeStamp(clock_t timeStamp) { this->timeStamp = timeStamp; }
+void solution_mixed::setNumberOfFullEvaluations(size_t numberOfFullEvaluations) { this->numberOfFullEvaluations = numberOfFullEvaluations; }
 
 }

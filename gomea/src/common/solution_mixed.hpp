@@ -64,6 +64,17 @@ class solution_mixed : public solution_t<int>
 	virtual solution_mixed *clone();
 
 	fitness_t<int> *problemInstance;
+
+	
+	clock_t getTimeStamp() const;
+	void setTimeStamp(clock_t timeStamp);
+
+	size_t getNumberOfFullEvaluations() const;
+	void setNumberOfFullEvaluations(size_t numberOfFullEvaluations);
+
+
+	clock_t timeStamp;                      // The time stamp when a solution was evaluated
+	size_t numberOfFullEvaluations;         // The number of full evaluations executed to get the solution
 // {
 // 	for (int i = 0; i < getNumberOfCVariables(); ++i)
 // 	{

@@ -82,6 +82,12 @@ void BNStructureLearning::evaluationFunction( solution_t<int> *solution )
 	double fcons = constraintFunction(solution);
 	casted_solution->setConstraintValue(fcons);
 	// density->computeFitness(*solution);
+
+	// Update timestamp and number of evaluations of evaluated solution (number of evaluations up to this solution, not including this one)
+	clock_t currentTime = clock();
+	casted_solution->setTimeStamp(currentTime);
+
+	casted_solution->setNumberOfEvaluations(this->full_number_of_evaluations);
 }
 
 const Density *BNStructureLearning::getDensity() const
