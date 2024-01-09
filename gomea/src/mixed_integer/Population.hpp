@@ -39,7 +39,12 @@ public:
     
     linkage_model_pt FOSInstance = NULL;
 
-    Population(Config *config_, fitness_t *problemInstance_, sharedInformation *sharedInformationPointer_, size_t GOMEAIndex_, size_t populationSize_, linkage_model_pt FOSInstance_ = NULL );
+    size_t optimizerIndex;
+    string optimizerName;
+    double optimizerElitistFitness;
+    bool optimizerElitistFitnessInitialized;
+
+    Population(Config *config_, fitness_t *problemInstance_, sharedInformation *sharedInformationPointer_, size_t GOMEAIndex_, size_t populationSize_, size_t optimizerIndex, string optimizerName, linkage_model_pt FOSInstance_ = NULL );
     ~Population();
 
     friend ostream & operator << (ostream &out, const Population &populationInstance);

@@ -50,16 +50,20 @@ namespace gomea{namespace mixedinteger{
 //         #endif
 // }
 
-Population::Population(Config *config_, fitness_t *problemInstance_, sharedInformation *sharedInformationPointer_, size_t GOMEAIndex_, size_t populationSize_, linkage_model_pt FOSInstance_ ): 
+Population::Population(Config *config_, fitness_t *problemInstance_, sharedInformation *sharedInformationPointer_, size_t GOMEAIndex_, size_t populationSize_, size_t optimizerIndex, string optimizerName, linkage_model_pt FOSInstance_ ): 
         config(config_), 
         problemInstance(problemInstance_),
         sharedInformationPointer(sharedInformationPointer_),
         GOMEAIndex(GOMEAIndex_), 
-        populationSize(populationSize_)
+        populationSize(populationSize_),
+        optimizerIndex(optimizerIndex),
+        optimizerName(optimizerName)
 {
         terminated = false;
         numberOfGenerations = 0;
         averageFitness = 0.0;
+
+        optimizerElitistFitnessInitialized = false;
         
         // population->resize(populationSize);
         // offspringPopulation->resize(populationSize);
@@ -837,7 +841,12 @@ void Population::checkTimeLimit()
 
 void Population::updateElitistAndCheckVTR(solution_mixed *solution)
 {
-    // RUBEN TODO: use problemInstance elitist here, to be consistent with iAMaLGaM as well.
+    // First update 'local' elitist (of current population) fitness
+        if(!optimizerElitistFitnessInitialized || solution->getObjectiveValue() < optimizerElitistFitness) // ASSUMING MINIMIZATION!
+        {
+            optimizerElitistFitness = solution->getObjectiveValue();            
+            optimizerElitistFitnessInitialized = true;
+        }
     /* Update elitist solution */
     //if (sharedInformationPointer->firstEvaluationEver || (solution->getObjectiveValue() > sharedInformationPointer->elitist->getObjectiveValue()))
     if (sharedInformationPointer->firstEvaluationEver || problemInstance->betterFitness(solution,sharedInformationPointer->elitist) )
@@ -853,7 +862,7 @@ void Population::updateElitistAndCheckVTR(solution_mixed *solution)
             cout << endl;
         }
         sharedInformationPointer->elitistSolutionHittingTimeMilliseconds = utils::getElapsedTimeMilliseconds(sharedInformationPointer->startTime);
-        sharedInformationPointer->elitistSolutionHittingTimeEvaluations = problemInstance->number_of_evaluations;
+        sharedInformationPointer->elitistSolutionHittingTimeEvaluations = problemInstance->full_number_of_evaluations;
 
         // Replace sharedInformationPointer->elitist with (a new copy of) the solution
         delete sharedInformationPointer->elitist;
@@ -861,6 +870,7 @@ void Population::updateElitistAndCheckVTR(solution_mixed *solution)
         
 		sharedInformationPointer->elitistFitness = solution->getObjectiveValue();
 		sharedInformationPointer->elitistConstraintValue = solution->getConstraintValue();
+        sharedInformationPointer->optimizerIndex = this->optimizerIndex;
         
         /* Check the VTR */
         if (problemInstance->use_vtr && solution->getObjectiveValue() <= problemInstance->vtr + 1e-10) // RUBEN: was >=, changed to <= (since I'm assuming minimization, TODO should probably have a robuster solution (based on probleminstance optimization_mode?))
