@@ -3,9 +3,16 @@
 #include <vector>
 using namespace std;
 
-#include "gomea/src/mixed_integer/gomeaIMS.hpp"
+// #include "gomea/src/mixed_integer/gomeaIMS.hpp"
 #include "gomea/src/mixed_integer/config.hpp"
 #include "gomea/src/mixed_integer/iamalgam.hpp"
+#include "gomea/src/mixed_integer/Config.hpp"
+#include "gomea/src/mixed_integer/Population.hpp"
+#include "gomea/src/mixed_integer/shared.hpp"
+#include "gomea/src/mixed_integer/gomea.hpp"
+#include "gomea/src/fitness/benchmarks-discrete.hpp"
+#include "gomea/src/utils/time.hpp"
+#include "gomea/src/common/output_statistics.hpp"
 
 namespace gomea{
 namespace mixedinteger{
@@ -13,7 +20,7 @@ namespace mixedinteger{
 class simpleGAMBIT
 {
     public:
-    gomeaIMS *gomeaIMSInstance;
+    // gomeaIMS *gomeaIMSInstance;
     iamalgam *iamalgamInstance;
     Config *config;
     vector<Population*> GAMBITs;
@@ -53,6 +60,8 @@ class simpleGAMBIT
     bool checkTimeLimitTerminationCriterion();
     bool checkTerminationGAMBIT(int GAMBITIndex);
     void FindCurrentGAMBIT();
+
+    double getAverageElitistFitness();
 };
 
 }}

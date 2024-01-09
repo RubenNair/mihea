@@ -53,6 +53,8 @@ void simpleGAMBIT::initialize()
     // iamalgamInstance = new iamalgam(config);
     initElitistFile(config->folder);
     initStatisticsFile(config->folder, config->useBN);
+    initialize_multi_start_scheme_statistics_file(config->folder);
+    initialize_multi_start_scheme_solutions_file(config->folder);
     if(config->logDebugInformation)
     {
         initLogFile(config->folder);
@@ -88,7 +90,8 @@ void simpleGAMBIT::run()
     initialize();
     
     int gen = 0;
-    // double prevGenElitistFitness = -1;
+    double prevGenElitistFitness = -1;
+    bool prevGenElitistInitialized = false;
     // int numGensNoChange = 0;
     try {
         while(!checkTermination() && (config->maximumNumberOfGenerations <= 0 || gen < config->maximumNumberOfGenerations ))
@@ -200,6 +203,14 @@ void simpleGAMBIT::run()
             // calculate average fitness of population (to match steps from discrete GOMEA code)
             currGAMBIT->calculateAverageFitness();
             
+            // check if improvement of elitist is found. If so, write elitist statistics to file.
+            if(!prevGenElitistInitialized || currGAMBIT->sharedInformationPointer->elitistFitness < prevGenElitistFitness) // ASSUMING MINIMIZATION
+            {
+                prevGenElitistFitness = currGAMBIT->sharedInformationPointer->elitistFitness;
+                write_multi_start_scheme_statistics(config->folder, sharedInformationInstance->elitist, sharedInformationInstance->optimizerIndex, config->optimizerName, currGAMBIT->numberOfGenerations, clock_start_time, getAverageElitistFitness());
+                prevGenElitistInitialized = true;
+            }
+
             currGAMBIT->numberOfGenerations++;
 
             // Check if discrete population has converged to a solution that is not the optimum. If so, terminate that GAMBIT.
@@ -234,7 +245,7 @@ void simpleGAMBIT::run()
             //     numGensNoChange = 0;
             // }
             // prevGenElitistFitness = currGAMBIT->sharedInformationPointer->elitistFitness;
-
+            
         }
         cout << "[EXIT] termination / max number of generations reached." << endl;
         if(config->useBN)
@@ -242,9 +253,9 @@ void simpleGAMBIT::run()
             solution_BN *elitist_BN = (solution_BN *) GAMBITs[currentGAMBITIndex]->sharedInformationPointer->elitist;
             writeBNStatisticsToFile(config->folder, GAMBITs[currentGAMBITIndex]->sharedInformationPointer->elitistSolutionHittingTimeEvaluations, GAMBITs[currentGAMBITIndex]->sharedInformationPointer->elitistSolutionHittingTimeMilliseconds, elitist_BN, GAMBITs[currentGAMBITIndex]->populationSize);
             gomea::fitness::BNStructureLearning *BN_fitness = (gomea::fitness::BNStructureLearning *) config->fitness;
-            writeParametersFile(config->folder, config, BN_fitness->getDensity());
-            copyDataFilesToTargetDir(determinePathData("./data", config->problemInstancePath, config->runIndex), config->folder, config->problemInstancePath, config->runIndex);
-            writeRunCompletedFile(config->folder, problemInstance->number_of_evaluations, clock_start_time);
+            writeParametersFile(config->folder, config, BN_fitness->getDensity(), true);
+            copyDataFilesToTargetDir("./data", config->folder, config->problemInstancePath, config->runIndex);
+            writeRunCompletedFile(config->folder, problemInstance->full_number_of_evaluations, clock_start_time, true);
 
         } else
         {
@@ -261,9 +272,9 @@ void simpleGAMBIT::run()
             solution_BN *elitist_BN = (solution_BN *) GAMBITs[currentGAMBITIndex]->sharedInformationPointer->elitist;
             writeBNStatisticsToFile(config->folder, GAMBITs[currentGAMBITIndex]->sharedInformationPointer->elitistSolutionHittingTimeEvaluations, GAMBITs[currentGAMBITIndex]->sharedInformationPointer->elitistSolutionHittingTimeMilliseconds, elitist_BN, GAMBITs[currentGAMBITIndex]->populationSize);
             gomea::fitness::BNStructureLearning *BN_fitness = (gomea::fitness::BNStructureLearning *) config->fitness;
-            writeParametersFile(config->folder, config, BN_fitness->getDensity());
-            copyDataFilesToTargetDir(determinePathData("./data", config->problemInstancePath, config->runIndex), config->folder, config->problemInstancePath, config->runIndex);
-            writeRunCompletedFile(config->folder, problemInstance->number_of_evaluations, clock_start_time);
+            writeParametersFile(config->folder, config, BN_fitness->getDensity(), true);
+            copyDataFilesToTargetDir("./data", config->folder, config->problemInstancePath, config->runIndex);
+            writeRunCompletedFile(config->folder, problemInstance->full_number_of_evaluations, clock_start_time, true);
         }
     }
     
@@ -324,7 +335,7 @@ bool simpleGAMBIT::checkEvaluationLimitTerminationCriterion()
 {
     if( !isInitialized )
 		return( false );
-	if( config->maximumNumberOfEvaluations > 0 && problemInstance->number_of_evaluations > config->maximumNumberOfEvaluations )
+	if( config->maximumNumberOfEvaluations > 0 && problemInstance->full_number_of_evaluations > config->maximumNumberOfEvaluations )
 		hasTerminated = true;
 	return hasTerminated; 
 }
@@ -350,13 +361,13 @@ void simpleGAMBIT::initializeNewGAMBIT()
 
     if (numberOfGAMBITs == 0)
     {
-        newPopulation = new Population(config, problemInstance, sharedInformationInstance, numberOfGAMBITs, basePopulationSize);
+        newPopulation = new Population(config, problemInstance, sharedInformationInstance, numberOfGAMBITs, basePopulationSize, numberOfGAMBITs, config->optimizerName);
         // cout << "Initial population:" << endl;
         // printPopulation(newPopulation->population);
 
     }
     else
-        newPopulation = new Population(config, problemInstance, sharedInformationInstance, numberOfGAMBITs, 2 * GAMBITs[numberOfGAMBITs-1]->populationSize, GAMBITs[0]->FOSInstance ); // Removed population increase, since that complicates things for iAMaLGaM. TODO check if it is easy/useful to include.
+        newPopulation = new Population(config, problemInstance, sharedInformationInstance, numberOfGAMBITs, 2 * GAMBITs[numberOfGAMBITs-1]->populationSize, numberOfGAMBITs, config->optimizerName, GAMBITs[0]->FOSInstance ); // Removed population increase, since that complicates things for iAMaLGaM. TODO check if it is easy/useful to include.
     
     GAMBITs.push_back(newPopulation);
     // // NOT IN GAMBIT: update iamalgam population with initial population
@@ -434,6 +445,19 @@ bool simpleGAMBIT::checkTerminationGAMBIT(int GAMBITIndex)
     return true;
 }
 
+
+/**
+ * Calculates the average best solution fitness
+ * @return The average fitness over all elitist solutions
+ */
+double simpleGAMBIT::getAverageElitistFitness() {
+    double sum_fitness = 0.0;
+    for (size_t i = 0; i < numberOfGAMBITs; ++i) {
+        sum_fitness += GAMBITs[i]->optimizerElitistFitness;
+    }
+
+    return sum_fitness / (double) numberOfGAMBITs;
+}
 
 
 }}
