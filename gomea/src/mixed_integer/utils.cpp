@@ -185,31 +185,31 @@ void writePopulationToFile(string &folder, vec_t<solution_mixed*> population, st
 
 void writePopulationBoundaryStatsToFile(string &folder, vec_t<solution_mixed*> population, string message)
 {
-    ofstream outFile(folder + "/boundaryStats.txt", ofstream::app);
-    if (outFile.fail())
-    {
-        cerr << "Problems with opening file " << folder + "/boundaryStats.txt!\n";
-        exit(0);
-    }
+    // ofstream outFile(folder + "/boundaryStats.txt", ofstream::app);
+    // if (outFile.fail())
+    // {
+    //     cerr << "Problems with opening file " << folder + "/boundaryStats.txt!\n";
+    //     exit(0);
+    // }
 
-    outFile << message << endl;
-    for(size_t i = 0; i < population.size(); i++)
-    {
-        solution_BN *solution = (solution_BN*)population[i];
-        // Check if cast went well
-        if(solution == NULL)
-        {
-            cerr << "Cast to solution_BN failed in writing boundary stats (utils.cpp)!" << endl;
-            exit(0);
-        }
+    // outFile << message << endl;
+    // for(size_t i = 0; i < population.size(); i++)
+    // {
+    //     solution_BN *solution = (solution_BN*)population[i];
+    //     // Check if cast went well
+    //     if(solution == NULL)
+    //     {
+    //         cerr << "Cast to solution_BN failed in writing boundary stats (utils.cpp)!" << endl;
+    //         exit(0);
+    //     }
 
-        for(size_t j = 0; j < solution->getBoundaries().size(); j++)
-        {
-            outFile << solution->getBoundaries()[j].size() << " ";
-        }
-        outFile << ", ";
-        outFile << solution->getObjectiveValue() << endl;
-    }
+    //     for(size_t j = 0; j < solution->getBoundaries().size(); j++)
+    //     {
+    //         outFile << solution->getBoundaries()[j].size() << " ";
+    //     }
+    //     outFile << ", ";
+    //     outFile << solution->getObjectiveValue() << endl;
+    // }
 }
 
 void writeBuildingBlocksToFile(string &folder, vec_t<solution_mixed*> population, string message, int k, bool doLog)
@@ -508,7 +508,7 @@ void writeRunCompletedFile(string &folder, const long long numberOfEvaluations, 
         return;
     }
     // Determine and create run completed file path
-    string filepath = folder + "completed.txt";
+    string filepath = folder + "/completed.txt";
     ofstream completedFile;
     completedFile.open(filepath, ofstream::out | ofstream::trunc);
 
@@ -539,9 +539,9 @@ void copyDataFilesToTargetDir(const string& pathToDataDir, const string &targetD
     string pathOptimalSolution = determinePathOptimalSolution(pathToDataDir, problemName, runIndex);
 
     // Copy the files
-    copyFile(pathData, targetDir + "data.txt");
-    copyFile(pathDataInfo, targetDir + "data_info.txt");
-    copyFile(pathOptimalSolution, targetDir + "optimal_solution.txt");
+    copyFile(pathData, targetDir + "/data.txt");
+    copyFile(pathDataInfo, targetDir + "/data_info.txt");
+    copyFile(pathOptimalSolution, targetDir + "/optimal_solution.txt");
 }
 
 /**
@@ -626,13 +626,13 @@ void writeParametersFile(string &folder, Config *config, const Density *fitnessF
         return;
     }
     // Determine and create parameters file path
-    string filepath = folder + "parameters.txt";
+    string filepath = folder + "/parameters.txt";
     ofstream parameters_file;
     parameters_file.open(filepath, ofstream::out | ofstream::trunc);
 
     // Write parameters to file
     string text;
-    text += "Algorithm:pGAMBIT, ";
+    text += "Algorithm:" + config->optimizerName + ", ";
     text += "Model:Linkage Tree - No Local Search, ";
     text += "DiscretizationPolicy:ParentPolicy, "; // TODO placeholder, maybe extract this from config
     text += "ProblemIndex:1004, "; // TODO if other problemindices are used, change this
@@ -666,5 +666,285 @@ void writeParametersFile(string &folder, Config *config, const Density *fitnessF
     parameters_file.close();
 }
 
+/**
+ * Writes statistics of the current generation, given the sharedInformationPointer (contains the best solution found so far)
+ * @param indexOptimizer The index of the optimizer
+ * @param solutionToWrite The specific solution to write
+ */
+void write_multi_start_scheme_statistics(string &folder, solution_mixed *elitist, size_t optimizerIndex,
+                                            string &optimizerName, size_t number_of_generations, clock_t startingRunTime,
+                                            double avg_elitist_fitness) {
+    // Write the solution
+    if (elitist) {
+        // Prepare variables
+        // cast sharedInformationPointer->elitist to solution_BN type pointer
+        solution_BN *casted_elitist_sol = (solution_BN *) elitist;
+
+        // Write the statistics of the solution
+        write_single_solution_to_multi_start_scheme_statistics(folder, casted_elitist_sol, optimizerName, optimizerIndex, number_of_generations, startingRunTime, avg_elitist_fitness);
+
+        // Write the solution
+        write_single_solution_to_multi_start_scheme_solutions(folder, casted_elitist_sol, optimizerName, optimizerIndex, number_of_generations, startingRunTime);
+    }
+
+}
+
+/////////////////////////////////////
+/// Multi-start scheme statistics ///
+/////////////////////////////////////
+/**
+ * Initializes the generational statistics file
+ */
+void initialize_multi_start_scheme_statistics_file(string &folder) {
+    // Create and open statistics file
+    if(!filesystem::exists(folder + "/statistics_MSS.dat"))
+    {
+        ofstream outFile(folder + "/statistics_MSS.dat", ofstream::out);
+        if (outFile.fail())
+        {
+            cerr << "Problems with opening file " << folder + "/statistics_MSS.dat!\n";
+            exit(0);
+        }
+
+    // Add header to statistics file
+    #ifdef DEBUG_STATISTICS
+        outFile
+                << "     Algorithm  Gen  OptInd  TotalEvaluations          Time          "
+                "Best-objective       Average-objective       Accuracy    Sensitivity AvgHammingDistance       "
+                "LogLikelihood       LLDifference    Dist.DistanceKL       ArcRatio      AvgNoDisc        AvgDiscDist        "
+                "MaxDiscDist      Ham.Boundaries\n";
+    #else
+        outFile
+                << "     Algorithm  Gen  OptInd  TotalEvaluations          Time          "
+                "Best-objective       Average-objective\n";
+
+    #endif
+    outFile.close();
+    }
+}
+
+
+
+/**
+ * Writes a single solution to the multi start scheme statistics file.
+ * @param solutionToWrite The solution to write to the file
+ * @param optimizerOfSolution The optimizer that created the solution
+ */
+void write_single_solution_to_multi_start_scheme_statistics(string &folder, const solution_BN* solutionToWrite,
+                                                                              string &optimizerName, size_t optimizerIndex, size_t number_of_generations, 
+                                                                              clock_t startingRunTime, double avg_elitist_fitness) {
+    ofstream outFile(folder + "/statistics_MSS.dat", ofstream::app);
+    // Perform check
+    if (outFile.fail())
+    {
+        cerr << "Problems with opening file " << folder + "/statistics_MSS.dat!\n";
+        exit(0);
+    }
+
+    // Load variables
+        double runTime = double(solutionToWrite->getTimeStamp() - startingRunTime) / CLOCKS_PER_SEC;
+
+    // Write to statistics file
+    outFile
+            << setw(14) << optimizerName
+            << " " << setw(4) << number_of_generations
+            << " " << setw(7) << optimizerIndex
+            << " " << setw(17) << solutionToWrite->getNumberOfFullEvaluations()
+            << " " << setw(13) << scientific << setprecision(3) << runTime
+            << " " << setw(23) << scientific << setprecision(16) << solutionToWrite->getObjectiveValue()
+            << " " << setw(23) << scientific << setprecision(16) << avg_elitist_fitness
+            << endl;
+    
+    outFile.close();
+}
+
+
+////////////////////////////////////
+/// Multi-start scheme solutions ///
+////////////////////////////////////
+/**
+ * Initializes the generational solution file
+ */
+void initialize_multi_start_scheme_solutions_file(string &folder) {
+    // Create and open statistics file
+    if(!filesystem::exists(folder + "/statistics_MSS_solutions.dat"))
+    {
+        ofstream outFile(folder + "/statistics_MSS_solutions.dat", ofstream::out);
+        if (outFile.fail())
+        {
+            cerr << "Problems with opening file " << folder + "/statistics_MSS_solutions.dat!\n";
+            exit(0);
+        }
+
+        // Add header to statistics file
+    outFile
+    << "     Algorithm  Gen  OptInd  TotalEvaluations          Time          "
+       "Best-objective "
+       "Network Discretizations Edges\n";
+    
+    outFile.close();
+    }
+}
+
+/**
+ * Writes a single solution to the multi start scheme solution file.
+ * @param solutionToWrite The solution to write to the file
+ * @param optimizerOfSolution The optimizer that created the solution
+ */
+void write_single_solution_to_multi_start_scheme_solutions(string &folder, const solution_BN* solutionToWrite,
+                                                                             string &optimizerName, size_t optimizerIndex, size_t number_of_generations, 
+                                                                             clock_t startingRunTime) {
+    // Perform check
+    ofstream outFile(folder + "/statistics_MSS_solutions.dat", ofstream::app);
+    if (outFile.fail())
+    {
+        cerr << "Problems with opening file " << folder + "/statistics_MSS_solutions.dat!\n";
+        exit(0);
+    }
+
+    // Load variables
+    double runTime = double(solutionToWrite->getTimeStamp() - startingRunTime) / CLOCKS_PER_SEC;
+
+    // Write to statistics file
+    outFile
+            << setw(14) << optimizerName
+            << "/" << setw(4) << number_of_generations
+            << "/" << setw(7) << optimizerIndex
+            << "/" << setw(17) << solutionToWrite->getNumberOfFullEvaluations()
+            << "/" << setw(13) << scientific << setprecision(3) << runTime
+            << "/" << setw(23) << scientific << setprecision(16) << solutionToWrite->getObjectiveValue()
+            << "/" << convertSolutionNetworkToString(solutionToWrite->getNetworkParameters())
+            << "/" << convertInstantiationCountToString(getNumberOfInstantiations(solutionToWrite))
+            << "/" << convertBoundariesToString(solutionToWrite->getBoundaries())
+            << endl;
+
+    outFile.close();
+}
+
+
+/////////////////////////////
+/// Statistical Functions ///
+/////////////////////////////
+// /**
+//  * Calculates the average best solution fitness
+//  * @return The average fitness over all elitist solutions
+//  */
+// double getAverageElitistFitness() {
+//     double sum_fitness = 0.0;
+//     for (const auto &optimizer : this->optimizers) {
+//         sum_fitness += optimizer->getElitistSolution()->getFitness();
+//     }
+
+//     return sum_fitness / (double) this->optimizers.size();
+// }
+
+///////////////////////
+/// Other functions ///
+///////////////////////
+// /**
+//  * Determines the current run time
+//  * @return The run time
+//  */
+// double determineRunTime() {
+//     // Determine time that has passed
+//     clock_t currentTime = clock();
+//     double result = double(currentTime - this->startingRunTime) / CLOCKS_PER_SEC;
+//     return result;
+// }
+
+/**
+ * Converts a network to a string
+ * @param network The network to convert
+ * @return The network as a string
+ */
+string convertSolutionNetworkToString(const vector<int> &network) {
+    // Initialize string stream
+    stringstream ss;
+    ss << "[";
+
+    // Add the elements of the network
+    for (size_t i = 0; i < network.size(); ++i) {
+        ss << network[i];
+        // Skip the comma for the last item
+        if (i != network.size() - 1) {
+            ss << ",";
+        }
+    }
+
+    ss << "]";
+    return ss.str();
+}
+
+/**
+ * Converts a list of instantiation counts to a string
+ * @param instantiations The instantiations to write as a string
+ * @return The instantiation count as a string
+ */
+string convertInstantiationCountToString(const vector<size_t> &instantiations) {
+    // Initialize string stream
+    stringstream ss;
+    ss << "[";
+
+    // Add the elements of the network
+    for (size_t i = 0; i < instantiations.size(); ++i) {
+        ss << instantiations[i];
+        // Skip the comma for the last item
+        if (i != instantiations.size() - 1) {
+            ss << ",";
+        }
+    }
+
+    ss << "]";
+    return ss.str();
+
+}
+
+/**
+ * Converts the boundaries to a string
+ * @param boundaries The boundaries
+ * @return The boundaries as a string
+ */
+string convertBoundariesToString(const vector<vector<double>> &boundaries) {
+    // Initialize string stream
+    stringstream ss;
+    ss << "[";
+
+    // Go over each node
+    for (size_t i = 0; i < boundaries.size(); ++i) {
+        ss << "[";
+
+        // Add the values of the boundaries
+        for (size_t j = 0; j < boundaries[i].size(); ++j) {
+            ss << scientific << setprecision(16) << boundaries[i][j];
+
+            // Skip the last item
+            if (j != boundaries[i].size() - 1) { ss << ","; }
+        }
+
+        ss << "]";
+        // Skip the last item
+        if (i != boundaries.size() - 1) { ss << ";";}
+    }
+
+    ss << "]";
+
+    return ss.str();
+}
+
+vector<size_t> getNumberOfInstantiations(const solution_BN *solution)
+{
+    vector<size_t> result;
+    int continuousIndex = 0;
+    for (size_t nodeIndex = 0; nodeIndex < solution->getNumberOfNodes(); ++nodeIndex) {
+        if (solution->getNodeDataTypes()[nodeIndex] == Discrete) {
+            result.push_back(solution->getNumberOfDiscretizationsperNode()[nodeIndex]);
+        } else {
+            result.push_back(solution->getBoundaries()[continuousIndex].size() + 1);
+            continuousIndex++;
+        }
+    }
+
+    return result;
+}
 
 }}
