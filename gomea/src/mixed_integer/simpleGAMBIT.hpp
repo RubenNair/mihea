@@ -26,7 +26,7 @@ class simpleGAMBIT
     vector<Population*> GAMBITs;
     sharedInformation *sharedInformationInstance = NULL;
 
- 
+    int IMSsubgenerationFactor;
     int numberOfGAMBITs = 0;
     int maximumNumberOfGAMBITs;
     int numberOfGenerationsGAMBIT = 0;
@@ -38,10 +38,14 @@ class simpleGAMBIT
     bool hasTerminated = false;
 
     time_t start_time;
+    clock_t clock_start_time;
     output_statistics_t output;
 
     fitness_t *problemInstance = NULL;
 
+    int gen;
+    double prevGenElitistFitness;
+    bool prevGenElitistInitialized;
     
 
 
@@ -54,6 +58,11 @@ class simpleGAMBIT
 
     void ezilaitini();
     void run();
+    void runGeneration();
+    void runGeneration(int GAMBITIndex);
+    void generationalStepAllGAMBITs();
+    void GAMBITGenerationalStepAllGAMBITsRecursiveFold(int GAMBITIndexSmallest, int GAMBITIndexBiggest);
+
 
     bool checkTermination();
     bool checkEvaluationLimitTerminationCriterion();
