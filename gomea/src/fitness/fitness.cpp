@@ -46,26 +46,32 @@ bool fitness_t<T>::betterFitness( double objective_value_x, double constraint_va
 {
     bool result = false;
 
-    if( constraint_value_x > 0 ) /* x is infeasible */
-    {
-        if( constraint_value_y > 0 ) /* Both are infeasible */
-        {
-            if( constraint_value_x < constraint_value_y )
-                result = true;
-        }
-    }
-    else /* x is feasible */
-    {
-        if( constraint_value_y > 0 ) /* x is feasible and y is not */
-            result = true;
-        else /* Both are feasible */
-        {
-            if( optimization_mode == MIN && objective_value_x < objective_value_y )
-                result = true;
-            else if( optimization_mode == MAX && objective_value_x > objective_value_y )
-                result = true;
-        }
-    }
+	// RUBEN only focussing on non-constrained problems for now, ignoring constraint values
+	if( optimization_mode == MIN && objective_value_x < objective_value_y )
+		result = true;
+	else if( optimization_mode == MAX && objective_value_x > objective_value_y )
+		result = true;
+
+    // if( constraint_value_x > 0 ) /* x is infeasible */
+    // {
+    //     if( constraint_value_y > 0 ) /* Both are infeasible */
+    //     {
+    //         if( constraint_value_x < constraint_value_y )
+    //             result = true;
+    //     }
+    // }
+    // else /* x is feasible */
+    // {
+    //     if( constraint_value_y > 0 ) /* x is feasible and y is not */
+    //         result = true;
+    //     else /* Both are feasible */
+    //     {
+    //         if( optimization_mode == MIN && objective_value_x < objective_value_y )
+    //             result = true;
+    //         else if( optimization_mode == MAX && objective_value_x > objective_value_y )
+    //             result = true;
+    //     }
+    // }
 
     return( result );
 }

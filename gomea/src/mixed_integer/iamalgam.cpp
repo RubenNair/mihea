@@ -286,24 +286,28 @@ bool iamalgam::betterFitness(double objective_value_x, double constraint_value_x
 
   result = false;
 
-  if( constraint_value_x > 0 ) /* x is infeasible */
-  {
-    if( constraint_value_y > 0 ) /* Both are infeasible */
-    {
-      if( constraint_value_x < constraint_value_y )
-       result = true;
-    }
-  }
-  else /* x is feasible */
-  {
-    if( constraint_value_y > 0 ) /* x is feasible and y is not */
-      result = true;
-    else /* Both are feasible */
-    {
-      if( objective_value_x < objective_value_y ) // RUBEN assuming minimization
+  // RUBEN only focussing on non-constrained problems for now, so ignoring constraint values.
+  if( objective_value_x < objective_value_y ) // RUBEN assuming minimization
         result = true;
-    }
-  }
+
+  // if( constraint_value_x > 0 ) /* x is infeasible */
+  // {
+  //   if( constraint_value_y > 0 ) /* Both are infeasible */
+  //   {
+  //     if( constraint_value_x < constraint_value_y )
+  //      result = true;
+  //   }
+  // }
+  // else /* x is feasible */
+  // {
+  //   if( constraint_value_y > 0 ) /* x is feasible and y is not */
+  //     result = true;
+  //   else /* Both are feasible */
+  //   {
+  //     if( objective_value_x < objective_value_y ) // RUBEN assuming minimization
+  //       result = true;
+  //   }
+  // }
 
   return( result );
 }
