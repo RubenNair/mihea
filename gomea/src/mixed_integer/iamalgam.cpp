@@ -1189,7 +1189,11 @@ double *iamalgam::generateNewSolution( int population_index )
       result = (double *) malloc( number_of_parameters*sizeof( double ) );
       for( i = 0; i < number_of_parameters; i++ )
       {
-        if(config->transformCVariables)
+        if(config->extraCVarForNumberOfBins && i < config->data->getNumberOfContinuousVariables())
+        {
+          result[i] =  fmin( std::lround( ((gomea::utils::rng)() / (double)(gomea::utils::rng).max()) * (config->maxDiscretizations - 1) + 1.5), config->maxDiscretizations);
+        }
+        else if(config->transformCVariables)
         {
           result[i] = 1.0 / (config->lower_user_range + ((gomea::utils::rng)() / (double)(gomea::utils::rng).max()) * (config->upper_user_range - config->lower_user_range));
         }
