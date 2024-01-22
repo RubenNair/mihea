@@ -63,7 +63,7 @@ fitness_t *Config::getFitnessClassDiscrete( int problem_index, int number_of_var
         return new gomea::fitness::DT5BlockNOTRotEllipWrongExponent_t(number_of_variables, numberOfcVariables, a_value);
         // case 555:
         // return new gomea::fitness::DT5BlockRotEllipBBO_t(number_of_variables, numberOfcVariables, a_value);
-        case 1000 ... 1099:
+        case 1000 ... 99999999:
         return new gomea::fitness::BNStructureLearning(numberOfdVariables, numberOfcVariables, problem_index, data, maxParents, maxDiscretizations, transformCVariables);
 		default:
 		return NULL;

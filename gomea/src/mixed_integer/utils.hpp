@@ -83,7 +83,7 @@ void writeParametersFile(string &folder, Config *config, const Density *fitnessF
 
 void write_multi_start_scheme_statistics(string &folder, solution_mixed *elitist, size_t optimizerIndex,
                                             string &optimizerName, size_t number_of_generations, 
-                                            clock_t startingRunTime, double avg_elitist_fitness);
+                                            clock_t startingRunTime, double avg_elitist_fitness, const vec_t<ColumnDataType> &column_types);
 void initialize_multi_start_scheme_statistics_file(string &folder);
 void write_single_solution_to_multi_start_scheme_statistics(string &folder, const solution_BN* solutionToWrite, 
                                                             string &optimizerName, size_t optimizerIndex, 
@@ -92,11 +92,11 @@ void write_single_solution_to_multi_start_scheme_statistics(string &folder, cons
 void initialize_multi_start_scheme_solutions_file(string &folder);
 void write_single_solution_to_multi_start_scheme_solutions(string &folder, const solution_BN* solutionToWrite, 
                                                             string &optimizerName, size_t optimizerIndex, 
-                                                            size_t number_of_generations, clock_t startingRunTime);
+                                                            size_t number_of_generations, clock_t startingRunTime, const vec_t<ColumnDataType> &column_types);
 
 string convertSolutionNetworkToString(const vector<int> &network);
 string convertInstantiationCountToString(const vector<size_t> &instantiations);
-string convertBoundariesToString(const vector<vector<double>> &boundaries);
+string convertBoundariesToString(const vector<vector<double>> &boundaries, const vec_t<ColumnDataType> &column_types);
 vector<size_t> getNumberOfInstantiations(const solution_BN *solution); // Calculate the number of instantiations per node based on the amount of boundaries
 
 }}

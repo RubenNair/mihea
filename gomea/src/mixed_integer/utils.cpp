@@ -632,10 +632,11 @@ void writeParametersFile(string &folder, Config *config, const Density *fitnessF
 
     // Write parameters to file
     string text;
-    text += "Algorithm:" + config->optimizerName + ", ";
+    text += "Algorithm:pGAMBIT, ";
+    text += "OptimizationType:SO, ";
     text += "Model:Linkage Tree - No Local Search, ";
-    text += "DiscretizationPolicy:ParentPolicy, "; // TODO placeholder, maybe extract this from config
-    text += "ProblemIndex:1004, "; // TODO if other problemindices are used, change this
+    text += "DiscretizationPolicy:" + config->optimizerName + ", "; // TODO placeholder, maybe extract this from config
+    text += "ProblemIndex:" + to_string(config->problemIndex) + ", "; // TODO if other problemindices are used, change this
     text += "ProblemName:BNStructureLearning, ";
     text += "FitnessFunction:Density, ";
     text += "PartialEvaluations:" + to_string(false) + ", ";
@@ -657,9 +658,9 @@ void writeParametersFile(string &folder, Config *config, const Density *fitnessF
     text += "LocalSearchIndex:-1, ";
     text += "FitnessFunctionIndex:-1, ";
     text += "DiscretizationPolicyIndex:0, ";
-    text += "RunIndex:-1, ";
+    text += "RunIndex:" + to_string(config->runIndex) + ", ";
     text += "Seed:" + to_string(config->randomSeed) + ", ";
-    text += "DataPath:" + fitnessFunction->getFitnessFunctionBaseName() + ", ";
+    text += "DataPath:" + config->problemInstancePath + ", ";
     parameters_file << text << endl;
 
     // Close file
@@ -673,7 +674,7 @@ void writeParametersFile(string &folder, Config *config, const Density *fitnessF
  */
 void write_multi_start_scheme_statistics(string &folder, solution_mixed *elitist, size_t optimizerIndex,
                                             string &optimizerName, size_t number_of_generations, clock_t startingRunTime,
-                                            double avg_elitist_fitness) {
+                                            double avg_elitist_fitness, const vec_t<ColumnDataType> &column_types) {
     // Write the solution
     if (elitist) {
         // Prepare variables
@@ -684,7 +685,7 @@ void write_multi_start_scheme_statistics(string &folder, solution_mixed *elitist
         write_single_solution_to_multi_start_scheme_statistics(folder, casted_elitist_sol, optimizerName, optimizerIndex, number_of_generations, startingRunTime, avg_elitist_fitness);
 
         // Write the solution
-        write_single_solution_to_multi_start_scheme_solutions(folder, casted_elitist_sol, optimizerName, optimizerIndex, number_of_generations, startingRunTime);
+        write_single_solution_to_multi_start_scheme_solutions(folder, casted_elitist_sol, optimizerName, optimizerIndex, number_of_generations, startingRunTime, column_types);
     }
 
 }
@@ -793,7 +794,7 @@ void initialize_multi_start_scheme_solutions_file(string &folder) {
  */
 void write_single_solution_to_multi_start_scheme_solutions(string &folder, const solution_BN* solutionToWrite,
                                                                              string &optimizerName, size_t optimizerIndex, size_t number_of_generations, 
-                                                                             clock_t startingRunTime) {
+                                                                             clock_t startingRunTime, const vec_t<ColumnDataType> &column_types) {
     // Perform check
     ofstream outFile(folder + "/statistics_MSS_solutions.dat", ofstream::app);
     if (outFile.fail())
@@ -815,7 +816,7 @@ void write_single_solution_to_multi_start_scheme_solutions(string &folder, const
             << "/" << setw(23) << scientific << setprecision(16) << solutionToWrite->getObjectiveValue()
             << "/" << convertSolutionNetworkToString(solutionToWrite->getNetworkParameters())
             << "/" << convertInstantiationCountToString(getNumberOfInstantiations(solutionToWrite))
-            << "/" << convertBoundariesToString(solutionToWrite->getBoundaries())
+            << "/" << convertBoundariesToString(solutionToWrite->getBoundaries(), column_types)
             << endl;
 
     outFile.close();
@@ -904,26 +905,37 @@ string convertInstantiationCountToString(const vector<size_t> &instantiations) {
  * @param boundaries The boundaries
  * @return The boundaries as a string
  */
-string convertBoundariesToString(const vector<vector<double>> &boundaries) {
+string convertBoundariesToString(const vector<vector<double>> &boundaries, const vec_t<ColumnDataType> &column_types) {
     // Initialize string stream
     stringstream ss;
     ss << "[";
 
     // Go over each node
-    for (size_t i = 0; i < boundaries.size(); ++i) {
-        ss << "[";
+    int c_node_count = 0;
+    for (size_t c = 0; c < column_types.size(); ++c)
+    {
+        if(column_types[c] == Continuous)
+        {
+            ss << "[";
 
-        // Add the values of the boundaries
-        for (size_t j = 0; j < boundaries[i].size(); ++j) {
-            ss << scientific << setprecision(16) << boundaries[i][j];
+            // Add the values of the boundaries
+            for (size_t j = 0; j < boundaries[c_node_count].size(); ++j) {
+                ss << scientific << setprecision(16) << boundaries[c_node_count][j];
 
+                // Skip the last item
+                if (j != boundaries[c_node_count].size() - 1) { ss << ","; }
+            }
+
+            ss << "]";
             // Skip the last item
-            if (j != boundaries[i].size() - 1) { ss << ","; }
+            if (c != column_types.size() - 1) { ss << ";";}
+            c_node_count++;
+        } else
+        {
+            ss << "[]";
+            // Skip the last item
+            if (c != column_types.size() - 1) { ss << ";";}
         }
-
-        ss << "]";
-        // Skip the last item
-        if (i != boundaries.size() - 1) { ss << ";";}
     }
 
     ss << "]";

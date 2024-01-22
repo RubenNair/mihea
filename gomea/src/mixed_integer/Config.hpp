@@ -101,9 +101,8 @@ public:
     shared_ptr<DataStructure<double>> data = NULL;
 
     string optimizerName;
-
-    private:
-        int problemIndex = 0;
+    int problemIndex = 0;
+        
 };
 
 }}
