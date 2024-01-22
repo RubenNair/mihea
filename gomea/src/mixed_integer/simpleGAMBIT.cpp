@@ -12,7 +12,7 @@ namespace mixedinteger{
 simpleGAMBIT::simpleGAMBIT()
 {
     // gomeaIMSInstance = new gomeaIMS();
-    iamalgamInstance = new iamalgam();
+    // iamalgamInstance = new iamalgam();
     return;
 }
 
@@ -32,7 +32,7 @@ simpleGAMBIT::simpleGAMBIT(Config *config_): config(config_)
     {   
         utils::initializeRandomNumberGenerator();
     }
-    iamalgamInstance = new iamalgam(config);
+    // iamalgamInstance = new iamalgam(config);
 }
 
 simpleGAMBIT::~simpleGAMBIT()
@@ -44,7 +44,7 @@ void simpleGAMBIT::initialize()
     utils::initStartTime();
     clock_start_time = clock();
     utils::clearTimers();
-    output = output_statistics_t();
+    // output = output_statistics_t();
 
     // if( config->AnalyzeFOS )
     // {

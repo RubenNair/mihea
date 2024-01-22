@@ -21,7 +21,7 @@ class simpleGAMBIT
 {
     public:
     // gomeaIMS *gomeaIMSInstance;
-    iamalgam *iamalgamInstance;
+    // iamalgam *iamalgamInstance;
     Config *config;
     vector<Population*> GAMBITs;
     sharedInformation *sharedInformationInstance = NULL;
@@ -39,7 +39,7 @@ class simpleGAMBIT
 
     time_t start_time;
     clock_t clock_start_time;
-    output_statistics_t output;
+    // output_statistics_t output;
 
     fitness_t *problemInstance = NULL;
 
