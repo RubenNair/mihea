@@ -430,6 +430,24 @@ void solution_BN::updateBoundariesBasedOnNumberOfDataSamples()
                 boundaries[cVarsCount].push_back(boundary);
                 binwidthUsed += curr_c_val;
             }
+            if(boundaries[cVarsCount].size() == 0)
+            {
+                cout << "WARNING: no boundaries were added for node, adding one at start or end instead " << endl;
+                // Cover edge case, where no boundaries were added (i.e. all c_vars were basically 0, with possibly one of them being almost 1)
+                // In that case, check the first bin value corresponding to the relevant node. 
+                // If it has a value below 0.5 (must be close to 0 then), add the boundary between first and second sorted data samples.
+                // If it has a value above 0.5 (must be close to 1 then), add the boundary between last and second-to-last sorted data samples.
+                vec_t<int> sorted_indices = data->getSortedDataIndices()[i];
+                int c_var_index = offset + maxDiscretizations * cVarsCount;
+                if(c_variables[c_var_index] >= 0.5)
+                {
+                    boundaries[cVarsCount].push_back((data_matrix.getElement(sorted_indices[data_size - 1], i) + data_matrix.getElement(sorted_indices[data_size - 2], i)) / 2.0);
+                } else
+                {
+                    boundaries[cVarsCount].push_back((data_matrix.getElement(sorted_indices[0], i) + data_matrix.getElement(sorted_indices[1], i)) / 2.0);
+                }
+                
+            }
             cVarsCount++;
         }
     }
@@ -493,6 +511,24 @@ void solution_BN::updateBoundariesBasedOnBinWidths()
                 } 
                 boundaries[cVarsCount].push_back(minValuesData[i] + boundary * range);
                 binwidthUsed += curr_c_val;
+            }
+            if(boundaries[cVarsCount].size() == 0)
+            {
+                cout << "WARNING: no boundaries were added for node, adding one at start or end instead " << endl;
+                // Cover edge case, where no boundaries were added (i.e. all c_vars were basically 0, with possibly one of them being almost 1)
+                // In that case, check the first bin value corresponding to the relevant node. 
+                // If it has a value below 0.5 (must be close to 0 then), add the boundary right after the minimum value in the data.
+                // If it has a value above 0.5 (must be close to 1 then), add the boundary right before the maximum value in the data.
+                vec_t<int> sorted_indices = data->getSortedDataIndices()[i];
+                int c_var_index = offset + maxDiscretizations * cVarsCount;
+                if(c_variables[c_var_index] >= 0.5)
+                {
+                    boundaries[cVarsCount].push_back(minValuesData[i] + 0.00001);
+                } else
+                {
+                    boundaries[cVarsCount].push_back(minValuesData[i] + range - 0.00001);
+                }
+                
             }
             cVarsCount++;
         }
