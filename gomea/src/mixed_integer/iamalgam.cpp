@@ -443,20 +443,20 @@ void iamalgam::makeSelectionsForOnePopulation(int population_index)
         selections[i] = population->solutions[sorted[i]]->clone();
     }
   }
-  vec_t<int> numBoundariesInSelections = countBoundaries(selections);
-  // print all elements of boundariesInSelections
-  if(numBoundariesInSelections.size() > 0)
-  {
-    cout << "[iAMaLGaM gen " << number_of_generations << "] Occurrences of different amounts of boundaries in selections: ";
-    for(int i = 0; i < numBoundariesInSelections.size(); i++)
-    {
-      if(numBoundariesInSelections[i] > 0)
-      {
-        cout << i << ": " << numBoundariesInSelections[i] << ", ";
-      }
-    }
-    cout << endl;
-  }
+  // vec_t<int> numBoundariesInSelections = countBoundaries(selections);
+  // // print all elements of boundariesInSelections
+  // if(numBoundariesInSelections.size() > 0)
+  // {
+  //   cout << "[iAMaLGaM gen " << number_of_generations << "] Occurrences of different amounts of boundaries in selections: ";
+  //   for(int i = 0; i < numBoundariesInSelections.size(); i++)
+  //   {
+  //     if(numBoundariesInSelections[i] > 0)
+  //     {
+  //       cout << i << ": " << numBoundariesInSelections[i] << ", ";
+  //     }
+  //   }
+  //   cout << endl;
+  // }
 
 
 
