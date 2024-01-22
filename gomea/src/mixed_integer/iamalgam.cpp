@@ -21,6 +21,8 @@ iamalgam::iamalgam(Config *config_): config(config_)
     problemInstance       = config->fitness;
     number_of_parameters  = config->numberOfcVariables;
     number_of_populations = 1;
+    haveNextNextGaussian = false;
+
 }
 
 iamalgam::iamalgam(Config *config_, Solutionset *population_) : iamalgam(config_)
@@ -1695,10 +1697,10 @@ void iamalgam::ezilaitiniMemory()
   free( generational_covariance_matrices );
   free( aggregated_covariance_matrices );
   free( cholesky_factors_lower_triangle );
-  free( lower_range_bounds );
-  free( upper_range_bounds );
-  free( lower_init_ranges );
-  free( upper_init_ranges );
+  // free( lower_range_bounds );
+  // free( upper_range_bounds );
+  // free( lower_init_ranges );
+  // free( upper_init_ranges );
   free( populations_terminated );
   free( no_improvement_stretch );
   // free( populations );
@@ -1711,6 +1713,12 @@ void iamalgam::ezilaitiniMemory()
   free( mean_vectors );
   free( mean_vectors_previous );
   free( ams_vectors );
+
+  // delete selections
+  for(solution_mixed *sol : selections)
+  {
+    delete sol;
+  }
 }
 
 void iamalgam::ezilaitiniDistributionMultipliers()

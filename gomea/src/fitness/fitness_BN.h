@@ -41,7 +41,7 @@ public:
             size_t max_number_of_parents,
             size_t max_number_of_discretizations);
 
-    ~Fitness_BN();     // Destructor
+    virtual ~Fitness_BN();     // Destructor
 
     // Virtual functions
     void computeFitness(solution_BN &solution);                             // Computes the fitness (Calls a private function)

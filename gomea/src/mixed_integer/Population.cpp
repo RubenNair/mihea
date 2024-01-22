@@ -161,8 +161,14 @@ Population::~Population()
     for (size_t i = 0; i < populationSize; ++i)
     {
         delete population->solutions[i];
+        delete offspringPopulation->solutions[i];
         // delete offspringPopulation[i];
     }
+    delete population;
+    delete offspringPopulation;
+
+    iamalgamInstance->ezilaitini();
+    delete iamalgamInstance;
 }
 
 ostream & operator << (ostream &out, const Population &populationInstance)
@@ -672,6 +678,8 @@ bool Population::GOMSingleFOS(size_t offspringIndex, size_t FOSIndex)
 
                 FOSInstance->improvementCounters[ind]++;
             }
+            
+            delete offspring;
 
             FOSInstance->usageCounters[ind]++;
 

@@ -21,6 +21,11 @@ BNStructureLearning::BNStructureLearning( int number_of_variables, int number_of
 	this->density = new Density(problem_index, name, data, max_number_of_parents, max_number_of_discretizations);
 }
 
+BNStructureLearning::~BNStructureLearning()
+{
+	delete this->density;
+}
+
 double BNStructureLearning::getLowerRangeBound( int dimension )
 {
 	return( this->transformCVariables ? 1.0 : 0.0 );

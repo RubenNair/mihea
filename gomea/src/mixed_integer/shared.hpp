@@ -36,6 +36,7 @@ class sharedInformation
     ~sharedInformation()
     {
         delete evaluatedSolutions;
+        delete elitist;
     }
 };
 

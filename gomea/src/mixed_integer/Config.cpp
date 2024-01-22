@@ -11,6 +11,8 @@ Config::Config(){}
 
 Config::~Config()
 {
+    delete fitness;
+    delete linkage_config;
 }
 
 /**

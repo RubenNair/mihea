@@ -81,7 +81,9 @@ void simpleGAMBIT::initialize()
 void simpleGAMBIT::ezilaitini()
 {
     for (size_t i = 0; i < GAMBITs.size(); ++i)
+    {
         delete GAMBITs[i];
+    }
     GAMBITs.clear();
     if( isInitialized )
         delete sharedInformationInstance;
