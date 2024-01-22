@@ -119,7 +119,7 @@ void fitness_t<T>::evaluatePopulation( vec_t<solution_t<T>*> solutions, bool ski
 
 	auto t = utils::getTimestamp();
 
-	#pragma omp parallel for
+	// #pragma omp parallel for num_threads(3)
 	for( size_t i = skipFirstIndex ? 1 : 0; i < solutions.size(); i++ )
 		evaluationFunction( solutions[i] );
 
