@@ -99,7 +99,7 @@ Population::Population(Config *config_, fitness_t *problemInstance_, sharedInfor
                                                     BNproblemInstance, maxValuesData, minValuesData,
                                                     config->lower_user_range, config->upper_user_range, 
                                                     config->data, (double)i / populationSize, 
-                                                    config->useNormalizedCVars, config->transformCVariables, config->useOptimalSolution, config->guaranteedInitSpread, config->extraCVarForNumberOfBins, config->forceNBoundariesUsed, config->problemInstancePath);
+                                                    config->useNormalizedCVars, config->transformCVariables, config->useOptimalSolution, config->guaranteedInitSpread, config->extraCVarForNumberOfBins, config->forceNBoundariesUsed, config->problemInstancePath, config->runIndex);
 
                 problemInstance->evaluate(population->solutions[i]);
 
