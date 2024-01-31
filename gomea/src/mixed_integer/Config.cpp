@@ -125,6 +125,10 @@ void Config::setMethodInitParams(int settingIndex)
 
 void Config::setOptimizerName()
 {
+    if (useOptimalSolution) {
+        optimizerName = "Ground_truth";
+        return;
+    }
     string name = "Method";
 
     if(transformCVariables) name += "2";

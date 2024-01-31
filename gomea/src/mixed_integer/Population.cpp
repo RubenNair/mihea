@@ -859,7 +859,7 @@ void Population::updateElitistAndCheckVTR(solution_mixed *solution)
     //if (sharedInformationPointer->firstEvaluationEver || (solution->getObjectiveValue() > sharedInformationPointer->elitist->getObjectiveValue()))
     if (sharedInformationPointer->firstEvaluationEver || problemInstance->betterFitness(solution,sharedInformationPointer->elitist) )
     {
-        if(config->printNewElitists)
+        if(config->printNewElitists || config->useOptimalSolution)
         {
             cout << "New elitist solution found: " << solution->getObjectiveValue() << ", c_variables: ";
             for(auto const& val : solution->c_variables)

@@ -109,6 +109,11 @@ void simpleGAMBIT::run()
 	hasTerminated = true;
 	if(config->useBN)
     {
+        if(config->useOptimalSolution)
+        {
+            // Write the optimal solution to MSS_statistics and MSS_solutions files
+            write_multi_start_scheme_statistics(config->folder, sharedInformationInstance->elitist, sharedInformationInstance->optimizerIndex, config->optimizerName, numberOfGenerationsGAMBIT, clock_start_time, getAverageElitistFitness(), config->data->getColumnType());
+        }
         solution_BN *elitist_BN = (solution_BN *) GAMBITs[currentGAMBITIndex]->sharedInformationPointer->elitist;
         writeBNStatisticsToFile(config->folder, GAMBITs[currentGAMBITIndex]->sharedInformationPointer->elitistSolutionHittingTimeEvaluations, GAMBITs[currentGAMBITIndex]->sharedInformationPointer->elitistSolutionHittingTimeMilliseconds, elitist_BN, GAMBITs[currentGAMBITIndex]->populationSize);
         gomea::fitness::BNStructureLearning *BN_fitness = (gomea::fitness::BNStructureLearning *) config->fitness;
