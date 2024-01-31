@@ -752,8 +752,8 @@ void write_single_solution_to_multi_start_scheme_statistics(string &folder, cons
             << " " << setw(7) << optimizerIndex
             << " " << setw(17) << solutionToWrite->getNumberOfFullEvaluations()
             << " " << setw(13) << scientific << setprecision(3) << runTime
-            << " " << setw(23) << scientific << setprecision(16) << solutionToWrite->getObjectiveValue()
-            << " " << setw(23) << scientific << setprecision(16) << avg_elitist_fitness
+            << " " << setw(23) << scientific << setprecision(16) << -1 * solutionToWrite->getObjectiveValue() // revert the objective value to actual density score, to make comparison easier later
+            << " " << setw(23) << scientific << setprecision(16) << -1 * avg_elitist_fitness // revert the objective value to actual density score, to make comparison easier later
             << endl;
     
     outFile.close();
@@ -813,7 +813,7 @@ void write_single_solution_to_multi_start_scheme_solutions(string &folder, const
             << "/" << setw(7) << optimizerIndex
             << "/" << setw(17) << solutionToWrite->getNumberOfFullEvaluations()
             << "/" << setw(13) << scientific << setprecision(3) << runTime
-            << "/" << setw(23) << scientific << setprecision(16) << solutionToWrite->getObjectiveValue()
+            << "/" << setw(23) << scientific << setprecision(16) << -1 * solutionToWrite->getObjectiveValue() // revert the objective value to actual density score, to make comparison easier later
             << "/" << convertSolutionNetworkToString(solutionToWrite->getNetworkParameters())
             << "/" << convertInstantiationCountToString(getNumberOfInstantiations(solutionToWrite))
             << "/" << convertBoundariesToString(solutionToWrite->getBoundaries(), column_types)
