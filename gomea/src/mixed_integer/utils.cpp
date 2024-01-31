@@ -651,7 +651,7 @@ void writeParametersFile(string &folder, Config *config, const Density *fitnessF
     text += "MaxEvaluations:" + to_string(config->maximumNumberOfEvaluations) + ", ";
     text += "MaxTime:" + to_string(config->maximumNumberOfSeconds) + ", ";
     text += "vtrUsed:" + to_string(config->fitness->use_vtr) + ", ";
-    text += "vtr:" + to_string(config->vtr) + ", ";
+    text += "vtr:" + to_string(config->fitness->use_vtr ? config->vtr : -1) + ", ";
     text += "Post-processingRequired:1, ";
     text += "PostRunDiscretizationPolicy:No Discretization, ";
     text += "LinkageModelIndex:-1, ";
