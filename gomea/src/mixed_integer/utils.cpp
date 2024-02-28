@@ -486,7 +486,7 @@ size_t calculateNumberOfLinks(size_t number_of_nodes) {
  */
 tuple<vec_t<double>, vec_t<double>> findMaxAndMinValuesInData(vec_t<vec_t<double>> &data) {
     // Initialize the maximum and minimum values
-    vec_t<double> maxValues(data[0].size(), numeric_limits<double>::min());
+    vec_t<double> maxValues(data[0].size(), numeric_limits<double>::lowest());
     vec_t<double> minValues(data[0].size(), numeric_limits<double>::max());
 
     // Loop over the data
