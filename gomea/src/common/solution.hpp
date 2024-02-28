@@ -3,6 +3,7 @@
 #include "gomea/src/common/gomea_defs.hpp"
 #include "gomea/src/common/partial_solution.hpp"
 
+
 namespace gomea{
 
 template<class T>
@@ -12,6 +13,8 @@ class solution_t
 		solution_t( int number_of_variables );
 		solution_t( vec_t<T> &variables );
 		solution_t( size_t numberOfVariables_, size_t alphabetSize_ );
+
+		virtual ~solution_t() = default;
 
 		bool operator==(const solution_t<T> &solutionB)
 		{
@@ -63,17 +66,20 @@ class solution_t
 		const vec_t<T> getCopyOfVariables( const vec_t<int> &variable_indices = vec_t<int>()) const;
 		void insertVariables( const vec_t<T> &vars_to_insert );
 		void insertVariables(vec_t<T> vars_to_insert, vec_t<int> indices_to_insert);
-		void insertSolution( solution_t<T> *solution );
+		virtual void insertSolution( solution_t<T> *solution );
 		void insertPartialSolution( partial_solution_t<T> *solution );
 
 		void print();
 
 		size_t getAlphabetSize();
-		
+
+		//solution_t(vec_t<T> variables, vec_t<double> fitness_buffers, vec_t<double> objective_values, double constraint_value, size_t alphabetSize);
+		solution_t( const solution_t<T> &other );
+
 		vec_t<T> variables;
 		vec_t<double> fitness_buffers;
 
-	private:
+	protected:
 		vec_t<double> objective_values;
 		double constraint_value;
 		

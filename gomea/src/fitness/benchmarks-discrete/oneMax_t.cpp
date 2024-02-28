@@ -30,9 +30,9 @@ vec_t<int> oneMax_t::inputsToSubfunction( int subfunction_index )
 double oneMax_t::subfunction( int subfunction_index, vec_t<char> &variables )
 {
 	if(optimization_mode == opt_mode::MAX)
-		return( variables[subfunction_index] == '\001' ? 1.0 : 0.0 );
+		return( variables[subfunction_index] == 1 ? 1.0 : 0.0 );
 	else
-		return( variables[subfunction_index] == '\001' ? 0.0 : 1.0 );
+		return( variables[subfunction_index] == 1 ? 0.0 : 1.0 );
 }
 
 }}

@@ -85,6 +85,7 @@ double pyBBOFitnessFunction_t<double>::getUpperRangeBound( int dimension )
 
 template class pyBBOFitnessFunction_t<char>;
 template class pyBBOFitnessFunction_t<double>;
+template class pyBBOFitnessFunction_t<int>;
 
 }}
 

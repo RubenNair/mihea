@@ -1,5 +1,9 @@
 #include "gomea/src/mixed_integer/Config.hpp"
 
+#include "gomea/src/fitness/benchmarks-discrete.hpp"
+#include "gomea/src/fitness/benchmarks-mixed.hpp"
+#include "gomea/src/fitness/so_benchmarks.h"
+
 namespace gomea{
 namespace mixedinteger{
 
@@ -7,6 +11,8 @@ Config::Config(){}
 
 Config::~Config()
 {
+    delete fitness;
+    delete linkage_config;
 }
 
 /**
@@ -35,10 +41,10 @@ fitness_t *Config::getFitnessClassDiscrete( int problem_index, int number_of_var
 {
 	switch(problem_index) 
 	{
-		case 00: 
-		return new gomea::fitness::oneMax_t(number_of_variables);
-        case 10:
-        return new gomea::fitness::deceptiveTrap_t(number_of_variables, k);
+		// case 00: 
+		// return new gomea::fitness::oneMax_t(number_of_variables);
+        // case 10:
+        // return new gomea::fitness::deceptiveTrap_t(number_of_variables, k);
         case 1:
         return new gomea::fitness::oneMaxSphere_t(number_of_variables, numberOfcVariables);
         case 2:
@@ -57,12 +63,86 @@ fitness_t *Config::getFitnessClassDiscrete( int problem_index, int number_of_var
         return new gomea::fitness::DT5BlockNOTRotEllip_t(number_of_variables, numberOfcVariables, a_value);
         case 551:
         return new gomea::fitness::DT5BlockNOTRotEllipWrongExponent_t(number_of_variables, numberOfcVariables, a_value);
-        case 555:
-        return new gomea::fitness::DT5BlockRotEllipBBO_t(number_of_variables, numberOfcVariables, a_value);
+        // case 555:
+        // return new gomea::fitness::DT5BlockRotEllipBBO_t(number_of_variables, numberOfcVariables, a_value);
+        case 1000 ... 99999999:
+        return new gomea::fitness::BNStructureLearning(numberOfdVariables, numberOfcVariables, problem_index, data, maxParents, maxDiscretizations, transformCVariables);
 		default:
 		return NULL;
 	}
-	return new gomea::fitness::oneMax_t(number_of_variables);
+	return new gomea::fitness::oneMaxSphere_t(number_of_variables, numberOfcVariables);
+}
+
+void Config::setMethodInitParams(int settingIndex)
+{
+    // TODO set parameters for each method, easier than giving individual flags in command line.
+    switch(settingIndex)
+    {
+        case 0:
+        // Method 1, init 1
+        // No flags needed, default settings
+        break;
+        case 1:
+        // Method 1, init 2
+        useNormalizedCVars = true;
+        break;
+        case 2:
+        // Method 1, init 3
+        guaranteedInitSpread = true;
+        break;
+        case 3:
+        // Method 2, init 1
+        transformCVariables = true;
+        break;
+        case 4:
+        // Method 2, init 2
+        transformCVariables = true;
+        useNormalizedCVars = true;
+        break;
+        case 5:
+        // Method 2, init 3
+        transformCVariables = true;
+        guaranteedInitSpread = true;
+        break;
+        case 6:
+        // Method 3, init 1
+        extraCVarForNumberOfBins = true;
+        break;
+        case 7:
+        // Method 3, init 2
+        extraCVarForNumberOfBins = true;
+        useNormalizedCVars = true;
+        break;
+        case 8:
+        // Method 3, init 3
+        extraCVarForNumberOfBins = true;
+        guaranteedInitSpread = true;
+        break;
+        default:
+        return;
+    }
+}
+
+void Config::setOptimizerName()
+{
+    if (useOptimalSolution) {
+        optimizerName = "Ground_truth";
+        return;
+    }
+    string name = "Method";
+
+    if(transformCVariables) name += "2";
+    else if(extraCVarForNumberOfBins) name += "3";
+    else name += "1";
+
+    if(forceNBoundariesUsed) name += "*";
+
+    name += "_init";
+    if(useNormalizedCVars) name += "2";
+    else if(guaranteedInitSpread) name += "3";
+    else name += "1";
+
+    optimizerName = name;
 }
 
 bool Config::parseCommandLine(int argc, char **argv)
@@ -70,7 +150,7 @@ bool Config::parseCommandLine(int argc, char **argv)
   const struct option longopts[] =
   {
     {"help",        no_argument,         0, 'h'},    
-    {"partial",     no_argument,         0, 'g'},
+    {"guaranteedInitSpread",     no_argument,         0, 'g'},
     {"analyzeFOS",  no_argument,         0, 'w'},
     {"writeElitists",no_argument,        0, 'e'},
     {"saveEvals",   no_argument,         0, 's'},  
@@ -92,24 +172,27 @@ bool Config::parseCommandLine(int argc, char **argv)
     {"similarityMeasure", required_argument,   0, 'Z'}, 
     {"useForcedImprovements", required_argument,   0, 'f'}, 
     {"GPUIndex", required_argument,   0, 'G'}, 
+    {"LowerInit", required_argument,   0, 'a'},
+    {"UpperInit", required_argument,   0, 'b'},
+    {"TransformCVariables", no_argument,   0, 't'},  
                
     {0,             0,                   0,  0 }
   };
 
 
   int c, index;
-  while ((c = getopt_long(argc, argv, "h::k::n::p::X::Y::Q::g::w::e::s::f::P::F::m::l::L::O::T::S::V::I::B::Z::G::M::N::E::", longopts, &index)) != -1)
+  while ((c = getopt_long(argc, argv, "h::k::n::p::X::Y::Q::g::w::e::s::f::r::P::F::m::u::l::L::o::O::t::T::S::V::I::B::Z::G::M::N::E::a::b::", longopts, &index)) != -1)
   {
     switch (c)
     {
         case 'g':
-            usePartialEvaluations = 1;
+            guaranteedInitSpread = true;
             break;
 		case 'X':
-			useParallelFOSOrder = 1;
+			maxDiscretizations = atoi(optarg);
 			break;
 		case 'Y':
-			fixFOSOrderForPopulation = 1;
+			extraCVarForNumberOfBins = true;
 			break;
 		case 'Q':
 			popUpdatesDuringGOM = 1;
@@ -132,8 +215,18 @@ bool Config::parseCommandLine(int argc, char **argv)
         case 'h':
             printHelp = 1;
             break;
+        case 'a':
+            lower_user_range = atof(optarg);
+            break;
+        case 'b':
+            upper_user_range = atof(optarg);
+            break;
         case 'f':
-            useForcedImprovements = atoi(optarg);
+            // useForcedImprovements = atoi(optarg);
+            forceNBoundariesUsed = true;
+            break;
+        case 'r':
+            runIndex = atoi(optarg);
             break;
         case 'n':
             basePopulationSize = atoi(optarg);
@@ -197,10 +290,14 @@ bool Config::parseCommandLine(int argc, char **argv)
             break;
         }
         case 'm':
-            maximumFOSSetSize = atoi(optarg);
+            // maximumFOSSetSize = atoi(optarg);
+            setMethodInitParams(atoi(optarg));
             break;
         case 'M':
             maximumNumberOfGenerations = atoi(optarg);
+            break;
+        case 'u':
+            useNormalizedCVars = true;
             break;
         case 'l':
             logDebugInformation = 1;
@@ -227,8 +324,14 @@ bool Config::parseCommandLine(int argc, char **argv)
                 } 
             }
             break;
+        case 'o':
+            useOptimalSolution = true;
+            break;
         case 'O':
             folder= string(optarg);
+            break;
+        case 't':
+            transformCVariables = true;
             break;
         case 'T':
             maximumNumberOfSeconds = atof(optarg);
@@ -243,8 +346,8 @@ bool Config::parseCommandLine(int argc, char **argv)
 			}
             break;
         case 'I':
-            problemInstancePath = string(optarg);
-            cout << "problemInstancePath: " << problemInstancePath << endl;
+            this->problemInstancePath = string(optarg);
+            cout << "problemInstancePath: " << this->problemInstancePath << endl;
             break;
         case 'Z':
         {
@@ -273,10 +376,33 @@ bool Config::parseCommandLine(int argc, char **argv)
     if(linkage_config == NULL) {
         linkage_config = new linkage_config_t();
     }
+
+    // If problem instance path is passed (and problem index over 1000), we're dealing with a Bayesian Network problem. Update config parameters and parse input data.
+    if(this->problemInstancePath != "" && problemIndex >= 1000) {
+        this->useBN = true;
+        this->alphabetSize = 3; // Discrete variables in solution can be 0, 1 or 2 (A<-/->B, A-->B, A<--B respectively)
+        this->maxDiscretizations = maxDiscretizations == -1 ? 9 : maxDiscretizations; // Maximum number of discretizations for continuous variables. Default at 9, only set if not given as commmand line argument.
+
+        // Parse input data (BN structure and data)
+        this->data = initializeDataFromPath(true, this->problemInstancePath, runIndex);
+        // determine number of d_variables / c_variables based on data + maxDiscretizations
+        int numNodes = data->getNumberOfDataColumns();
+        this->numberOfdVariables = ((numNodes-1)*numNodes) / 2;
+        this->numberOfVariables = this->numberOfdVariables;
+        if(this->extraCVarForNumberOfBins)
+        {
+            this->numberOfcVariables = data->getNumberOfContinuousVariables() * (maxDiscretizations + 1);
+        } else {
+            this->numberOfcVariables = data->getNumberOfContinuousVariables() * maxDiscretizations;
+        }
+    }
+
     fitness = getFitnessClassDiscrete(problemIndex, numberOfVariables);
+
+    setOptimizerName();
+
     // Override vtr if it was given as command line parameter
     fitness->vtr = this->vtr != 1e+308 ? this->vtr : fitness->vtr; 
-    
 
   return 1;
 }
@@ -330,7 +456,7 @@ void Config::printOverview()
   cout << "###################################################\n";
   cout << "#\n";
   cout << "# Problem                      = " << fitness->name << endl;
-  cout << "# Problem Instance Filename    = " << problemInstancePath << endl;
+  cout << "# Problem Instance Filename    = " << this->problemInstancePath << endl;
   cout << "# FOS                          = " << FOSName << endl;
   cout << "# Number of variables          = " << numberOfVariables << endl;
   cout << "# Time Limit (seconds)         = " << maximumNumberOfSeconds << endl;

@@ -6,7 +6,7 @@ namespace fitness{
 
 using namespace gomea;
 
-DT5Sphere_t::DT5Sphere_t( int number_of_variables, int number_of_c_variables ) : GBOFitnessFunction_t<char>(number_of_variables)
+DT5Sphere_t::DT5Sphere_t( int number_of_variables, int number_of_c_variables ) : GBOFitnessFunction_t<int>(number_of_variables)
 {
 	this->name = "F3: DeceptiveTrap5-Sphere function";
     this->number_of_c_variables = number_of_c_variables;
@@ -38,21 +38,21 @@ vec_t<int> DT5Sphere_t::inputsToSubfunction( int subfunction_index )
 	return vec;
 }
 		
-double DT5Sphere_t::subfunction( int subfunction_index, vec_t<char> &variables )
+double DT5Sphere_t::subfunction( int subfunction_index, vec_t<int> &variables )
 {
 	if(optimization_mode == opt_mode::MAX)
-		return( variables[subfunction_index] == '\001' ? 1.0 : 0.0 );
+		return( variables[subfunction_index] == 1 ? 1.0 : 0.0 );
 	else
-		return( variables[subfunction_index] == '\001' ? 0.0 : 1.0 );
+		return( variables[subfunction_index] == 1 ? 0.0 : 1.0 );
 
     
 }
 
-double DT5Sphere_t::discrete_subfunction(int subfunction_index, vec_t<char> &variables)
+double DT5Sphere_t::discrete_subfunction(int subfunction_index, vec_t<int> &variables)
 {
     int sum = 0;
 	for(int i = 0; i < 5; i++) {
-		sum += variables[(subfunction_index*5) + i] == '\001' ? 1 : 0;
+		sum += variables[(subfunction_index*5) + i] == 1 ? 1 : 0;
 	}
 
     if(optimization_mode == opt_mode::MAX)
@@ -66,7 +66,7 @@ double DT5Sphere_t::continuous_subfunction(int subfunction_index, vec_t<double> 
     return c_variables[subfunction_index] * c_variables[subfunction_index];
 }
 
-void DT5Sphere_t::evaluationFunction( solution_t<char> *solution )
+void DT5Sphere_t::evaluationFunction( solution_t<int> *solution )
 {
     // solution = static_cast<solution_mixed*>(solution);
 	solution_mixed *solution_mix = static_cast<solution_mixed*>(solution);
@@ -178,7 +178,7 @@ void DT5Sphere_t::evaluationFunction( solution_t<char> *solution )
 // 	this->number_of_evaluations += touched_subfunctions.size() / (double) this->getNumberOfSubfunctions();
 // }    
 
-double DT5Sphere_t::objectiveFunction( int objective_index, solution_t<char> *solution )
+double DT5Sphere_t::objectiveFunction( int objective_index, solution_t<int> *solution )
 {
     return objectiveFunction(objective_index,solution->fitness_buffers);
 }
@@ -188,7 +188,7 @@ double DT5Sphere_t::objectiveFunction( int objective_index, vec_t<double> &fitne
     return fitness_buffers[objective_index];
 }
 
-double DT5Sphere_t::constraintFunction( solution_t<char> *solution )
+double DT5Sphere_t::constraintFunction( solution_t<int> *solution )
 {
     return 0.0;
 }

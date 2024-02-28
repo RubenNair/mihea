@@ -79,6 +79,7 @@ public:
     void writeMIMatrixToFile(vec_t<vec_t<double>> MI_Matrix, std::string folder, int populationIndex, int generation);
     
     void learnLinkageTreeFOS( vec_t<solution_t<char>*> &population, size_t alphabetSize  );
+    void learnLinkageTreeFOS( vec_t<solution_t<int>*> &population, size_t alphabetSize  );
 	void learnLinkageTreeFOS( vec_t<vec_t<double>> similarity_matrix, bool include_full_fos_element );
 
     void printFOS();
@@ -98,9 +99,12 @@ protected:
 	
     int determineNearestNeighbour(size_t index, const vec_t< vec_t< int > > &mpm ); 
     vec_t<vec_t<double>> computeMIMatrix(vec_t<solution_t<char>*> &population, size_t alphabetSize);
+    vec_t<vec_t<double>> computeMIMatrix(vec_t<solution_t<int>*> &population, size_t alphabetSize);
     vec_t<vec_t<double>> computeNMIMatrix(vec_t<solution_t<char>*> &population, size_t alphabetSize);
+    vec_t<vec_t<double>> computeNMIMatrix(vec_t<solution_t<int>*> &population, size_t alphabetSize);
     vec_t<vec_t<double>> computeHammingDistanceSimilarityMatrix( vec_t<solution_t<char>*> &population );
     void estimateParametersForSingleBinaryMarginal(vec_t<solution_t<char>*> &population, size_t alphabetSize, vec_t<size_t> &indices, size_t &factorSize, vec_t<double> &result);
+    void estimateParametersForSingleBinaryMarginal(vec_t<solution_t<int>*> &population, size_t alphabetSize, vec_t<size_t> &indices, size_t &factorSize, vec_t<double> &result);
 };
 
 typedef std::shared_ptr<linkage_model_t> linkage_model_pt;

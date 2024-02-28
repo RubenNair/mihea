@@ -21,7 +21,8 @@ class sharedInformation
 		bool firstEvaluationEver;
 		double elitistFitness;
 		double elitistConstraintValue;
-		solution_mixed elitist = solution_mixed(1,2,1);
+		solution_mixed *elitist = new solution_mixed(1,2,1);
+        size_t optimizerIndex;
 
     sharedInformation(int maxArchiveSize)
     {
@@ -29,11 +30,13 @@ class sharedInformation
         firstEvaluationEver = true;
         evaluatedSolutions = new solutionsArchive(maxArchiveSize);
         gomea::utils::clearTimers();
+        optimizerIndex = -1;
     }
 
     ~sharedInformation()
     {
         delete evaluatedSolutions;
+        delete elitist;
     }
 };
 

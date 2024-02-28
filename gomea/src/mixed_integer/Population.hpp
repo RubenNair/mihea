@@ -10,7 +10,8 @@ using namespace std;
 #include "gomea/src/fitness/fitness.hpp"
 #include "gomea/src/fitness/benchmarks-discrete.hpp"
 #include "gomea/src/fitness/benchmarks-mixed.hpp"
-#include "gomea/src/common/solution_mixed.hpp"
+#include "gomea/src/common/solution_BN.hpp"
+#include "gomea/src/mixed_integer/Solutionset.hpp"
 #include "gomea/src/common/partial_solution.hpp"
 #include "gomea/src/common/linkage_model.hpp"
 #include "gomea/src/mixed_integer/iamalgam.hpp"
@@ -28,8 +29,8 @@ public:
     size_t populationSize;
 
     iamalgam *iamalgamInstance;
-    vec_t<solution_mixed*> population;
-    vec_t<solution_mixed*> offspringPopulation;
+    Solutionset *population;
+    Solutionset *offspringPopulation;
     vec_t<int> noImprovementStretches;
 
     bool terminated;
@@ -38,7 +39,12 @@ public:
     
     linkage_model_pt FOSInstance = NULL;
 
-    Population(Config *config_, fitness_t *problemInstance_, sharedInformation *sharedInformationPointer_, size_t GOMEAIndex_, size_t populationSize_, linkage_model_pt FOSInstance_ = NULL );
+    size_t optimizerIndex;
+    string optimizerName;
+    double optimizerElitistFitness;
+    bool optimizerElitistFitnessInitialized;
+
+    Population(Config *config_, fitness_t *problemInstance_, sharedInformation *sharedInformationPointer_, size_t GOMEAIndex_, size_t populationSize_, size_t optimizerIndex, string optimizerName, linkage_model_pt FOSInstance_ = NULL );
     ~Population();
 
     friend ostream & operator << (ostream &out, const Population &populationInstance);

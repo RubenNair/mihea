@@ -6,7 +6,7 @@ namespace fitness{
 
 using namespace gomea;
 
-oneMaxRotEllip_t::oneMaxRotEllip_t( int number_of_variables, int number_of_c_variables ) : GBOFitnessFunction_t<char>(number_of_variables)
+oneMaxRotEllip_t::oneMaxRotEllip_t( int number_of_variables, int number_of_c_variables ) : GBOFitnessFunction_t<int>(number_of_variables)
 {
 	this->name = "F2: OneMax-RotatedEllipse function";
     this->number_of_c_variables = number_of_c_variables;
@@ -40,23 +40,23 @@ vec_t<int> oneMaxRotEllip_t::inputsToSubfunction( int subfunction_index )
 }
 
 		
-double oneMaxRotEllip_t::subfunction( int subfunction_index, vec_t<char> &variables )
+double oneMaxRotEllip_t::subfunction( int subfunction_index, vec_t<int> &variables )
 {
 	if(optimization_mode == opt_mode::MAX)
-		return( variables[subfunction_index] == '\001' ? 1.0 : 0.0 );
+		return( variables[subfunction_index] == 1 ? 1.0 : 0.0 );
 	else
-		return( variables[subfunction_index] == '\001' ? 0.0 : 1.0 );
+		return( variables[subfunction_index] == 1 ? 0.0 : 1.0 );
 
     
 }
 
 // Assuming subfunction_index is referring to the group of 5 variables for DT5
-double oneMaxRotEllip_t::discrete_subfunction(int subfunction_index, vec_t<char> &variables)
+double oneMaxRotEllip_t::discrete_subfunction(int subfunction_index, vec_t<int> &variables)
 {
 	if(optimization_mode == opt_mode::MAX)
-		return( variables[subfunction_index] == '\001' ? 1.0 : 0.0 );
+		return( variables[subfunction_index] == 1 ? 1.0 : 0.0 );
 	else
-		return( variables[subfunction_index] == '\001' ? 0.0 : 1.0 );
+		return( variables[subfunction_index] == 1 ? 0.0 : 1.0 );
 }
 
 double oneMaxRotEllip_t::continuous_subfunction(int subfunction_index, vec_t<double> &c_variables)
@@ -64,7 +64,7 @@ double oneMaxRotEllip_t::continuous_subfunction(int subfunction_index, vec_t<dou
 	return pow( 10.0, 6.0*(((double) (subfunction_index))/((double) (number_of_c_variables-1)))) * (c_variables[subfunction_index]) * (c_variables[subfunction_index]);
 }
 
-void oneMaxRotEllip_t::evaluationFunction( solution_t<char> *solution )
+void oneMaxRotEllip_t::evaluationFunction( solution_t<int> *solution )
 {
     // solution = static_cast<solution_mixed*>(solution);
 	solution_mixed *solution_mix = static_cast<solution_mixed*>(solution);
@@ -175,7 +175,7 @@ void oneMaxRotEllip_t::evaluationFunction( solution_t<char> *solution )
 // 	this->number_of_evaluations += touched_subfunctions.size() / (double) this->getNumberOfSubfunctions();
 // }    
 
-double oneMaxRotEllip_t::objectiveFunction( int objective_index, solution_t<char> *solution )
+double oneMaxRotEllip_t::objectiveFunction( int objective_index, solution_t<int> *solution )
 {
     return objectiveFunction(objective_index,solution->fitness_buffers);
 }
@@ -185,7 +185,7 @@ double oneMaxRotEllip_t::objectiveFunction( int objective_index, vec_t<double> &
     return fitness_buffers[objective_index];
 }
 
-double oneMaxRotEllip_t::constraintFunction( solution_t<char> *solution )
+double oneMaxRotEllip_t::constraintFunction( solution_t<int> *solution )
 {
     return 0.0;
 }

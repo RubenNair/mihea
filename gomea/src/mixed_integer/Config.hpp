@@ -13,13 +13,13 @@ using namespace std;
 
 #include "gomea/src/common/linkage_model.hpp"
 #include "gomea/src/fitness/fitness.hpp"
-#include "gomea/src/fitness/benchmarks-discrete.hpp"
-#include "gomea/src/fitness/benchmarks-mixed.hpp"
+#include "gomea/src/utils/data_structure.h"
+
 
 namespace gomea{
 namespace mixedinteger{
 
-typedef gomea::fitness::fitness_t<char> fitness_t;
+typedef gomea::fitness::fitness_t<int> fitness_t;
 
 class Config
 {
@@ -31,10 +31,13 @@ public:
     ~Config();
 
     fitness_t *getFitnessClassDiscrete(int problem_index, int number_of_variables);
+    void setMethodInitParams(int settingIndex);
     bool parseCommandLine(int argc, char **argv);
     void checkOptions();
     void printUsage();
     void printOverview();
+
+    void setOptimizerName();
     
 	fitness_t *fitness;
 	int usePartialEvaluations              = 0,                  
@@ -48,11 +51,14 @@ public:
         saveEvaluations                    = 0,
         logDebugInformation                = 0,
         useForcedImprovements              = 0,
+        runIndex                           = 0,
         dontUseOffspringPopulation         = 0,
         printHelp                          = 0,
 		maximumNumberOfEvaluations		   = -1,
 		maximumNumberOfGenerations		   = -1;
 	double maximumNumberOfSeconds = -1;
+    double     lower_user_range = 0.0,                              /* The initial lower range-bound indicated by the user (same for all dimensions). */
+			   upper_user_range = 1.0;                              /* The initial upper range-bound indicated by the user (same for all dimensions). */
     double vtr = 1e+308;
     size_t k = 1, s = 1,   
         FOSIndex = 0;
@@ -68,6 +74,15 @@ public:
     //long long timelimitMilliseconds = -1,
     bool fix_seed = false;
     long long randomSeed = 0;
+
+    bool useBN = false;
+    bool useNormalizedCVars = false;
+    bool useOptimalSolution = false;
+    bool guaranteedInitSpread = false;
+    bool transformCVariables = false;
+    bool extraCVarForNumberOfBins = false;
+    bool forceNBoundariesUsed = false; // If extraCVarForNumberOfBins is true, this will force the amount of bins used to be equal to the value of the extra c-variable(s).
+    int discretization_policy_index = 0;
     
     size_t alphabetSize = 2;
     size_t maxArchiveSize = 1000000;
@@ -80,8 +95,14 @@ public:
         numberOfcVariables = 10;
     linkage_config_t *linkage_config = NULL;
 
-    private:
-        int problemIndex = 0;
+    size_t maxDiscretizations = -1;
+    size_t maxParents = 6;
+    size_t maxInstantiations = 15;
+    shared_ptr<DataStructure<double>> data = NULL;
+
+    string optimizerName;
+    int problemIndex = 0;
+        
 };
 
 }}

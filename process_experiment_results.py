@@ -89,32 +89,51 @@ def get_ys_F5(results, x, gambit, a_values, currF="F5"):
     return (ys, popsizes, popsizeMults)
 
 def make_plot(results, currF, title, fn, gambit):
-    fig, (ax1, ax2) = plt.subplots(2) #plt.subplots(3, figsize=(6.4, 12.8))
+    fig, (ax1, ax2) = plt.subplots(2, figsize=(4, 7.5)) #plt.subplots(3, figsize=(6.4, 12.8))
+    fig.tight_layout()
+    fig.subplots_adjust(top=0.95)
     fig.suptitle(title)
     x = [40, 80, 120, 160]
     ys, popsizes, popsizeMults = get_ys_F1_F4(results, currF, x, gambit)
-    ax2.loglog(x, ys[0], 'ro-', label='f=0.25', color='red',)
-    ax2.loglog(x, ys[1], 'ro-', label='f=0.5', color='green')
-    ax2.loglog(x, ys[2], 'ro-', label='f=0.75', color='blue')
+    ax2.loglog(x, ys[0], 'ro-', label='f=0.25', color='red', clip_on=False)
+    ax2.loglog(x, ys[1], 'ro-', label='f=0.5', color='green', clip_on=False)
+    ax2.loglog(x, ys[2], 'ro-', label='f=0.75', color='blue', clip_on=False)
     ax2.xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
     ax2.xaxis.set_minor_formatter(matplotlib.ticker.ScalarFormatter())
     ax2.set_xticks(x)
     ax2.ticklabel_format(axis='x', style='plain')
     ax2.set_xlabel('Problem Size')
     ax2.set_ylabel('Number of Evaluations')
+    ax2.set_xlim([40, 160])
+    if currF in ["F1", "F2"]:
+        ax2.set_ylim([10**3, 10**6])
+    elif currF in ["F3", "F4"]:
+        ax2.set_ylim([10**4, 10**6])
     ax2.legend()
 
-    ax1.loglog(x, popsizes[0], 'ro-', label='f=0.25', color='red', linestyle='-', alpha=0.5)
-    ax1.loglog(x, popsizes[1], 'ro-', label='f=0.5', color='green', linestyle='--', alpha=0.5)
-    ax1.loglog(x, popsizes[2], 'ro-', label='f=0.75', color='blue', linestyle='-.', alpha=0.5)
+    ax1.loglog(x, popsizes[0], 'ro-', label='f=0.25', color='red', linestyle='-', alpha=0.5, clip_on=False)
+    ax1.loglog(x, popsizes[1], 'ro-', label='f=0.5', color='green', linestyle='--', alpha=0.5, clip_on=False)
+    ax1.loglog(x, popsizes[2], 'ro-', label='f=0.75', color='blue', linestyle='-.', alpha=0.5, clip_on=False)
     ax1.xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
     ax1.xaxis.set_minor_formatter(matplotlib.ticker.ScalarFormatter())
-    ax1.yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
-    ax1.yaxis.set_minor_formatter(matplotlib.ticker.ScalarFormatter())
+    ax1.yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useMathText=False))  # Disable scientific notation for y-axis
+    # ax1.yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
+    # ax1.yaxis.set_minor_formatter(matplotlib.ticker.ScalarFormatter())
     ax1.set_xticks(x)
-    ax1.ticklabel_format(style='plain')
+    ax1.ticklabel_format(axis='x', style='plain')
+    # ax1.ticklabel_format(axis='y', style='plain')
     ax1.set_xlabel('Problem Size')
     ax1.set_ylabel('Population size')
+    ax1.set_xlim([40, 160])
+    if currF in ["F1", "F2"]:
+        ax1.set_ylim([10, 100])
+        ax1.set_yticks([10, 20, 30, 40, 60, 80, 100])
+    elif currF in ["F3", "F4"]:
+        ax1.set_ylim([10, 1000])
+        ax1.set_yticks([10, 100, 1000])
+        ax1.set_yticklabels(map(str, [10, 100, 1000]))
+
+
     ax1.legend()
 
     # ax0.loglog(x, popsizeMults[0], 'ro-', label='f=0.25', color='red', linestyle='-', alpha=0.5)
@@ -130,7 +149,7 @@ def make_plot(results, currF, title, fn, gambit):
     # ax0.set_ylabel('Popsize multiplier')
     # ax0.legend()
     # plt.show()
-    fig.savefig(f"plots/{fn}.png", bbox_inches='tight', dpi=300)
+    fig.savefig(f"plots/remake_for_thesis/{fn}.png", bbox_inches='tight', dpi=600)
 
 
 def make_F5_plot(results, currF, title, fn, gambit, a_values):
@@ -173,7 +192,7 @@ def make_F5_plot(results, currF, title, fn, gambit, a_values):
     ax0.set_ylabel('Popsize multiplier')
     ax0.legend()
     # plt.show()
-    fig.savefig(f"plots/{fn}.png", bbox_inches='tight', dpi=300)
+    fig.savefig(f"plots/remake_for_thesis/{fn}.png", bbox_inches='tight', dpi=300)
 
 def make_alt_F5_plot(results, currF, title, fn, gambit, a_values):
     fig, (ax1, ax2) = plt.subplots(2)
@@ -182,12 +201,13 @@ def make_alt_F5_plot(results, currF, title, fn, gambit, a_values):
     ys, popsizes, _ = get_ys_F5(results, x, gambit, a_values, currF)
     print(f"ys: {ys}")
     print(f"popsizes: {popsizes}")
+    f5_colors = ['#66c2a5', '#fc8d62', '#8da0cb']
     xaxis_data = [[float(a_val) for idx, a_val in enumerate(a_values) if ys[idx][0] > 0],
                     [float(a_val) for idx, a_val in enumerate(a_values) if ys[idx][1] > 0],
                     [float(a_val) for idx, a_val in enumerate(a_values) if ys[idx][2] > 0]]
-    ax1.plot(xaxis_data[0], [row[0] for row in ys if row[0] > 0], 'ro-', label='ps=20', color='orange')
-    ax1.plot(xaxis_data[1], [row[1] for row in ys if row[1] > 0], 'ro-', label='ps=40', color='olive')
-    ax1.plot(xaxis_data[2], [row[2] for row in ys if row[2] > 0], 'ro-', label='ps=60', color='cyan')
+    ax1.plot(xaxis_data[0], [row[0] for row in ys if row[0] > 0], 'ro-', label='ps=20', color=f5_colors[0])
+    ax1.plot(xaxis_data[1], [row[1] for row in ys if row[1] > 0], 'ro-', label='ps=40', color=f5_colors[1])
+    ax1.plot(xaxis_data[2], [row[2] for row in ys if row[2] > 0], 'ro-', label='ps=60', color=f5_colors[2])
     # ax1.xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
     # ax1.xaxis.set_minor_formatter(matplotlib.ticker.ScalarFormatter())
     # ax1.set_xticks(a_values)
@@ -200,9 +220,9 @@ def make_alt_F5_plot(results, currF, title, fn, gambit, a_values):
     xaxis_data = [[float(a_val) for idx, a_val in enumerate(a_values) if popsizes[idx][0] > 0],
                     [float(a_val) for idx, a_val in enumerate(a_values) if popsizes[idx][1] > 0],
                     [float(a_val) for idx, a_val in enumerate(a_values) if popsizes[idx][2] > 0]]
-    ax2.plot(xaxis_data[0], [row[0] for row in popsizes if row[0] > 0], 'ro-', label='ps=20', color='orange')
-    ax2.plot(xaxis_data[1], [row[1] for row in popsizes if row[1] > 0], 'ro-', label='ps=40', color='olive')
-    ax2.plot(xaxis_data[2], [row[2] for row in popsizes if row[2] > 0], 'ro-', label='ps=60', color='cyan')
+    ax2.plot(xaxis_data[0], [row[0] for row in popsizes if row[0] > 0], 'ro-', label='ps=20', color=f5_colors[0], linestyle='-', alpha=0.5)
+    ax2.plot(xaxis_data[1], [row[1] for row in popsizes if row[1] > 0], 'ro-', label='ps=40', color=f5_colors[1], linestyle='--', alpha=0.5)
+    ax2.plot(xaxis_data[2], [row[2] for row in popsizes if row[2] > 0], 'ro-', label='ps=60', color=f5_colors[2], linestyle='-.', alpha=0.5)
     # ax2.xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
     # ax2.xaxis.set_minor_formatter(matplotlib.ticker.ScalarFormatter())
     # ax2.set_xticks(a_values)
@@ -213,18 +233,27 @@ def make_alt_F5_plot(results, currF, title, fn, gambit, a_values):
     ax2.legend()
 
     # plt.show()
-    fig.savefig(f"plots/{fn}.png", bbox_inches='tight', dpi=300)
+    fig.savefig(f"plots/remake_for_thesis/{fn}.png", bbox_inches='tight', dpi=300)
 
 
 def make_all_plots(results, gambit, a_values):
+    # # Map gambit_K and gambit_R to names in line with what I will use in thesis (original and modified, respectively)
+    # if(gambit == "GAMBIT_K"):
+    #     title_gambit = "Original"
+    # elif(gambit == "GAMBIT_R"):
+    #     title_gambit = "Modified"
+
+    # title_gambit = f"{gambit}: "
+    title_gambit = ""
+
     # F1
-    make_plot(results, "F1", f'{gambit}: F1 OneMaxSphere', f"{gambit}_F1_OneMaxSphere", gambit)
+    make_plot(results, "F1", f'{title_gambit}F1 OneMaxSphere', f"{gambit}_F1_OneMaxSphere", gambit)
     # F2
-    make_plot(results, "F2", f'{gambit}: F2 OneMaxEllipse', f"{gambit}_F2_OneMaxEllipse", gambit)
+    make_plot(results, "F2", f'{title_gambit}F2 OneMaxEllipse', f"{gambit}_F2_OneMaxEllipse", gambit)
     # F3
-    make_plot(results, "F3", f'{gambit}: F3 TrapSphere', f"{gambit}_F3_TrapSphere", gambit)
+    make_plot(results, "F3", f'{title_gambit}F3 TrapSphere', f"{gambit}_F3_TrapSphere", gambit)
     # F4
-    make_plot(results, "F4", f'{gambit}: F4 TrapEllipse', f"{gambit}_F4_TrapEllipse", gambit)
+    make_plot(results, "F4", f'{title_gambit}F4 TrapEllipse', f"{gambit}_F4_TrapEllipse", gambit)
 
     # F5 alt
     make_alt_F5_plot(results, "F5", f'{gambit}: F5 Trap Block Ellipse', f"{gambit}_F5_TrapBlockEllipse_alt", gambit, a_values)

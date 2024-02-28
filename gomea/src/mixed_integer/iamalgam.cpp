@@ -3,6 +3,9 @@ using namespace std;
 
 #include "gomea/src/mixed_integer/iamalgam.hpp"
 
+#include "gomea/src/common/solution_BN.hpp"
+#include "gomea/src/fitness/benchmarks-mixed.hpp"
+
 namespace gomea{
 namespace mixedinteger{
 
@@ -18,12 +21,14 @@ iamalgam::iamalgam(Config *config_): config(config_)
     problemInstance       = config->fitness;
     number_of_parameters  = config->numberOfcVariables;
     number_of_populations = 1;
+    haveNextNextGaussian = false;
+
 }
 
-iamalgam::iamalgam(Config *config_, vec_t<solution_mixed*> population_) : iamalgam(config_)
+iamalgam::iamalgam(Config *config_, Solutionset *population_) : iamalgam(config_)
 {
   population = population_;
-  population_size = population_.size();
+  population_size = population_->size();
 }
 
 iamalgam::~iamalgam()
@@ -68,13 +73,25 @@ void iamalgam::initializeMemory() {
   selections.resize(selection_size);
   for(int i = 0; i < selection_size; i++) 
   {
-    selections[i] = new solution_mixed(config->numberOfVariables, config->alphabetSize, config->numberOfcVariables, problemInstance);
-    selections[i]->randomInit(&gomea::utils::rng);
-    selections[i]->initObjectiveValues(problemInstance->number_of_objectives);
-    if(population[0]->fitness_buffers.size() > 0)
-    {
-      selections[i]->initFitnessBuffers(problemInstance->number_of_objectives);
+    if(config->useBN) {
+      // If useBN flag is true, assume we're dealing with BNs. Static cast problemInstance to BNStructureLearning
+      fitness::BNStructureLearning *BNproblemInstance = dynamic_cast<fitness::BNStructureLearning*>(problemInstance);
+
+      vec_t<double> maxValuesData, minValuesData;
+      vec_t<vec_t<double>> data = config->data->getDataMatrix().getRawMatrix();
+      std::tie(maxValuesData, minValuesData) = findMaxAndMinValuesInData(data);
+
+      selections[i] = new solution_BN(config->numberOfVariables, config->alphabetSize, config->numberOfcVariables, config->data->getColumnType(), BNproblemInstance->getDensity()->getOriginalData()->getColumnNumberOfClasses(), config->discretization_policy_index, config->maxParents, config->maxInstantiations, problemInstance, maxValuesData, minValuesData, config->lower_user_range, config->upper_user_range, config->data);
+      selections[i]->initObjectiveValues(problemInstance->number_of_objectives);
+    } else {
+      selections[i] = new solution_mixed(config->numberOfVariables, config->alphabetSize, config->numberOfcVariables, problemInstance);
+      selections[i]->randomInit(&gomea::utils::rng);
+      selections[i]->initObjectiveValues(problemInstance->number_of_objectives);
     }
+    if(population->solutions[0]->fitness_buffers.size() > 0)
+      {
+        selections[i]->initFitnessBuffers(problemInstance->number_of_objectives);
+      }
   }
 
   // objective_values_selections      = (double **) malloc( number_of_populations*sizeof( double * ) );
@@ -172,8 +189,8 @@ void iamalgam::computeRanksForOnePopulation(int population_index)
 
   for( i = 0; i < population_size; i++)
   {
-    objective_values[i] = population[i]->getObjectiveValue();
-    constraint_values[i] = population[i]->getConstraintValue();
+    objective_values[i] = population->solutions[i]->getObjectiveValue();
+    constraint_values[i] = population->solutions[i]->getConstraintValue();
   }
 
   // sorted = mergeSortFitness( objective_values[population_index], constraint_values[population_index], population_size );
@@ -184,7 +201,7 @@ void iamalgam::computeRanksForOnePopulation(int population_index)
   for( i = 1; i < population_size; i++ )
   {
     // if( objective_values[population_index][sorted[i]] != objective_values[population_index][sorted[i-1]] )
-    if( population[sorted[i]]->getObjectiveValue() != population[sorted[i-1]]->getObjectiveValue() )
+    if( population->solutions[sorted[i]]->getObjectiveValue() != population->solutions[sorted[i-1]]->getObjectiveValue() )
       rank++;
 
     ranks[population_index][sorted[i]] = rank;
@@ -271,24 +288,28 @@ bool iamalgam::betterFitness(double objective_value_x, double constraint_value_x
 
   result = false;
 
-  if( constraint_value_x > 0 ) /* x is infeasible */
-  {
-    if( constraint_value_y > 0 ) /* Both are infeasible */
-    {
-      if( constraint_value_x < constraint_value_y )
-       result = true;
-    }
-  }
-  else /* x is feasible */
-  {
-    if( constraint_value_y > 0 ) /* x is feasible and y is not */
-      result = true;
-    else /* Both are feasible */
-    {
-      if( objective_value_x < objective_value_y ) // RUBEN assuming minimization
+  // RUBEN only focussing on non-constrained problems for now, so ignoring constraint values.
+  if( objective_value_x < objective_value_y ) // RUBEN assuming minimization
         result = true;
-    }
-  }
+
+  // if( constraint_value_x > 0 ) /* x is infeasible */
+  // {
+  //   if( constraint_value_y > 0 ) /* Both are infeasible */
+  //   {
+  //     if( constraint_value_x < constraint_value_y )
+  //      result = true;
+  //   }
+  // }
+  // else /* x is feasible */
+  // {
+  //   if( constraint_value_y > 0 ) /* x is feasible and y is not */
+  //     result = true;
+  //   else /* Both are feasible */
+  //   {
+  //     if( objective_value_x < objective_value_y ) // RUBEN assuming minimization
+  //       result = true;
+  //   }
+  // }
 
   return( result );
 }
@@ -340,7 +361,7 @@ bool iamalgam::checkVTRTerminationCondition()
 
   // if( constraint_values[population_of_best][index_of_best] == 0 && objective_values[population_of_best][index_of_best] <= problemInstance->vtr )
   //   return( true );
-  if( population[index_of_best]->getConstraintValue() == 0 && population[index_of_best]->getObjectiveValue() <= problemInstance->vtr )
+  if( population->solutions[index_of_best]->getConstraintValue() == 0 && population->solutions[index_of_best]->getObjectiveValue() <= problemInstance->vtr )
     return( true );
 
   return( false );
@@ -365,12 +386,12 @@ bool iamalgam::checkFitnessVarianceTerminationSinglePopulation( int population_i
   
   objective_avg = 0.0;
   for( i = 0; i < population_size; i++ )
-    objective_avg  += population[i]->getObjectiveValue();
+    objective_avg  += population->solutions[i]->getObjectiveValue();
   objective_avg = objective_avg / ((double) population_size);
 
   objective_var = 0.0;
   for( i = 0; i < population_size; i++ )
-    objective_var  += (population[i]->getObjectiveValue()-objective_avg)*(population[i]->getObjectiveValue()-objective_avg);
+    objective_var  += (population->solutions[i]->getObjectiveValue()-objective_avg)*(population->solutions[i]->getObjectiveValue()-objective_avg);
   objective_var = objective_var / ((double) population_size);
 
   if( objective_var <= 0.0 )
@@ -422,11 +443,50 @@ void iamalgam::makeSelectionsForOnePopulation(int population_index)
       // constraint_values_selections[population_index][i] = constraint_values[population_index][sorted[i]];
       // for( j = 0; j < number_of_parameters; j++ )
         //selections[i] = population[sorted[i]];
-        selections[i]->insertSolution(population[sorted[i]]);
+
+        // selections[i]->insertSolution(population[sorted[i]]);
+        delete selections[i];
+        selections[i] = population->solutions[sorted[i]]->clone();
     }
   }
-  
+  // vec_t<int> numBoundariesInSelections = countBoundaries(selections);
+  // // print all elements of boundariesInSelections
+  // if(numBoundariesInSelections.size() > 0)
+  // {
+  //   cout << "[iAMaLGaM gen " << number_of_generations << "] Occurrences of different amounts of boundaries in selections: ";
+  //   for(int i = 0; i < numBoundariesInSelections.size(); i++)
+  //   {
+  //     if(numBoundariesInSelections[i] > 0)
+  //     {
+  //       cout << i << ": " << numBoundariesInSelections[i] << ", ";
+  //     }
+  //   }
+  //   cout << endl;
+  // }
+
+
+
   free( sorted );
+}
+
+vec_t<int> iamalgam::countBoundaries(vec_t<solution_mixed *> selections)
+{
+  // cast selections to solution_BN
+  vec_t<int> boundaries_count = vec_t<int>(selections[0]->getNumberOfCVariables(), 0);
+  for(int i = 0; i < selections.size(); i++)
+  {
+    solution_BN *casted_solution = (solution_BN*) selections[i];
+    if(casted_solution == NULL)
+    {
+      // Selections does not contain solution_BNs, so abort counting
+      boundaries_count = vec_t<int>();
+      break;
+    }
+    int numBoundaries = casted_solution->getBoundaries()[0].size();
+    boundaries_count[numBoundaries]++;
+  }
+
+  return boundaries_count;
 }
 
 void iamalgam::makeSelectionsForOnePopulationUsingDiversityOnRank0(int population_index)
@@ -455,14 +515,14 @@ void iamalgam::makeSelectionsForOnePopulationUsingDiversityOnRank0(int populatio
   }
 
   index_of_farthest    = 0;
-  distance_of_farthest = population[preselection_indices[0]]->getObjectiveValue(); //objective_values[population_index][preselection_indices[0]];
+  distance_of_farthest = population->solutions[preselection_indices[0]]->getObjectiveValue(); //objective_values[population_index][preselection_indices[0]];
   for( i = 1; i < number_of_rank0_solutions; i++ )
   {
     // if( objective_values[population_index][preselection_indices[i]] > distance_of_farthest )
-    if( population[preselection_indices[i]]->getObjectiveValue() > distance_of_farthest )
+    if( population->solutions[preselection_indices[i]]->getObjectiveValue() > distance_of_farthest )
     {
       index_of_farthest    = i;
-      distance_of_farthest = population[preselection_indices[i]]->getObjectiveValue(); //objective_values[population_index][preselection_indices[i]];
+      distance_of_farthest = population->solutions[preselection_indices[i]]->getObjectiveValue(); //objective_values[population_index][preselection_indices[i]];
     }
   }
 
@@ -477,7 +537,7 @@ void iamalgam::makeSelectionsForOnePopulationUsingDiversityOnRank0(int populatio
   for( i = 0; i < number_of_rank0_solutions; i++ )
   {
     // nn_distances[i] = distanceInParameterSpace( populations[population_index][preselection_indices[i]], populations[population_index][selection_indices[number_selected_so_far-1]] );
-      nn_distances[i] = distanceInParameterSpace( population[preselection_indices[i]]->c_variables, population[selection_indices[number_selected_so_far-1]]->c_variables );
+      nn_distances[i] = distanceInParameterSpace( population->solutions[preselection_indices[i]]->c_variables, population->solutions[selection_indices[number_selected_so_far-1]]->c_variables );
   }
 
   while( number_selected_so_far < selection_size )
@@ -501,7 +561,7 @@ void iamalgam::makeSelectionsForOnePopulationUsingDiversityOnRank0(int populatio
 
     for( i = 0; i < number_of_rank0_solutions; i++ )
     {
-      value = distanceInParameterSpace( population[preselection_indices[i]]->c_variables, population[selection_indices[number_selected_so_far-1]]->c_variables ); //distanceInParameterSpace( populations[population_index][preselection_indices[i]], populations[population_index][selection_indices[number_selected_so_far-1]] );
+      value = distanceInParameterSpace( population->solutions[preselection_indices[i]]->c_variables, population->solutions[selection_indices[number_selected_so_far-1]]->c_variables ); //distanceInParameterSpace( populations[population_index][preselection_indices[i]], populations[population_index][selection_indices[number_selected_so_far-1]] );
       if( value < nn_distances[i] )
         nn_distances[i] = value;
     }
@@ -515,7 +575,10 @@ void iamalgam::makeSelectionsForOnePopulationUsingDiversityOnRank0(int populatio
     // objective_values_selections[population_index][i]  = objective_values[population_index][selection_indices[i]];
     // constraint_values_selections[population_index][i] = constraint_values[population_index][selection_indices[i]];
     // selections[i] = population[selection_indices[i]];
-    selections[i]->insertSolution(population[selection_indices[i]]);
+
+    // selections[i]->insertSolution(population[selection_indices[i]]);
+    delete selections[i];
+    selections[i] = population->solutions[selection_indices[i]]->clone();
   }
 
   free( nn_distances );
@@ -767,7 +830,10 @@ void iamalgam::copyBestSolutionsToPopulations()
       // population[0]->setConstraintValue(selections[0]->getConstraintValue()); 
 
 
-      population[0]->insertSolution(selections[0]);
+      // population[0]->insertSolution(selections[0]);
+      delete population->solutions[0];
+      population->solutions[0] = selections[0]->clone();
+
       // RUBEN testing a swap that sets best in selections to front of population, instead of just inserting selections[0] into population[0]
       // solution_mixed *temp = population[0];
       //population[0] = selections[0];
@@ -828,7 +894,18 @@ void iamalgam::generateAndEvaluateNewSolutionsToFillPopulations()
         // for( k = 0; k < number_of_parameters; k++ )
         //   populations[i][j][k] = solution[k];
         for( k = 0; k < number_of_parameters; k++ )
-          population[j]->c_variables[k] = solution[k];
+          population->solutions[j]->c_variables[k] = solution[k];
+
+        // If we are dealing with a BN, then normalize the values and update the boundaries after changing c_variables
+        if(config->useBN)
+        {
+          solution_BN *casted_sol = dynamic_cast<solution_BN*>(population->solutions[j]);
+          if(config->useNormalizedCVars)
+          {
+            casted_sol->normalize();
+          }
+          casted_sol->updateBoundaries();
+        }
   
         if( (number_of_generations > 0) && (q < number_of_AMS_solutions) )
         {
@@ -841,7 +918,7 @@ void iamalgam::generateAndEvaluateNewSolutionsToFillPopulations()
             for( k = 0; k < number_of_parameters; k++ )
             {
               solution_AMS[k] = solution[k] + shrink_factor*delta_AMS*distribution_multipliers[i]*ams_vectors[i][k];
-              if( !isParameterInRangeBounds( solution_AMS[k], k ) )
+              if( !isParameterInRangeBounds( solution_AMS[k], k, (config->extraCVarForNumberOfBins && k < config->data->getNumberOfContinuousVariables())))
               {
                 out_of_range = 1;
                 break;
@@ -853,17 +930,22 @@ void iamalgam::generateAndEvaluateNewSolutionsToFillPopulations()
             // for( k = 0; k < number_of_parameters; k++ )
             //   populations[i][j][k] = solution_AMS[k];
             for( k = 0; k < number_of_parameters; k++ )
-              population[j]->c_variables[k] = solution_AMS[k];
+              population->solutions[j]->c_variables[k] = solution_AMS[k];
           }
         }
-      
-        problemInstance->evaluate(population[j]);
         // installedProblemEvaluation( problem_index, populations[i][j], &(objective_values[i][j]), &(constraint_values[i][j]) );
 
         q++;
   
         free( solution );
       }
+
+      vec_t<solution_t<int> *> casted_pop;
+      for(solution_mixed *sol : population->solutions)
+      {
+        casted_pop.push_back(dynamic_cast<solution_t<int>*>(sol));
+      }
+      problemInstance->evaluatePopulation(casted_pop, true);
       // cout << "[DEBUGGING] average fitness after generating new solutions: " << averageFitnessPopulation() << endl;
     }
   }
@@ -876,7 +958,7 @@ double iamalgam::averageFitnessPopulation()
   double average = 0;
   for(int i = 0; i < population_size; i++)
   {
-    average += population[i]->getObjectiveValue();
+    average += population->solutions[i]->getObjectiveValue();
   }
   return average/population_size;
 }
@@ -1112,8 +1194,21 @@ double *iamalgam::generateNewSolution( int population_index )
     {
       result = (double *) malloc( number_of_parameters*sizeof( double ) );
       for( i = 0; i < number_of_parameters; i++ )
-        result[i] = problemInstance->getLowerRangeBound(i) + ((gomea::utils::rng)() / (double)(gomea::utils::rng).max()) * (problemInstance->getUpperRangeBound(i) - problemInstance->getLowerRangeBound(i));
+      {
+        if(config->extraCVarForNumberOfBins && i < config->data->getNumberOfContinuousVariables())
+        {
+          result[i] =  fmin( std::lround( ((gomea::utils::rng)() / (double)(gomea::utils::rng).max()) * (config->maxDiscretizations - 1) + 1.5), config->maxDiscretizations);
+        }
+        else if(config->transformCVariables)
+        {
+          result[i] = 1.0 / (config->lower_user_range + ((gomea::utils::rng)() / (double)(gomea::utils::rng).max()) * (config->upper_user_range - config->lower_user_range));
+        }
+        else
+        {
+          result[i] = config->lower_user_range + ((gomea::utils::rng)() / (double)(gomea::utils::rng).max()) * (config->upper_user_range - config->lower_user_range);
+        }
         // result[i] = lower_init_ranges[i] + (upper_init_ranges[i] - lower_init_ranges[i])*randomRealUniform01();
+      }
     }
     else
     {
@@ -1133,7 +1228,7 @@ double *iamalgam::generateNewSolution( int population_index )
     ready = 1;
     for( i = 0; i < number_of_parameters; i++ )
     {
-      if( !isParameterInRangeBounds( result[i], i ) )
+      if( !isParameterInRangeBounds( result[i], i, (config->extraCVarForNumberOfBins && i < config->data->getNumberOfContinuousVariables()) ) )
       {
         ready = 0;
         break;
@@ -1214,17 +1309,28 @@ double iamalgam::vectorDotProduct( double *vector0, double *vector1, int n0 )
   return( result );
 }
 
-bool iamalgam::isParameterInRangeBounds( double parameter, int dimension )
+bool iamalgam::isParameterInRangeBounds( double parameter, int dimension, bool is_extra_cvar)
 {
-  
-  if( parameter < problemInstance->getLowerRangeBound(dimension) ||
-      parameter > problemInstance->getUpperRangeBound(dimension) ||
-      isnan( parameter ) )
+  if(is_extra_cvar)
   {
-    return( false );
+    long rounded_parameter = std::lround(parameter);
+    if( rounded_parameter < 1 || rounded_parameter > config->maxDiscretizations )
+    {
+      return( false );
+    }
+    return( true );
   }
-  
-  return( true );
+  else
+  {
+    if( parameter < problemInstance->getLowerRangeBound(dimension) ||
+        parameter > problemInstance->getUpperRangeBound(dimension) ||
+        isnan( parameter ) )
+    {
+      return( false );
+    }
+    
+    return( true );
+  }
 }
 
 void iamalgam::adaptDistributionMultipliers()
@@ -1304,20 +1410,20 @@ bool iamalgam::generationalImprovementForOnePopulation( int population_index, do
   {
     // if( betterFitness( objective_values[population_index][i], constraint_values[population_index][i],
     //                    objective_values[population_index][index_best_population], constraint_values[population_index][index_best_population] ) )
-    if( betterFitness( population[i]->getObjectiveValue(), population[i]->getConstraintValue(),
-                       population[index_best_population]->getObjectiveValue(), population[index_best_population]->getConstraintValue()) )
+    if( betterFitness( population->solutions[i]->getObjectiveValue(), population->solutions[i]->getConstraintValue(),
+                       population->solutions[index_best_population]->getObjectiveValue(), population->solutions[index_best_population]->getConstraintValue()) )
       index_best_population = i;
 
     // if( betterFitness( objective_values[population_index][i], constraint_values[population_index][i],
     //                    objective_values_selections[population_index][index_best_selected], constraint_values_selections[population_index][index_best_selected] ) )
-    if( betterFitness( population[i]->getObjectiveValue(), population[i]->getConstraintValue(),
+    if( betterFitness( population->solutions[i]->getObjectiveValue(), population->solutions[i]->getConstraintValue(),
                        selections[index_best_selected]->getObjectiveValue(), selections[index_best_selected]->getConstraintValue()) )
     {
       number_of_improvements++;
       for( j = 0; j < number_of_parameters; j++ )
       {
         // average_parameters_of_improvements[j] += populations[population_index][i][j];
-        average_parameters_of_improvements[j] += population[i]->c_variables[j];
+        average_parameters_of_improvements[j] += population->solutions[i]->c_variables[j];
       }
     }
   }
@@ -1336,7 +1442,7 @@ bool iamalgam::generationalImprovementForOnePopulation( int population_index, do
 
 
   // if( fabs( objective_values_selections[population_index][index_best_selected] - objective_values[population_index][index_best_population] ) == 0.0 )
-  if( fabs( selections[index_best_selected]->getObjectiveValue() - population[index_best_population]->getObjectiveValue() ) == 0.0 )
+  if( fabs( selections[index_best_selected]->getObjectiveValue() - population->solutions[index_best_population]->getObjectiveValue() ) == 0.0 )
     return( false );
 
   return( true );
@@ -1496,15 +1602,15 @@ void iamalgam::determineBestSolutionSoFar()
   //                    best_so_far_objective_value,
   //                    best_so_far_constraint_value ) )
   if( number_of_starts == 1 ||
-      betterFitness( population[index_of_best]->getObjectiveValue(),
-                     population[index_of_best]->getConstraintValue(),
+      betterFitness( population->solutions[index_of_best]->getObjectiveValue(),
+                     population->solutions[index_of_best]->getConstraintValue(),
                      best_so_far_objective_value,
                      best_so_far_constraint_value ) )                     
   {
-    best_so_far_objective_value  = population[index_of_best]->getObjectiveValue(); //objective_values[population_of_best][index_of_best];
-    best_so_far_constraint_value = population[index_of_best]->getConstraintValue(); //constraint_values[population_of_best][index_of_best];
+    best_so_far_objective_value  = population->solutions[index_of_best]->getObjectiveValue(); //objective_values[population_of_best][index_of_best];
+    best_so_far_constraint_value = population->solutions[index_of_best]->getConstraintValue(); //constraint_values[population_of_best][index_of_best];
     for( i = 0; i < number_of_parameters; i++ )
-      best_so_far_solution[i] = population[index_of_best]->c_variables[i]; //populations[population_of_best][index_of_best][i];
+      best_so_far_solution[i] = population->solutions[index_of_best]->c_variables[i]; //populations[population_of_best][index_of_best][i];
   }
 }
 
@@ -1520,8 +1626,8 @@ void iamalgam::determineBestSolutionInCurrentPopulations(int *population_of_best
     {
       // if( betterFitness( objective_values[i][j], constraint_values[i][j],
       //                    objective_values[(*population_of_best)][(*index_of_best)], constraint_values[(*population_of_best)][(*index_of_best)] ) )
-      if( betterFitness( population[j]->getObjectiveValue(), population[j]->getConstraintValue(),
-                         population[(*index_of_best)]->getObjectiveValue(), population[(*index_of_best)]->getConstraintValue() ) )
+      if( betterFitness( population->solutions[j]->getObjectiveValue(), population->solutions[j]->getConstraintValue(),
+                         population->solutions[(*index_of_best)]->getObjectiveValue(), population->solutions[(*index_of_best)]->getConstraintValue() ) )
       {
         (*population_of_best) = i;
         (*index_of_best)      = j;
@@ -1591,10 +1697,10 @@ void iamalgam::ezilaitiniMemory()
   free( generational_covariance_matrices );
   free( aggregated_covariance_matrices );
   free( cholesky_factors_lower_triangle );
-  free( lower_range_bounds );
-  free( upper_range_bounds );
-  free( lower_init_ranges );
-  free( upper_init_ranges );
+  // free( lower_range_bounds );
+  // free( upper_range_bounds );
+  // free( lower_init_ranges );
+  // free( upper_init_ranges );
   free( populations_terminated );
   free( no_improvement_stretch );
   // free( populations );
@@ -1607,6 +1713,12 @@ void iamalgam::ezilaitiniMemory()
   free( mean_vectors );
   free( mean_vectors_previous );
   free( ams_vectors );
+
+  // delete selections
+  for(solution_mixed *sol : selections)
+  {
+    delete sol;
+  }
 }
 
 void iamalgam::ezilaitiniDistributionMultipliers()
@@ -1645,12 +1757,15 @@ void iamalgam::learnContinuousModel(int population_index)
 {
   // First, make sure there is only 1 population by checking the number_of_populations and population_index
   assert(number_of_populations == 1 && population_index == 0);
+  writePopulationBoundaryStatsToFile(config->folder, population->solutions, "GEN " + to_string(number_of_generations) + " - POPULATION");
+
   // checkForDuplicate("IAMALGAM 1");
   computeRanksForOnePopulation(population_index); // Moved from where comment // computeRanks(); is.
   // checkForDuplicate("IAMALGAM 2");
   // TODO figure out if this is correct placement for making selections
   makeSelectionsForOnePopulation(population_index);
   writePopulationToFile(config->folder, selections, "SELECTIONS in iamalgam ----------------------------------", config->logDebugInformation);  
+  writePopulationBoundaryStatsToFile(config->folder, selections, "GEN " + to_string(number_of_generations) + " - SELECTIONS");
   // checkForDuplicate("IAMALGAM 3");
   // estimateParametersAllPopulations();
   estimateParameters(population_index);
@@ -1723,7 +1838,7 @@ void iamalgam::generateNewPopulation(int population_index)
       {
         // populations[population_index][j][k] = solution[k];
         // currGAMBIT->population[j]->c_variables[k] = solution[k];
-        population[j]->c_variables[k] = solution[k];
+        population->solutions[j]->c_variables[k] = solution[k];
       }
 
       if( (number_of_generations > 0) && (q < number_of_AMS_solutions) )
@@ -1750,7 +1865,7 @@ void iamalgam::generateNewPopulation(int population_index)
           {
             // populations[population_index][j][k] = solution_AMS[k];
             // currGAMBIT->population[j]->c_variables[k] = solution_AMS[k];
-            population[j]->c_variables[k] = solution_AMS[k];
+            population->solutions[j]->c_variables[k] = solution_AMS[k];
           }
         }
       }

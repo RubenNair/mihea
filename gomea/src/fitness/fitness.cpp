@@ -14,10 +14,19 @@ fitness_t<double>::fitness_t( int number_of_variables ) : fitness_t(number_of_va
 template<>
 fitness_t<double>::fitness_t( int number_of_variables, double vtr ) : fitness_t(number_of_variables,vtr,true,MIN) {}
 
+template<>
+fitness_t<int>::fitness_t( int number_of_variables ) : fitness_t(number_of_variables,0,false,MAX) {}
+template<>
+fitness_t<int>::fitness_t( int number_of_variables, double vtr ) : fitness_t(number_of_variables,vtr,true,MAX) {}
+
+
 template<class T>
 fitness_t<T>::fitness_t( int number_of_variables, double vtr, bool use_vtr, opt_mode optimization_mode )
 	: name("Fitness function"), number_of_variables(number_of_variables), optimization_mode(optimization_mode), vtr(vtr), use_vtr(use_vtr)
-	{}
+{
+	elitist_objective_value = INFINITY;
+	elitist_constraint_value = INFINITY;
+}
 
 template<class T>
 fitness_t<T>::~fitness_t(){
@@ -37,26 +46,32 @@ bool fitness_t<T>::betterFitness( double objective_value_x, double constraint_va
 {
     bool result = false;
 
-    if( constraint_value_x > 0 ) /* x is infeasible */
-    {
-        if( constraint_value_y > 0 ) /* Both are infeasible */
-        {
-            if( constraint_value_x < constraint_value_y )
-                result = true;
-        }
-    }
-    else /* x is feasible */
-    {
-        if( constraint_value_y > 0 ) /* x is feasible and y is not */
-            result = true;
-        else /* Both are feasible */
-        {
-            if( optimization_mode == MIN && objective_value_x < objective_value_y )
-                result = true;
-            else if( optimization_mode == MAX && objective_value_x > objective_value_y )
-                result = true;
-        }
-    }
+	// RUBEN only focussing on non-constrained problems for now, ignoring constraint values
+	if( optimization_mode == MIN && objective_value_x < objective_value_y )
+		result = true;
+	else if( optimization_mode == MAX && objective_value_x > objective_value_y )
+		result = true;
+
+    // if( constraint_value_x > 0 ) /* x is infeasible */
+    // {
+    //     if( constraint_value_y > 0 ) /* Both are infeasible */
+    //     {
+    //         if( constraint_value_x < constraint_value_y )
+    //             result = true;
+    //     }
+    // }
+    // else /* x is feasible */
+    // {
+    //     if( constraint_value_y > 0 ) /* x is feasible and y is not */
+    //         result = true;
+    //     else /* Both are feasible */
+    //     {
+    //         if( optimization_mode == MIN && objective_value_x < objective_value_y )
+    //             result = true;
+    //         else if( optimization_mode == MAX && objective_value_x > objective_value_y )
+    //             result = true;
+    //     }
+    // }
 
     return( result );
 }
@@ -90,6 +105,44 @@ void fitness_t<T>::evaluate( solution_t<T> *solution )
 		elitist_objective_value = solution->getObjectiveValue();
 		elitist_constraint_value = solution->getConstraintValue();
 	}
+	this->full_number_of_evaluations++;
+	this->number_of_evaluations++;
+}
+
+template<class T>
+void fitness_t<T>::evaluatePopulation( vec_t<solution_t<T>*> solutions, bool skipFirstIndex)
+{
+	checkTermination();
+
+	for( solution_t<T> *solution : solutions )
+		solution->initObjectiveValues( number_of_objectives );
+
+	auto t = utils::getTimestamp();
+
+	// #pragma omp parallel for num_threads(3)
+	for( size_t i = skipFirstIndex ? 1 : 0; i < solutions.size(); i++ )
+		evaluationFunction( solutions[i] );
+
+	utils::addToTimer("eval_time",t);
+
+	for(size_t i = skipFirstIndex ? 1 : 0; i < solutions.size(); i++ )
+	{
+		if( use_vtr && !vtr_hit_status && solutions[i]->getConstraintValue() == 0 && solutions[i]->getObjectiveValue() <= vtr  )
+		{
+			vtr_hit_status = true;
+			elitist_objective_value = solutions[i]->getObjectiveValue();
+			elitist_constraint_value = solutions[i]->getConstraintValue();
+		}
+
+		if( !vtr_hit_status && betterFitness(solutions[i]->getObjectiveValue(), solutions[i]->getConstraintValue(), elitist_objective_value, elitist_constraint_value) )
+		{
+			elitist_objective_value = solutions[i]->getObjectiveValue();
+			elitist_constraint_value = solutions[i]->getConstraintValue();
+		}
+	}
+
+	this->full_number_of_evaluations += solutions.size();
+	this->number_of_evaluations += solutions.size();
 }
 
 template<class T>
@@ -461,5 +514,6 @@ double fitness_t<T>::getVTR()
 
 template class fitness_t<char>;
 template class fitness_t<double>;
+template class fitness_t<int>;
 
 }}

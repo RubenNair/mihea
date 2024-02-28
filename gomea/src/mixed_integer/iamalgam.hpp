@@ -3,6 +3,7 @@
 
 #include "gomea/src/mixed_integer/Config.hpp"
 #include "gomea/src/mixed_integer/utils.hpp"
+#include "gomea/src/mixed_integer/Solutionset.hpp"
 // #include "gomea/src/mixed_integer/Population.hpp"
 
 namespace gomea{
@@ -19,7 +20,7 @@ class iamalgam
 
         iamalgam();
         iamalgam(Config *config_);
-        iamalgam(Config *config_, vec_t<solution_mixed*> population_);
+        iamalgam(Config *config_, Solutionset *population_);
         ~iamalgam();
         
         void ezilaitini();
@@ -73,7 +74,7 @@ class iamalgam
         double random1DNormalUnit();
         double *matrixVectorMultiplication( double **matrix, double *vector, int n0, int n1 );
         double vectorDotProduct( double *vector0, double *vector1, int n0 );
-        bool isParameterInRangeBounds(double parameter, int dimension);
+        bool isParameterInRangeBounds(double parameter, int dimension, bool is_extra_cvar = false);
         void computeRanks();
         void adaptDistributionMultipliers();
         void adaptDistributionMultipliersForOnePopulation(int i = 0); // Not from Peter's code, but I think it makes sense to extract this into a separate function for GAMBIT
@@ -94,6 +95,8 @@ class iamalgam
         void learnContinuousModel(int population_index = 0);
         void generateNewPopulation(int population_index = 0);
         void checkForDuplicate(string message);
+
+        vec_t<int> countBoundaries(vec_t<solution_mixed *> selections);
 
         // variables from runOnce() in iAMaLGaM-Full-Free.c (might not need all of them)
         bool write_generational_statistics;
@@ -117,7 +120,7 @@ class iamalgam
         double alpha_AMS;
         double delta_AMS;
         // double ***populations;
-        vec_t<solution_mixed*> population; // NOTE: This population is the *offspringPopulation* from Population.cpp!
+        Solutionset *population; // NOTE: This population is the *offspringPopulation* from Population.cpp!
         double *distribution_multipliers;
         double distribution_multiplier_increase;
         double distribution_multiplier_decrease = 0.9;
@@ -148,7 +151,7 @@ class iamalgam
         double best_so_far_constraint_value;
         double st_dev_ratio_threshold = 1.0;
         int maximum_no_improvement_stretch = 200;
-        bool haveNextNextGaussian = false;
+        bool haveNextNextGaussian;
         double nextNextGaussian;
         int64_t random_seed_changing;
 

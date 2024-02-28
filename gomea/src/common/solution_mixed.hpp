@@ -10,16 +10,19 @@ namespace gomea{
 using gomea::fitness::fitness_t;
 
 
-class solution_mixed : public solution_t<char>
+class solution_mixed : public solution_t<int>
 {
 
     // laat variables discrete, voeg real_variables toe als doubles
 	public:
     vec_t<double> c_variables;
     solution_mixed( int number_of_variables_, size_t alphabetSize_, int number_of_c_variables_ );
-    solution_mixed (vec_t<char> &variables, vec_t<double> &c_variables);
-    solution_mixed( size_t numberOfVariables_, size_t alphabetSize_, size_t numberOfCVariables_, fitness_t<char> *problemInstance_ );
-    
+    solution_mixed (vec_t<int> &variables, vec_t<double> &c_variables);
+    solution_mixed( size_t numberOfVariables_, size_t alphabetSize_, size_t numberOfCVariables_, fitness_t<int> *problemInstance_ );
+	//solution_mixed(vec_t<int> &variables, vec_t<double> fitness_buffers, vec_t<double> objective_values, double constraint_value, size_t alphabetSize, vec_t<double> &c_variables, fitness_t<int> *problemInstance);
+    solution_mixed( const solution_mixed &other );
+	virtual ~solution_mixed() = default;
+
     bool operator==(const solution_mixed &solutionB)
     {
         for (int i = 0; i < getNumberOfVariables(); ++i)
@@ -55,10 +58,23 @@ class solution_mixed : public solution_t<char>
 	void randomInit(std::mt19937 *rng);
 	void insertCVariables( const vec_t<double> &vars_to_insert );
 	void insertCVariables( vec_t<double> vars_to_insert, vec_t<int> indices_to_insert );
-	void insertSolution( solution_mixed *solution );
+	virtual void insertSolution( solution_mixed *solution );
 	void print();
 
-	fitness_t<char> *problemInstance;
+	virtual solution_mixed *clone();
+
+	fitness_t<int> *problemInstance;
+
+	
+	clock_t getTimeStamp() const;
+	void setTimeStamp(clock_t timeStamp);
+
+	size_t getNumberOfFullEvaluations() const;
+	void setNumberOfFullEvaluations(size_t numberOfFullEvaluations);
+
+
+	clock_t timeStamp;                      // The time stamp when a solution was evaluated
+	size_t numberOfFullEvaluations;         // The number of full evaluations executed to get the solution
 // {
 // 	for (int i = 0; i < getNumberOfCVariables(); ++i)
 // 	{
@@ -68,7 +84,7 @@ class solution_mixed : public solution_t<char>
 
 	
 	// 	solution_t( int number_of_variables );
-	// 	solution_t( vec_t<char> &variables );
+	// 	solution_t( vec_t<int> &variables );
 	// 	solution_t( size_t numberOfVariables_, size_t alphabetSize_ );
 	// 	solution_t(size_t numberOfDVariables_, size_t numberOfCVariables_, size_t alphabetSize_, fitness_t<xhar> *problemInstance_);
 	// 	// TODO RUBEN: need a solution_t initializer for continuous; will need to pass 
