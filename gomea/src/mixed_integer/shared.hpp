@@ -17,7 +17,7 @@ class sharedInformation
 		double elitistSolutionHittingTimeMilliseconds,
 			   elitistSolutionHittingTimeEvaluations;
 
-		solutionsArchive *evaluatedSolutions; // RUBEN: ignoring for now, seems to be unused currently anyway
+		solutionsArchive *evaluatedSolutions;
 		bool firstEvaluationEver;
 		double elitistFitness;
 		double elitistConstraintValue;

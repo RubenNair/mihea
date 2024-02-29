@@ -101,79 +101,6 @@ void oneMaxRotEllip_t::evaluationFunction( solution_t<int> *solution )
 	this->number_of_evaluations++;
 }
 
-// template<class T>
-// void oneMaxSphere_t::partialEvaluationFunction( solution_t<T> *parent, partial_solution_t<T> *solution)
-// {
-//     evaluatePartialSolution(parent, solution);
-// }
-
-// template<class T>
-// void oneMaxSphere_t::evaluatePartialSolution( solution_t<T> *parent, partial_solution_t<T> *solution)
-// {
-//     parent = static_cast<solution_mixed*>(parent);
-//     solution->initFitnessBuffers(getNumberOfFitnessBuffers());
-// 	solution->resetFitnessBuffers();
-
-// 	std::set<int> touched_subfunctions;
-// 	//if( dependent_subfunctions.size() == 0 )
-// 	{
-// 		for( int ind : solution->touched_indices )
-// 		{
-// 			assert( this->subfunction_dependency_map[ind].size() > 0 );
-// 			touched_subfunctions.insert(this->subfunction_dependency_map[ind].begin(), this->subfunction_dependency_map[ind].end());
-// 		}
-// 	}
-// 	//else
-// 		//touched_subfunctions = dependent_subfunctions;
-	
-// 	double objective_value_delta = 0.0;
-// 	// Calculate sum of touched subfunctions for parent
-// 	for( int subfunction_index : touched_subfunctions )
-// 	{
-// 		double subf_result = subfunction( subfunction_index, parent->variables );
-// 		objective_value_delta -= subf_result; 
-// 		int buffer_index = this->getIndexOfFitnessBuffer(subfunction_index);
-// 		solution->subtractFromFitnessBuffer( buffer_index, subf_result );
-// 	}
-	
-// 	// Create backup of parent variables before modification
-// 	vec_t<T> partial_backup = parent->getCopyOfVariables( solution->touched_indices );
-
-// 	// Insert variables of partial solution and then calculate sum of touched subfunctions for offspring
-// 	parent->insertVariables( solution->touched_variables, solution->touched_indices );
-// 	for( int subfunction_index : touched_subfunctions ) 
-// 	{
-// 		double subf_result = subfunction( subfunction_index, parent->variables );
-// 		//solution->partial_objective_values[subfunction_index] = subf_result;
-// 		objective_value_delta += subf_result;
-// 		int buffer_index = this->getIndexOfFitnessBuffer(subfunction_index);
-// 		solution->addToFitnessBuffer( buffer_index, subf_result );
-// 	}
-
-// 	// Return parent variables to original state
-// 	parent->insertVariables(partial_backup, solution->touched_indices);
-
-// 	// Update fitness of partial solution
-// 	//solution->setObjectiveValue(parent->getObjectiveValue() + objective_value_delta);
-// 	//solution->setConstraintValue(parent->getConstraintValue());
-
-// 	// Add parent buffer for final result of buffer	
-// 	vec_t<double> parent_buffers = parent->fitness_buffers;
-// 	for( size_t i = 0; i < parent_buffers.size(); i++ )
-// 		solution->addToFitnessBuffer(i,parent_buffers[i]);
-
-// 	// Apply function to calculate objective value from fitness buffers
-// 	for( int i = 0; i < this->number_of_objectives; i++ )
-// 	{
-// 		double ffitness = objectiveFunction( i, solution );
-// 		solution->setObjectiveValue(ffitness);
-// 	}
-// 	double fcons = constraintFunction(solution);
-// 	solution->setConstraintValue(fcons);
-
-// 	this->full_number_of_evaluations++;
-// 	this->number_of_evaluations += touched_subfunctions.size() / (double) this->getNumberOfSubfunctions();
-// }    
 
 double oneMaxRotEllip_t::objectiveFunction( int objective_index, solution_t<int> *solution )
 {
@@ -189,12 +116,6 @@ double oneMaxRotEllip_t::constraintFunction( solution_t<int> *solution )
 {
     return 0.0;
 }
-
-// template<class T>
-// void oneMaxSphere_t::evaluatePartialSolutionBlackBox(solution_t<T> *parent, partial_solution_t<T> *solution)
-// {
-//     evaluatePartialSolution(parent, solution);
-// }
 
 
 double **oneMaxRotEllip_t::initializeObjectiveRotationMatrix( double rotation_angle, int rotation_block_size )

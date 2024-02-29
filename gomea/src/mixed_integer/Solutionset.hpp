@@ -4,7 +4,6 @@
 #include <iostream>
 
 
-// #include "gomea/src/mixed_integer/Config.hpp"
 #include "gomea/src/common/solution_mixed.hpp"
 
 namespace gomea{
@@ -18,7 +17,6 @@ public:
     virtual ~Solutionset() = default;
 
     solution_mixed* operator[](std::size_t idx)       { return solutions[idx]; }
-    // const solution_mixed* operator[](std::size_t idx) const { return solutions[idx]; }
     void resize(std::size_t size) { solutions.resize(size); }
     std::size_t size() const { return solutions.size(); }
 

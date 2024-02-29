@@ -4,7 +4,6 @@
 #include "gomea/src/mixed_integer/Config.hpp"
 #include "gomea/src/mixed_integer/utils.hpp"
 #include "gomea/src/mixed_integer/Solutionset.hpp"
-// #include "gomea/src/mixed_integer/Population.hpp"
 
 namespace gomea{
 namespace mixedinteger{
@@ -15,7 +14,6 @@ class iamalgam
         Config *config;
         int basePopulationSize;
         fitness_t *problemInstance = NULL;
-        // Population *currGAMBIT = NULL;
         
 
         iamalgam();
@@ -28,7 +26,6 @@ class iamalgam
         void ezilaitiniDistributionMultipliers();
         void run();
         
-        // Function signatures from runOnce() (and nested functions) in iAMaLGaM-Full-Free.c (might not need all of them)
         void runOnce();
         void initialize();
         void mergeSortFitnessWithinBounds( double *objectives, double *constraints, int *sorted, int *tosort, int p, int q );
@@ -37,7 +34,7 @@ class iamalgam
         void mergeSortWithinBounds( double *array, int *sorted, int *tosort, int p, int q );
         void mergeSortMerge( double *array, int *sorted, int *tosort, int p, int r, int q );
         void printVerboseOverview();
-        bool checkTerminationConditionForRunOnce(); // This one will probably not be used, but the nested functions can be useful
+        bool checkTerminationConditionForRunOnce(); 
         bool checkNumberOfEvaluationsTerminationCondition();
         bool checkVTRTerminationCondition();
         void determineBestSolutionInCurrentPopulations(int *population_of_best, int *index_of_best); // These pointers are not arrays, just single values
@@ -77,40 +74,35 @@ class iamalgam
         bool isParameterInRangeBounds(double parameter, int dimension, bool is_extra_cvar = false);
         void computeRanks();
         void adaptDistributionMultipliers();
-        void adaptDistributionMultipliersForOnePopulation(int i = 0); // Not from Peter's code, but I think it makes sense to extract this into a separate function for GAMBIT
+        void adaptDistributionMultipliersForOnePopulation(int i = 0);
         bool generationalImprovementForOnePopulation(int population_index, double *st_dev_ratio); // st_dev_ratio is a pointer to a single value
         double getStDevRatio(int population_index, double *parameters);
         double **matrixLowerTriangularInverse( double **matrix, int n );
         void determineBestSolutionSoFar();
 
         bool checkTerminationCondition();
-        void initializeRandomNumberGenerator(); // Probably not necessary, could call initializerandomnumbergenerator from utils 
+        void initializeRandomNumberGenerator();
         void initializeMemory();
         void initializeDistributionMultipliers();
         void initializePopulationsAndFitnessValues();
         void computeRanksForOnePopulation(int population_index);
         int *mergeSortFitness(double *objectives, double *constraints, int number_of_solutions);
 
-        // void updatePopulation(int population_index, Population *currGAMBIT, bool onlyObjectiveAndConstraints = false);
         void learnContinuousModel(int population_index = 0);
         void generateNewPopulation(int population_index = 0);
-        void checkForDuplicate(string message);
 
         vec_t<int> countBoundaries(vec_t<solution_mixed *> selections);
 
-        // variables from runOnce() in iAMaLGaM-Full-Free.c (might not need all of them)
         bool write_generational_statistics;
         bool write_generational_solutions;
         int number_of_generations;
 
-        // nested variables from previous functions in iAMaLGaM-Full-Free.c (might not need all of them)
-        // TODO: probably convert these to vectors / matrices (mat, vec, vec_t, vec_pt)
         int number_of_starts = 0;
         int number_of_evaluations;
         int maximum_number_of_evaluations;
         double fitness_variance_tolerance;
-        int number_of_parameters; // Maybe can be taken from config
-        int number_of_populations = 1; // TODO: figure out if multiple populations is necessary
+        int number_of_parameters;
+        int number_of_populations = 1; // Should always be 1
         int population_size;
         int selection_size;
         bool use_vtr;
@@ -119,8 +111,7 @@ class iamalgam
         double eta_s;
         double alpha_AMS;
         double delta_AMS;
-        // double ***populations;
-        Solutionset *population; // NOTE: This population is the *offspringPopulation* from Population.cpp!
+        Solutionset *population; // NOTE: This population is the *offspringPopulation* from Population.cpp! (if -k is not active)
         double *distribution_multipliers;
         double distribution_multiplier_increase;
         double distribution_multiplier_decrease = 0.9;
@@ -128,13 +119,8 @@ class iamalgam
         int *out_of_bounds_draws;
         bool *populations_terminated;
         int *no_improvement_stretch;
-        // double **objective_values;
-        // double **constraint_values;
         double **ranks;
-        // double ***selections;
         vec_t<solution_mixed*> selections;
-        // double **objective_values_selections;
-        // double **constraint_values_selections;
         double **mean_vectors;
         double **mean_vectors_previous;
         double ***covariance_matrices;

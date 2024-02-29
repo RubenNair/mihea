@@ -49,11 +49,6 @@ Fitness_BN::Fitness_BN(int problem_index,
             throw runtime_error("The maximum number of discretizations (for continuous variables) must be larger than 1.");
         }
 
-        // // Check that we do not have too many samples
-        // if (data->getNumberOfDataRows() >= 32767) {
-        //     throw runtime_error("The maximum number of samples supported are 32767. This is because we encode the solution with 'short'.");
-        // }
-
         this->loglikelihood = numeric_limits<double>::max();
     }
 }
@@ -88,28 +83,10 @@ void Fitness_BN::discretizeData(solution_BN &solution) {
 
     shared_ptr<DataStructure<double>> result = make_shared<DataStructure<double>>(discretizedData,
                                                                                   this->originalData->getColumnNames(),
-                                                                                  this->originalData->getColumnType(),  // Todo: Officially this should be discrete data.
+                                                                                  this->originalData->getColumnType(),  // NOTE: Officially this should be discrete data.
                                                                                   instantiationsPerNode,
                                                                                   this->originalData->getNumberOfUniqueValues());
     solution.setDiscretizedData(result);
-    // this->data = result; //RUBEN: I believe this gives issues if evaluating in parallel. For now, set it as class variable of solution instead of fitness.
-    
-
-    // Determine the boundaries
-    // const shared_ptr<DiscretizationPolicy>& policy = solution.getDiscretizationPolicy();
-    // policy->determineDiscretizationBoundaries(*this->originalData, this->rng);
-
-    // Discretize the data
-    // vector<vector<double>> discretizedData = policy->discretizeData(*this->originalData);
-    // vector<size_t> instantiationsPerNode = policy->getNumberOfInstantiations();
-
-    // Create the discretized data structure
-    // shared_ptr<DataStructure<double>> result = make_shared<DataStructure<double>>(discretizedData,
-    //                                                                               this->originalData->getColumnNames(),
-    //                                                                               this->originalData->getColumnType(),  // Todo: Officially this should be discrete data.
-    //                                                                               instantiationsPerNode,
-    //                                                                               this->originalData->getNumberOfUniqueValues());
-    // this->data = result;
 }
 
 vector<size_t> Fitness_BN::getNumberOfInstantiations(solution_BN &solution)
@@ -174,7 +151,6 @@ vector<double> Fitness_BN::discretizeData(solution_BN &solution, size_t nodeInde
 vector<vector<double>> Fitness_BN::discretizeData(solution_BN &solution, DataStructure<double> &data) {
     // Perform check
     assert(!solution.c_variables.empty());
-//    assert(!this->boundaryEdges.empty());
     assert(!getInitialNumberOfInstantiations().empty());
 
 
@@ -197,7 +173,6 @@ vector<vector<double>> Fitness_BN::discretizeData(solution_BN &solution, DataStr
         } else {
             // Add the already discrete data
             vector<double> targetData = data.getDataMatrix().getColumn(nodeIndex);
-//            vector<size_t> discreteData = convertToType<double, size_t>(targetData);
             result.setColumn(nodeIndex, targetData);
         }
     }
@@ -215,34 +190,6 @@ vector<vector<double>> Fitness_BN::discretizeData(solution_BN &solution, DataStr
 void Fitness_BN::rediscretizeNodes(solution_BN &solution, const vector<size_t>& nodesToRediscretize) {
     cout << "Used rediscretizeNodes function, likely needs to be reworked first" << endl;
     exit(0);
-    // Perform check
-    // assert(nodesToRediscretize.size() < this->numberOfNodes);
-
-    // Determine the boundaries
-    // const shared_ptr<DiscretizationPolicy>& newPolicy = solution.getDiscretizationPolicy();
-    // const shared_ptr<DiscretizationPolicy>& previousPolicy = this->previousSolution->getDiscretizationPolicy();
-    // newPolicy->redetermineSelectBoundaries(*this->originalData, nodesToRediscretize, previousPolicy->getBoundaries(), this->rng);
-
-    // Rediscretize the data
-    // DataMatrix<double> rediscretizedData = this->data->getDataMatrix(); // Is a reference
-    // for (const auto& nodeIndex : nodesToRediscretize) {
-    //     // Perform check
-    //     assert(nodeIndex < this->numberOfNodes);
-
-    //     // Rediscretize the data
-    //     vector<double> nodeData = this->data->getDataMatrix().getColumn(nodeIndex);
-    //     vector<double> discretizedData = newPolicy->discretizeData(nodeIndex, nodeData);
-    //     rediscretizedData.setColumn(nodeIndex,discretizedData);
-    // }
-
-    // // Create the discretized data structure
-    // vector<size_t> instantiationsPerNode = newPolicy->getNumberOfInstantiations();      // Todo: This only goes right if we know the number of instantiations beforehand
-    // shared_ptr<DataStructure<double>> result = make_shared<DataStructure<double>>(rediscretizedData,
-    //                                                                               this->originalData->getColumnNames(),
-    //                                                                               this->originalData->getColumnType(),  // Todo: Officially this should be discrete data.
-    //                                                                               instantiationsPerNode,
-    //                                                                               this->originalData->getNumberOfUniqueValues());
-    // this->data = result;
 }
 
 
@@ -312,13 +259,6 @@ shared_ptr<solution_BN> Fitness_BN::getGoldenSolution() {
         if (!this->optimalSolution) {
             cout << "Golden solution not yet implemented/adapted" << endl;
             exit(0);
-
-            // Create the optimal solution
-            // shared_ptr<solution_BN> originalSolution = make_shared<solution_BN>(optimalNetwork, optimalBoundaries, dataTypeNodes, originalData->getColumnNumberOfClasses(), maxNumberOfParents);
-            // shared_ptr<DataStructure<double>> copyData = this->originalData->clone();
-            // // originalSolution->getDiscretizationPolicy()->determineDiscretizationBoundaries(*copyData, this->rng);
-
-            // this->optimalSolution = originalSolution;
         }
         shared_ptr<solution_BN> result(this->optimalSolution->clone());
         return result;
@@ -360,12 +300,10 @@ void Fitness_BN::setFitnessFunctionBaseName(const string &fitnessFunctionBaseNam
 void Fitness_BN::setPreviousSolution(const shared_ptr<solution_BN> &previousSolution) { Fitness_BN::previousSolution = previousSolution; }
 void Fitness_BN::setRng(const shared_ptr<mt19937> &rng) { Fitness_BN::rng = rng; }
 void Fitness_BN::setOptimalNetwork(const vector<int> &optimalSolution) {
-//    assert(optimalNetwork.size() == numberOfLinks);
     Fitness_BN::optimalNetwork = optimalSolution;
     Fitness_BN::optimalNetworkAvailable = true;
 }
 void Fitness_BN::setOptimalBoundaries(const vector<vector<double>> &optimalBoundaries) {
-//    assert(optimalBoundaries.size() == numberOfNodesToDiscretize);
     Fitness_BN::optimalBoundaries = optimalBoundaries;
     Fitness_BN::optimalBoundariesAvailable = true;
 }

@@ -73,19 +73,12 @@ public:
     bool FISingleFOS(size_t offspringIndex, size_t FOSIndex);
     void updateElitistAndCheckVTR(solution_mixed *solution);
     void checkTimeLimit();
-    // TODO RUBEN createRandomSolution from GAMBIT sould be method in this class -> I think this is the randomInit in solution_mixed,
-    //      might just need a function here that calls that function for all individuals in population.
-    //      Actually, currently randomInit is called for each individual when the population is created, so no longer necessary?
     
     // iAMaLGaM functions
-    // void updatePopulation(int population_index, Population *currGAMBIT, bool onlyObjectiveAndConstraints = false);
     void learnContinuousModel();
     void generateDiscretePopulation(int FOS_index);
     void checkDiscretePopulationConvergedNotOptimal();
-    void checkForDuplicate(string message);
-    void checkIndividualSolvedDiscrete();
     bool allContinuousEqual(solution_mixed *a, solution_mixed *b);
-    // void generateNewContinuousPopulation();
 
 };
 

@@ -1,54 +1,8 @@
 #include "gomea/src/mixed_integer/Population.hpp"
 
-namespace gomea{namespace mixedinteger{
+namespace gomea{
+namespace mixedinteger{
 
-// Saving old way of initializing Population for now, without cPopulation
-// Population::Population(Config *config_, fitness_t *problemInstance_, sharedInformation *sharedInformationPointer_, size_t GOMEAIndex_, size_t populationSize_, linkage_model_pt FOSInstance_ ): 
-//         config(config_), 
-//         problemInstance(problemInstance_),
-//         sharedInformationPointer(sharedInformationPointer_),
-//         GOMEAIndex(GOMEAIndex_), 
-//         populationSize(populationSize_)
-// {
-//         terminated = false;
-//         numberOfGenerations = 0;
-//         averageFitness = 0.0;
-        
-//         dPopulation.resize(populationSize);
-//         offspringdPopulation.resize(populationSize);
-//         noImprovementStretches.resize(populationSize);
-        
-//         vec_t<int> allGenes(problemInstance->number_of_variables);
-//         iota(allGenes.begin(), allGenes.end(), 0);
-
-//         for (size_t i = 0; i < populationSize; ++i)
-//         {
-//             noImprovementStretches[i] = 0;
-
-//             dPopulation[i] = new solution_t<int>(problemInstance->number_of_variables, config->alphabetSize);
-//             dPopulation[i]->randomInit(&gomea::utils::rng);
-//             problemInstance->evaluate(dPopulation[i]);
-            
-//             offspringdPopulation[i] = new solution_t<int>(problemInstance->number_of_variables, config->alphabetSize);
-//             *offspringdPopulation[i] = *dPopulation[i];
-//         }
-			
-// 		if( config->linkage_config != NULL )
-// 		{
-// 			FOSInstance = linkage_model_t::createFOSInstance( *config->linkage_config, problemInstance->number_of_variables );
-//             FOSInstance->initializeDependentSubfunctions( problemInstance->subfunction_dependency_map );
-// 		}
-// 		else if( FOSInstance_ == NULL )
-// 		{
-// 			FOSInstance = linkage_model_t::createLinkageTreeFOSInstance(config->FOSIndex, problemInstance->number_of_variables, config->linkage_config->lt_similarity_measure, config->linkage_config->lt_maximum_set_size);
-// 		}
-// 		else FOSInstance = FOSInstance_;
-        
-//         #ifdef DEBUG
-//             cout << "New Population created! Population #" << GOMEAIndex << " populationSize:" << populationSize << endl;
-//             cout << this;
-//         #endif
-// }
 
 Population::Population(Config *config_, fitness_t *problemInstance_, sharedInformation *sharedInformationPointer_, size_t GOMEAIndex_, size_t populationSize_, size_t optimizerIndex, string optimizerName, linkage_model_pt FOSInstance_ ): 
         config(config_), 
@@ -65,16 +19,9 @@ Population::Population(Config *config_, fitness_t *problemInstance_, sharedInfor
 
         optimizerElitistFitnessInitialized = false;
         
-        // population->resize(populationSize);
-        // offspringPopulation->resize(populationSize);
         population = new Solutionset(populationSize);
         offspringPopulation = new Solutionset(populationSize);
         noImprovementStretches.resize(populationSize);
-        
-        vec_t<int> allGenes(problemInstance->number_of_variables); // RUBEN TODO might need to change this property of problemInstance, but depends on how fitness_t is handled
-        iota(allGenes.begin(), allGenes.end(), 0);
-
-        
 
 
         for (size_t i = 0; i < populationSize; ++i)
@@ -106,16 +53,12 @@ Population::Population(Config *config_, fitness_t *problemInstance_, sharedInfor
                 // Set offspringPopulation[i] to a new solution_BN, just to initialize the necessary memory.
                 offspringPopulation->solutions[i] = new solution_BN(config->numberOfVariables, config->alphabetSize, config->numberOfcVariables, config->data->getColumnType(), BNproblemInstance->getDensity()->getOriginalData()->getColumnNumberOfClasses(), config->discretization_policy_index, config->maxParents, config->maxInstantiations, BNproblemInstance, maxValuesData, minValuesData, config->lower_user_range, config->upper_user_range, config->data);
                 *offspringPopulation->solutions[i] = *population->solutions[i];
-                // offspringPopulation[i] = population[i]->clone();
             } else
             {
                 population->solutions[i] = new solution_mixed(config->numberOfVariables, config->alphabetSize, config->numberOfcVariables, problemInstance);
                 population->solutions[i]->randomInit(&gomea::utils::rng);
 
                 problemInstance->evaluate(population->solutions[i]);
-                // updateElitistAndCheckVTR(population[i]); // TODO RUBEN I think this can be removed, since this call is made at the start of learnDiscreteModel (after calculating average fitness)
-                
-                // problemInstance->evaluate(dPopulation[i]); // RUBEN TODO maybe doesn't work like this anymore, depends on how fitness_t is handled
                 
                 offspringPopulation->solutions[i] = new solution_mixed(config->numberOfVariables, config->alphabetSize, config->numberOfcVariables, problemInstance);
                 *offspringPopulation->solutions[i] = *population->solutions[i];
@@ -162,7 +105,6 @@ Population::~Population()
     {
         delete population->solutions[i];
         delete offspringPopulation->solutions[i];
-        // delete offspringPopulation[i];
     }
     delete population;
     delete offspringPopulation;
@@ -276,27 +218,18 @@ void Population::copyOffspringToPopulation()
 {
     for(size_t i = 0; i < populationSize; i++)
     {
-        // *population[i] = *offspringPopulation[i];
-        
-        // population[i]->insertSolution(offspringPopulation[i]);
         delete population->solutions[i];
         population->solutions[i] = offspringPopulation->solutions[i]->clone();
-
     }
-    // *population[0] = sharedInformationPointer->elitist;
 }
 
 void Population::copyPopulationToOffspring()
 {
     for(size_t i = 0; i < populationSize; i++)
     {
-        // *population[i] = *offspringPopulation[i];
-        
-        // offspringPopulation[i]->insertSolution(population[i]);
         delete offspringPopulation->solutions[i];
         offspringPopulation->solutions[i] = population->solutions[i]->clone();
     }
-    // *population[0] = sharedInformationPointer->elitist;
 }
 
 void Population::makeOffspring()
@@ -319,7 +252,6 @@ void Population::makeOffspring()
         }
         else
         {
-            // TODO RUBEN figure out if this is a valid solution to the problem of matching the function argument of learnLinkageTreeFOS
             vec_t<solution_t<int>*> casted_population;
             for(solution_mixed* sol : population->solutions) 
             {
@@ -346,9 +278,6 @@ void Population::makeOffspring()
 
 void Population::learnDiscreteModel()
 {
-    // TODO: maybe update the similarity matrix here first? -> If I understand correctly, similarity matrix is made once and not updated?
-            // Seems to be based on variable interaction graph. Just TODO need to double-check that it is initialized correctly (but maybe not in this function)
-
     calculateAverageFitness();
 
     if( numberOfGenerations == 0 )
@@ -357,7 +286,6 @@ void Population::learnDiscreteModel()
             updateElitistAndCheckVTR(population->solutions[i]);
     }
 
-    // checkForDuplicate("DISCRETE START LEARN MODEL");
     if( FOSInstance->type == linkage::LINKAGE_TREE )
     {
         if (FOSInstance->is_static)
@@ -369,7 +297,6 @@ void Population::learnDiscreteModel()
         }
         else
         {
-            // TODO RUBEN figure out if this is a valid solution to the problem of matching the function argument of learnLinkageTreeFOS
             vec_t<solution_t<int>*> casted_population;
             for(solution_mixed* sol : population->solutions) 
             {
@@ -395,7 +322,6 @@ void Population::learnDiscreteModel()
     }
 
     FOSInstance->setCountersToZero();
-    // FOSInstance->printFOS();
 }
 
 void Population::determineFOSOrder()
@@ -446,19 +372,11 @@ void Population::generateOffspring()
             }
         }
         
-        if (!(offspringPopulation->solutions[i]->getObjectiveValue() > population->solutions[i]->getObjectiveValue())) // RUBEN doesn't this assume minimization?
+        if (!(offspringPopulation->solutions[i]->getObjectiveValue() < population->solutions[i]->getObjectiveValue())) // NOTE: assuming minimization
             noImprovementStretches[i]++;
         else
             noImprovementStretches[i] = 0;
-        
-        // RUBEN maybe this is a nicer, more general approach for the above if statement
-        // if((problemInstance->optimization_mode == fitness::opt_mode::MIN && !(offspringPopulation[i]->getObjectiveValue() > population[i]->getObjectiveValue()))
-        // || (problemInstance->optimization_mode == fitness::opt_mode::MAX && !(offspringPopulation[i]->getObjectiveValue() < population[i]->getObjectiveValue())))
-        //     noImprovementStretches[i]++;
-        // else
-        //     noImprovementStretches[i] = 0;
     }
-    cout << "[DEBUGGING] FIcount: " << FIcount << endl;
 }
 
 // Generate offspring for a single FOS element
@@ -471,9 +389,8 @@ void Population::generateSingleOffspring(int FOS_index)
         solution_mixed backup = *offspringPopulation->solutions[i];
 
         bool solutionHasChanged;
-        // checkForDuplicate("DISCRETE BEFORE GOM");
         solutionHasChanged = GOMSingleFOS(i, FOS_index);
-        // checkForDuplicate("DISCRETE AFTER GOM");
+
         /* Phase 2 (Forced Improvement): optimal mixing with elitist solution */
         if (config->useForcedImprovements)
         {
@@ -484,42 +401,28 @@ void Population::generateSingleOffspring(int FOS_index)
             }
         }
         
-        if (!(offspringPopulation->solutions[i]->getObjectiveValue() < population->solutions[i]->getObjectiveValue())) // RUBEN doesn't this assume minimization?
+        if (!(offspringPopulation->solutions[i]->getObjectiveValue() < population->solutions[i]->getObjectiveValue())) // NOTE: assuming minimization
             noImprovementStretches[i]++;
         else
             noImprovementStretches[i] = 0;
-        
-        // RUBEN maybe this is a nicer, more general approach for the above if statement (TODO: check if < and > symbols are correct here)
-        // if((problemInstance->optimization_mode == fitness::opt_mode::MIN && !(offspringPopulation[i]->getObjectiveValue() < population[i]->getObjectiveValue()))
-        // || (problemInstance->optimization_mode == fitness::opt_mode::MAX && !(offspringPopulation[i]->getObjectiveValue() > population[i]->getObjectiveValue())))
-        //     noImprovementStretches[i]++;
-        // else
-        //     noImprovementStretches[i] = 0;
-        // checkForDuplicate("DISCRETE END OF LOOP");
     }
-
-    // if(!allBuildingBlocksStillExist(population, 5))
-    // {
-    //     cout << "[DEBUGGING] Not all building blocks exist anymore after GOMSingleFOS for FOS_index " << FOS_index << ", gen " << numberOfGenerations << endl;
-    // }
-    // writeBuildingBlocksToFile(config->folder, population, "BUILDING BLOCKS After GOMSingleFOS index " + to_string(FOS_index) + " ----------------------------------", 5);
 }
 
+// NOTE: Confusing name perhaps, now only updates elitist and checks VTR.
 void Population::evaluateAllSolutionsInPopulation()
 {
     for (size_t i = 0; i < populationSize; i++)
     {
-        // TODO RUBEN: turn this back on in case I want to use this function as evaluation again as well.
-        // problemInstance->evaluate(offspringPopulation[i]);
         updateElitistAndCheckVTR(offspringPopulation->solutions[i]);
     }
 }
 
+// Original GOM function, not used for MIHEA
 bool Population::GOM(size_t offspringIndex)
 {
     size_t donorIndex;
     bool solutionHasChanged = false;
-    bool thisIsTheElitistSolution = *offspringPopulation->solutions[offspringIndex] == *sharedInformationPointer->elitist;//(sharedInformationPointer->elitistSolutionGOMEAIndex == GOMEAIndex) && (sharedInformationPointer->elitistSolutionOffspringIndex == offspringIndex);
+    bool thisIsTheElitistSolution = *offspringPopulation->solutions[offspringIndex] == *sharedInformationPointer->elitist;
     
     *offspringPopulation->solutions[offspringIndex] = *population->solutions[offspringIndex];
             
@@ -550,17 +453,14 @@ bool Population::GOM(size_t offspringIndex)
             for(size_t j = 0; j < FOSInstance->elementSize(ind); j++)
             {
                 int variableFromFOS = FOSInstance->FOSStructure[ind][j];
-                //offspringPopulation[offspringIndex]->variables[variableFromFOS] = population[donorIndex]->variables[variableFromFOS];
                 donorGenes.push_back(population->solutions[donorIndex]->variables[variableFromFOS]);
-                if (donorGenes[variableFromFOS] != offspringPopulation->solutions[offspringIndex]->variables[variableFromFOS]) // RUBEN: shouldn't donorGenes[j] be donorGenes[variableFromFOS]? -> Made this change myself
+                if (donorGenes[variableFromFOS] != offspringPopulation->solutions[offspringIndex]->variables[variableFromFOS])
                     donorEqualToOffspring = false;
             }
             partial_solution_t<int> *partial_offspring = new partial_solution_t<int>(donorGenes, FOSInstance->FOSStructure[ind]);
 
             if (!donorEqualToOffspring)
             {
-                //evaluateSolution(offspringPopulation[offspringIndex], backup, touchedGenes, backup->getObjectiveValue());
-                //problemInstance->evaluatePartialSolution(offspringPopulation[offspringIndex], partial_offspring, FOSInstance->getDependentSubfunctions(ind) );
                 problemInstance->evaluatePartialSolution(offspringPopulation->solutions[offspringIndex], partial_offspring );
 
                 // accept the change if this solution is not the elitist and the fitness is at least equally good (allows random walk in neutral fitness landscape)
@@ -569,8 +469,6 @@ bool Population::GOM(size_t offspringIndex)
                         (thisIsTheElitistSolution && (partial_offspring->getObjectiveValue() > offspringPopulation->solutions[offspringIndex]->getObjectiveValue())))     
                 {
                     offspringPopulation->solutions[offspringIndex]->insertPartialSolution(partial_offspring);
-                    // offspringPopulation[offspringIndex]->variables[variableFromFOS] = population[donorIndex]->variables[variableFromFOS];
-                    //*backup = *offspringPopulation[offspringIndex];
                     
                     solutionHasChanged = true;
                     updateElitistAndCheckVTR(offspringPopulation->solutions[offspringIndex]);
@@ -593,17 +491,14 @@ bool Population::GOMSingleFOS(size_t offspringIndex, size_t FOSIndex)
 {
     size_t donorIndex;
     bool solutionHasChanged = false;
-    bool thisIsTheElitistSolution = *offspringPopulation->solutions[offspringIndex] == *sharedInformationPointer->elitist;//(sharedInformationPointer->elitistSolutionGOMEAIndex == GOMEAIndex) && (sharedInformationPointer->elitistSolutionOffspringIndex == offspringIndex);
-
-    // *offspringPopulation[offspringIndex] = *population[offspringIndex];
-    // offspringPopulation[offspringIndex]->insertSolution(population[offspringIndex]);
+    bool thisIsTheElitistSolution = *offspringPopulation->solutions[offspringIndex] == *sharedInformationPointer->elitist;
             
     vec_t<int> donorIndices(populationSize);
     iota(donorIndices.begin(), donorIndices.end(), 0);
 
     int ind = FOSInstance->FOSorder[FOSIndex];
 
-    if (FOSInstance->elementSize(ind) == 0) // RUBEN removed check for (int) FOSInstance->elementSize(ind) == problemInstance->number_of_variables, since for MI case, FOS element with all discrete variables is allowed.
+    if (FOSInstance->elementSize(ind) == 0)
         return solutionHasChanged;
 
     bool donorEqualToOffspring = true;
@@ -628,12 +523,10 @@ bool Population::GOMSingleFOS(size_t offspringIndex, size_t FOSIndex)
         for(size_t j = 0; j < FOSInstance->elementSize(ind); j++)
         {
             int variableFromFOS = FOSInstance->FOSStructure[ind][j];
-            //offspringPopulation[offspringIndex]->variables[variableFromFOS] = population[donorIndex]->variables[variableFromFOS];
             donorGenes[variableFromFOS] = population->solutions[donorIndex]->variables[variableFromFOS];
-            if (donorGenes[variableFromFOS] != offspringPopulation->solutions[offspringIndex]->variables[variableFromFOS]) // RUBEN: shouldn't donorGenes[j] be donorGenes[variableFromFOS]? -> Made this change myself
+            if (donorGenes[variableFromFOS] != offspringPopulation->solutions[offspringIndex]->variables[variableFromFOS])
                 donorEqualToOffspring = false;
         }
-        // partial_solution_t<int> *partial_offspring = new partial_solution_t<int>(donorGenes, FOSInstance->FOSStructure[ind]);
         
 
         if (!donorEqualToOffspring)
@@ -649,27 +542,18 @@ bool Population::GOMSingleFOS(size_t offspringIndex, size_t FOSIndex)
             }
             
             problemInstance->evaluate(offspring);
-            //evaluateSolution(offspringPopulation[offspringIndex], backup, touchedGenes, backup->getObjectiveValue());
-            //problemInstance->evaluatePartialSolution(offspringPopulation[offspringIndex], partial_offspring, FOSInstance->getDependentSubfunctions(ind) );
-            // problemInstance->evaluatePartialSolution(offspringPopulation[offspringIndex], partial_offspring );
 
             // accept the change if this solution is not the elitist and the fitness is at least equally good (allows random walk in neutral fitness landscape)
             // however, if this is the elitist solution, only accept strict improvements, to avoid convergence problems
-            // RUBEN changed > to <, since I am assuming minimization. TODO: more elegant solution, maybe using optimization_mode of problemInstance
+            // NOTE: assuming minimization
             if ((!thisIsTheElitistSolution && (offspring->getObjectiveValue() <= offspringPopulation->solutions[offspringIndex]->getObjectiveValue())) || 
                     (thisIsTheElitistSolution && (offspring->getObjectiveValue() < offspringPopulation->solutions[offspringIndex]->getObjectiveValue())))     
             {
-                // offspringPopulation[offspringIndex]->insertPartialSolution(partial_offspring);
-                // offspringPopulation[offspringIndex]->variables[variableFromFOS] = population[donorIndex]->variables[variableFromFOS];
-                //*backup = *offspringPopulation[offspringIndex];
-                
-                // offspringPopulation[offspringIndex]->insertSolution(offspring);
                 delete offspringPopulation->solutions[offspringIndex];
                 offspringPopulation->solutions[offspringIndex] = offspring->clone();
 
                 // For GAMBIT_K, also update population with better individual (so it can also be chosen as donor)
                 if(config->dontUseOffspringPopulation) {
-                    // population[offspringIndex]->insertSolution(offspring);
                     delete population->solutions[offspringIndex];
                     population->solutions[offspringIndex] = offspring->clone();
                 }
@@ -740,7 +624,6 @@ bool Population::FISingleFOS(size_t offspringIndex, size_t FOSIndex)
     bool solutionHasChanged = 0;
 
     int ind = FOSInstance->FOSorder[FOSIndex];
-    // vec_t<int> touchedGenes = vec_t<int>(FOSInstance->elementSize(ind));
     bool donorEqualToOffspring = true;
 
     vec_t<int> touchedGenes = vec_t<int>(offspringPopulation->solutions[offspringIndex]->variables.size());
@@ -751,27 +634,22 @@ bool Population::FISingleFOS(size_t offspringIndex, size_t FOSIndex)
     for (size_t j = 0; j < FOSInstance->elementSize(ind); j++)
     {
         int variableFromFOS = FOSInstance->FOSStructure[ind][j];
-        touchedGenes[variableFromFOS] = sharedInformationPointer->elitist->variables[variableFromFOS]; // RUBEN: shouldn't touchedGenes[j] be touchedGenes[variableFromFOS]? -> Made this change myself
+        touchedGenes[variableFromFOS] = sharedInformationPointer->elitist->variables[variableFromFOS];
         if (offspringPopulation->solutions[offspringIndex]->variables[variableFromFOS] != touchedGenes[variableFromFOS]) 
             donorEqualToOffspring = false;
     }
-    // gomea::partial_solution_t<int> *partial_offspring = new gomea::partial_solution_t<int>(touchedGenes, FOSInstance->FOSStructure[ind]);
     solution_mixed *offspring = new solution_mixed(touchedGenes, offspringPopulation->solutions[offspringIndex]->c_variables);
 
     if (!donorEqualToOffspring)
     {
         problemInstance->evaluate(offspring);
-        // problemInstance->evaluatePartialSolution(offspringPopulation[offspringIndex], partial_offspring );
 
-        if (offspring->getObjectiveValue() < offspringPopulation->solutions[offspringIndex]->getObjectiveValue() ) // RUBEN this was assuming maximization (>), changed to assume minimization. TODO: more elegant solution, maybe using optimization_mode of problemInstance
+        if (offspring->getObjectiveValue() < offspringPopulation->solutions[offspringIndex]->getObjectiveValue() ) // NOTE: assuming minimization
         {
             offspringPopulation->solutions[offspringIndex] = offspring;
             updateElitistAndCheckVTR(offspringPopulation->solutions[offspringIndex]);
             solutionHasChanged = true;
         }
-        // else { // TODO: figure out if this should be done; not sure if this would cause issues with the reference to c_variables that shouldn't be deleted
-        //     delete offspring;
-        // }
     }
 
     if (!solutionHasChanged)
@@ -781,62 +659,6 @@ bool Population::FISingleFOS(size_t offspringIndex, size_t FOSIndex)
 
     return solutionHasChanged;
 }
-
-/*void Population::evaluateSolution(solution_mixed *parent, gomea::partial_solution_t<int> *solution ) 
-{
-    checkTimeLimit();
-
-    //cout << "before eval" << solution -> fitness << endl;
-    if (config->usePartialEvaluations && solution != NULL)
-    {
-        problemInstance->calculateFitnessPartialEvaluations(solution, solutionBefore, touchedGenes, fitnessBefore);
-        sharedInformationPointer->numberOfEvaluations += (double)touchedGenes.size() / problemInstance->number_of_variables;
-    }
-    else
-    {
-        problemInstance->calculateFitness(solution);
-        sharedInformationPointer->numberOfEvaluations += 1;
-    }
-
-    updateElitistAndCheckVTR(solution);
-}*/
-
-/*void Population::evaluateSolution(solution_mixed *solution, solution_mixed *solutionBefore, vec_t<int> &touchedGenes, double fitnessBefore)
-{
-    checkTimeLimit();
-
-    // Do the actual evaluation
-    archiveRecord searchResult;
-    
-    if (config->saveEvaluations)
-        sharedInformationPointer->evaluatedSolutions->checkAlreadyEvaluated(solution->variables, &searchResult);
-    
-    if (searchResult.isFound)
-        solution->setObjectiveValue(searchResult.value);
-    else
-    { 
-        //cout << "before eval" << solution -> fitness << endl;
-        if (config->usePartialEvaluations && solutionBefore != NULL)
-        {
-            assert(0);
-            // TODO
-            //problemInstance->evaluatePartialSolution(solution, solutionBefore, touchedGenes, fitnessBefore);
-            sharedInformationPointer->numberOfEvaluations += (double)touchedGenes.size() / problemInstance->number_of_variables;
-        }
-        else
-        {
-            assert(0);
-            // TODO
-            //problemInstance->evaluate(solution);
-            sharedInformationPointer->numberOfEvaluations += 1;
-        }
-
-        if (config->saveEvaluations)
-            sharedInformationPointer->evaluatedSolutions->insertSolution(solution->variables, solution->getObjectiveValue());
-    }
-
-    updateElitistAndCheckVTR(solution);
-}*/
 
 void Population::checkTimeLimit()
 {
@@ -850,13 +672,12 @@ void Population::checkTimeLimit()
 void Population::updateElitistAndCheckVTR(solution_mixed *solution)
 {
     // First update 'local' elitist (of current population) fitness
-        if(!optimizerElitistFitnessInitialized || solution->getObjectiveValue() < optimizerElitistFitness) // ASSUMING MINIMIZATION!
+        if(!optimizerElitistFitnessInitialized || solution->getObjectiveValue() < optimizerElitistFitness) // NOTE: assuming minimization
         {
             optimizerElitistFitness = solution->getObjectiveValue();            
             optimizerElitistFitnessInitialized = true;
         }
     /* Update elitist solution */
-    //if (sharedInformationPointer->firstEvaluationEver || (solution->getObjectiveValue() > sharedInformationPointer->elitist->getObjectiveValue()))
     if (sharedInformationPointer->firstEvaluationEver || problemInstance->betterFitness(solution,sharedInformationPointer->elitist) )
     {
         if(config->printNewElitists || config->useOptimalSolution)
@@ -881,7 +702,7 @@ void Population::updateElitistAndCheckVTR(solution_mixed *solution)
         sharedInformationPointer->optimizerIndex = this->optimizerIndex;
         
         /* Check the VTR */
-        if (problemInstance->use_vtr && solution->getObjectiveValue() <= problemInstance->vtr + 1e-10) // RUBEN: was >=, changed to <= (since I'm assuming minimization, TODO should probably have a robuster solution (based on probleminstance optimization_mode?))
+        if (problemInstance->use_vtr && solution->getObjectiveValue() <= problemInstance->vtr + 1e-10) // NOTE: assuming minimization
         {
             writeStatisticsToFile(config->folder, sharedInformationPointer->elitistSolutionHittingTimeEvaluations, sharedInformationPointer->elitistSolutionHittingTimeMilliseconds, solution, populationSize, true);
             writeElitistSolutionToFile(config->folder, sharedInformationPointer->elitistSolutionHittingTimeEvaluations, sharedInformationPointer->elitistSolutionHittingTimeMilliseconds, solution);
@@ -889,10 +710,6 @@ void Population::updateElitistAndCheckVTR(solution_mixed *solution)
             terminated = true;
             throw utils::customException("vtr");
         }
-    
-        //writeStatisticsToFile(config->folder, sharedInformationPointer->elitistSolutionHittingTimeEvaluations, sharedInformationPointer->elitistSolutionHittingTimeMilliseconds, solution);
-        //if( config->writeElitists )
-			//writeElitistSolutionToFile(config->folder, sharedInformationPointer->elitistSolutionHittingTimeEvaluations, sharedInformationPointer->elitistSolutionHittingTimeMilliseconds, solution);
     }
 
     sharedInformationPointer->firstEvaluationEver = false;
@@ -900,48 +717,23 @@ void Population::updateElitistAndCheckVTR(solution_mixed *solution)
 
 void Population::generateDiscretePopulation(int FOS_index) 
 {
-    // checkForDuplicate("START OF DISCRETE");
     generateSingleOffspring(FOS_index);
-    // checkIndividualSolvedDiscrete();
-    // checkForDuplicate("DISCRETE");
 }
 
-
+// Learning continuous model part from 2014 paper MIHEA.
 void Population::learnContinuousModel()
 {
-    // checkForDuplicate("CONTINUOUS 1");
     iamalgamInstance->learnContinuousModel();
-    // checkForDuplicate("CONTINUOUS 2");
 
     iamalgamInstance->generateAndEvaluateNewSolutionsToFillPopulations();
-    // iamalgamInstance->generateNewPopulation();
     writePopulationToFile(config->folder, population->solutions, "POPULATION After generating CONTINUOUS population ----------------------------------", config->logDebugInformation);
-    // checkForDuplicate("CONTINUOUS 3");
     
     evaluateAllSolutionsInPopulation();
-    // checkForDuplicate("CONTINUOUS 4");
+
     iamalgamInstance->number_of_generations++;
+
     iamalgamInstance->adaptDistributionMultipliersForOnePopulation();
-
-    // // TODO: remove this, temporary test of recloning 
-    // solution_mixed *temp = iamalgamInstance->population[1]->clone();
-    // delete iamalgamInstance->population[1];
-    // iamalgamInstance->population[1] = temp;
-
-    // // solution_mixed *temp2 = offspringPopulation[2]->clone();
-    // // delete offspringPopulation[2];
-    // // offspringPopulation[2] = temp2;
-
-    // solution_mixed *temp3 = iamalgamInstance->population[3]->clone();
-    // delete iamalgamInstance->population[3];
-    // iamalgamInstance->population[3] = temp3;
 }
-
-
-// void Population::generateNewContinuousPopulation()
-// {
-//     iamalgamInstance->generateNewPopulation();
-// }
 
 void Population::checkDiscretePopulationConvergedNotOptimal()
 {
@@ -972,40 +764,6 @@ void Population::checkDiscretePopulationConvergedNotOptimal()
     }
 }
 
-void Population::checkForDuplicate(string message)
-{
-    // cout << setprecision(15);
-    // for(size_t i = 0; i < populationSize; i++)
-    // {
-    //     for(size_t j = i+1; j < populationSize; j++)
-    //     {
-    //         if(population[i]->getObjectiveValue() == population[j]->getObjectiveValue())
-    //         {
-    //             cout << "[" + message + "] Duplicate found: " << population[i]->getObjectiveValue() << ", " << population[j]->getObjectiveValue() << "\t(" << i << "," << j << ")" << endl;
-    //             cout << "[" + message + "] i: \tc_variables: ";
-    //             for(double val : population[i]->c_variables)
-    //                 cout << val << " ";
-    //             cout << "\t variables: ";
-    //             for(int dval : population[i]->variables)
-    //                 cout << dval << " ";
-    //             cout << endl;
-    //             cout << "[" + message + "] j: \tc_variables: ";
-    //             for(double val : population[j]->c_variables)
-    //                 cout << val << " ";
-    //             cout << "\t variables: ";
-    //             for(int dval : population[j]->variables)
-    //                 cout << dval << " ";
-    //             cout << endl;
-    //             // exit(0);
-    //         }
-    //         else if(allContinuousEqual(population[i], population[j]))
-    //         {
-    //             cout << "[ " << message << "] Two solutions with same continuous variables found: " << "(" << i << "," << j << ")\t i: " << population[i]->getObjectiveValue() << ", j: " << population[j]->getObjectiveValue() << endl;
-    //         }
-    //     }
-    // }
-}
-
 bool Population::allContinuousEqual(solution_mixed *a, solution_mixed *b)
 {
     for(size_t i = 0; i < a->c_variables.size(); i++)
@@ -1014,27 +772,6 @@ bool Population::allContinuousEqual(solution_mixed *a, solution_mixed *b)
             return false;
     }
     return true;
-}
-
-void Population::checkIndividualSolvedDiscrete()
-{
-    // for(size_t i = 0; i < populationSize; i++)
-    // {
-    //     bool all_one = true;
-    //     for(size_t j = 0; j < population[i]->variables.size(); j++)
-    //     {
-    //         if(population[i]->variables[j] == '\000')
-    //         {
-    //             all_one = false;
-    //             break;
-    //         }
-    //     }
-    //     if(all_one)
-    //     {
-    //         cout << "Found individual that solved discrete part. i: " << i << ", gen: " << numberOfGenerations << endl;
-    //         exit(0);
-    //     }
-    // }
 }
 
 }}

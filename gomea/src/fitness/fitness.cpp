@@ -46,7 +46,7 @@ bool fitness_t<T>::betterFitness( double objective_value_x, double constraint_va
 {
     bool result = false;
 
-	// RUBEN only focussing on non-constrained problems for now, ignoring constraint values
+	// NOTE: only focussing on non-constrained problems for now, ignoring constraint values
 	if( optimization_mode == MIN && objective_value_x < objective_value_y )
 		result = true;
 	else if( optimization_mode == MAX && objective_value_x > objective_value_y )
@@ -163,19 +163,16 @@ void fitness_t<T>::evaluatePartialSolutionBlackBox( solution_t<T> *parent, parti
 	}
 	double obj_val_backup = parent->getObjectiveValue();
 	double cons_val_backup = parent->getConstraintValue();
-	//std::vector<double> buffer_backup = parent->getFitnessBuffers();
 
 	evaluationFunction( parent );
 
 	// Insert calculated objective and constraint values into partial solution	
 	solution->setObjectiveValue(parent->getObjectiveValue());
 	solution->setConstraintValue(parent->getConstraintValue());
-	//solution->setFitnessBuffers(parent->getFitnessBuffers());
 
 	// Restore parent to original state
 	parent->setObjectiveValue(obj_val_backup);
 	parent->setConstraintValue(cons_val_backup);
-	//parent->setFitnessBuffers(buffer_backup);
 	for( int i = 0; i < solution->getNumberOfTouchedVariables(); i++ )
 		parent->variables[solution->touched_indices[i]] = var_backup[i];
 	delete[] var_backup;
@@ -183,19 +180,6 @@ void fitness_t<T>::evaluatePartialSolutionBlackBox( solution_t<T> *parent, parti
 	utils::addToTimer("eval_time",t);
 }
 
-/*template<class T>
-void fitness_t<T>::evaluatePartialSolution( solution_t<T> *parent, partial_solution_t<T> *solution )
-{
-	std::set<int> dependent_subfunctions;
-	for( int ind : solution->touched_indices )
-	{
-		assert( this->subfunction_dependency_map[ind].size() > 0 );
-		dependent_subfunctions.insert(this->subfunction_dependency_map[ind].begin(), this->subfunction_dependency_map[ind].end());
-	}
-	evaluatePartialSolution( parent, solution, dependent_subfunctions );
-}*/
-
-//void fitness_t<T>::evaluatePartialSolution( solution_t<T> *parent, partial_solution_t<T> *solution, const std::set<int> &dependent_subfunctions )
 template<class T>
 void fitness_t<T>::evaluatePartialSolution( solution_t<T> *parent, partial_solution_t<T> *solution ) 
 {
@@ -247,7 +231,6 @@ void fitness_t<T>::evaluatePartialSolution( solution_t<T> *parent, partial_solut
 	}
 }
 
-//void fitness_t<T>::partialEvaluationFunction( solution_t<T> *parent, partial_solution_t<T> *solution, const std::set<int> &dependent_subfunctions )
 template<class T>
 void fitness_t<T>::partialEvaluationFunction( solution_t<T> *parent, partial_solution_t<T> *solution )
 {
