@@ -41,10 +41,6 @@ fitness_t *Config::getFitnessClassDiscrete( int problem_index, int number_of_var
 {
 	switch(problem_index) 
 	{
-		// case 00: 
-		// return new gomea::fitness::oneMax_t(number_of_variables);
-        // case 10:
-        // return new gomea::fitness::deceptiveTrap_t(number_of_variables, k);
         case 1:
         return new gomea::fitness::oneMaxSphere_t(number_of_variables, numberOfcVariables);
         case 2:
@@ -63,8 +59,6 @@ fitness_t *Config::getFitnessClassDiscrete( int problem_index, int number_of_var
         return new gomea::fitness::DT5BlockNOTRotEllip_t(number_of_variables, numberOfcVariables, a_value);
         case 551:
         return new gomea::fitness::DT5BlockNOTRotEllipWrongExponent_t(number_of_variables, numberOfcVariables, a_value);
-        // case 555:
-        // return new gomea::fitness::DT5BlockRotEllipBBO_t(number_of_variables, numberOfcVariables, a_value);
         case 1000 ... 99999999:
         return new gomea::fitness::BNStructureLearning(numberOfdVariables, numberOfcVariables, problem_index, data, maxParents, maxDiscretizations, transformCVariables);
 		default:
@@ -149,34 +143,40 @@ bool Config::parseCommandLine(int argc, char **argv)
 {
   const struct option longopts[] =
   {
-    {"help",        no_argument,         0, 'h'},    
-    {"guaranteedInitSpread",     no_argument,         0, 'g'},
-    {"analyzeFOS",  no_argument,         0, 'w'},
-    {"writeElitists",no_argument,        0, 'e'},
-    {"saveEvals",   no_argument,         0, 's'},  
-    {"parallelFOSOrder",no_argument,     0, 'X'},  
-    {"fixFOSOrderForPopulation",no_argument, 0, 'Y'},  
-    {"popUpdatesDuringGOM", no_argument, 0, 'Q'},  
-    {"useParallelGOM", required_argument,0, 'p'},
-    {"problem",     required_argument,   0, 'P'},  
-    {"L",           required_argument,   0, 'L'},  
-    {"FOS",         required_argument,   0, 'F'},
-    {"maximumFOSSetSize",required_argument, 0, 'm'},
-    {"maximumNumberOfGenerations", required_argument, 0, 'M'},
-    {"seed",        required_argument,   0, 'S'},
-    {"instance",    required_argument,   0, 'I'},
-    {"vtr",         required_argument,   0, 'V'},
-    {"time",        required_argument,   0, 'T'},
-    {"folder",      required_argument,   0, 'O'},
-    {"basePopulationSize", required_argument,   0, 'n'}, 
-    {"similarityMeasure", required_argument,   0, 'Z'}, 
-    {"useForcedImprovements", required_argument,   0, 'f'}, 
-    {"GPUIndex", required_argument,   0, 'G'}, 
-    {"LowerInit", required_argument,   0, 'a'},
-    {"UpperInit", required_argument,   0, 'b'},
-    {"TransformCVariables", no_argument,   0, 't'},  
-               
-    {0,             0,                   0,  0 }
+    {"guaranteedInitSpread",        no_argument,        0, 'g'},
+    {"maxDiscretizations",          required_argument,  0, 'X'},  
+    {"extraCVarForNumberOfBins",    no_argument,        0, 'Y'},  
+    {"popUpdatesDuringGOM",         no_argument,        0, 'Q'}, 
+    {"analyzeFOS",                  no_argument,        0, 'w'},
+    {"writeElitists",               no_argument,        0, 'e'},
+    {"printNewElitists",            no_argument,        0, 'e'},
+    {"dontUseOffspringPopulation",  no_argument,        0, 'k'},
+    {"saveEvaluations",             no_argument,        0, 's'}, 
+    {"printHelp",                   no_argument,        0, 'h'},
+    {"lower_user_range",            required_argument,  0, 'a'},
+    {"upper_user_range",            required_argument,  0, 'b'},
+    {"forceNBoundariesUsed",        no_argument,        0, 'f'},
+    {"runIndex",                    required_argument,  0, 'r'},
+    {"basePopulationSize",          required_argument,  0, 'n'},
+    {"maximumNumberOfGAMBITs",      required_argument,  0, 'N'},
+    {"ProblemIndex",                required_argument,  0, 'P'},
+    {"useParallelGOM",              required_argument,  0, 'p'},
+    {"FOSIndex/linkage_config",     required_argument,  0, 'F'},
+    {"methodInitParams",            required_argument,  0, 'm'},
+    {"maximumNumberOfGenerations",  required_argument,  0, 'M'},
+    {"useNormalizedCVars",          no_argument,        0, 'u'},
+    {"logDebugInformation",         no_argument,        0, 'l'},
+    {"numberOfVariables",           required_argument,  0, 'L'},
+    {"useOptimalSolution",          no_argument,        0, 'o'},
+    {"outputFolder",                      required_argument,  0, 'O'},
+    {"transformCVariables",         no_argument,        0, 't'},
+    {"maximumNumberOfSeconds",      required_argument,  0, 'T'},
+    {"vtr",                         required_argument,  0, 'V'},
+    {"seed",                        required_argument,  0, 'S'},
+    {"instance",                    required_argument,  0, 'I'},
+    {"LTsimilarityMeasure",           required_argument,  0, 'Z'},
+    {"GPUIndex",                    required_argument,  0, 'G'},
+    {0,                             0,                  0,  0 }
   };
 
 
@@ -222,7 +222,6 @@ bool Config::parseCommandLine(int argc, char **argv)
             upper_user_range = atof(optarg);
             break;
         case 'f':
-            // useForcedImprovements = atoi(optarg);
             forceNBoundariesUsed = true;
             break;
         case 'r':
@@ -290,7 +289,6 @@ bool Config::parseCommandLine(int argc, char **argv)
             break;
         }
         case 'm':
-            // maximumFOSSetSize = atoi(optarg);
             setMethodInitParams(atoi(optarg));
             break;
         case 'M':
@@ -410,33 +408,53 @@ bool Config::parseCommandLine(int argc, char **argv)
 void Config::printUsage()
 {
   cout << "  -h: Prints out this usage information.\n";
-  cout << "  --partial: Whether to use partial evaluations. Default: no\n";
-  cout << "  --analyzeFOS: Whether to write FOS statistics to file. Default: no\n";
-  cout << "  --writeElitists: Whether to write the genotype of the elitist solution to a file each time it is updated. Default: no\n";
-  cout << "  --saveEvals: Whether to cache evaluations. Default: no.\n";
-  cout << endl;
-  cout << "  --problem: Index of optimization problem to be solved (maximization). Default: 0 (oneMax)\n";
+  cout << "  -P: Index of optimization problem to be solved (minimization). Default: 0 (oneMax)\n";
 
   cout << "  List of available problems:\n";
-  cout << "    0: OneMax\n";
-  cout << "    1: Concatenated Deceptive Trap, specify k and s by writing 1_k_s\n";
-  cout << "    2: ADF, specify k and s by writing 2_k_s\n";
-  cout << "    3: MaxCut\n";
-  cout << "    4: Hierarhical If-And-Only-If\n";
-  cout << "    5: Leading Ones\n";        
-  cout << "    6: Hierarhical Deceptive Trap-3\n";
-  cout << "    7: Concatenated Bimodal Deceptive Trap, specify k and s by writing 7_k_s\n";
+  cout << "    1: OneMax - Sphere (F1)\n";
+  cout << "    2: OneMax - Rotated Ellipsoid (F2)\n";
+  cout << "    3: Deceptive Trap 5 - Sphere (F3)\n";
+  cout << "    4: Deceptive Trap 5 - Rotated Ellipsoid (F4)\n";
+  cout << "    5: Blockwise Deceptive Trap 5 - Rotated Ellipsoid (F5) \n";
+  cout << "    50: Blockwise Deceptive Trap 5 - Rotated Ellipsoid, but centers at 0 (essentially same as F4)\n";        
+  cout << "    51: Blockwise Deceptive Trap 5 - Rotated Ellipsoid, different exponent\n";        
+  cout << "    55: Blockwise Deceptive Trap 5 - UNROTATED Ellipsoid\n";        
+  cout << "    551: Blockwise Deceptive Trap 5 - UNROTATED Ellipsoid, different exponent\n";        
+  cout << "    1000 - 99999999: Bayesian Network structure learning\n";        
   cout << endl;
   
-  cout << "  -L: Number of variables. Default: 10\n";
-  cout << "  -F: FOS type, 0 - Univariate, 1 - MPM, 2 - Linkage Tree. Default: Linkage Tree\n";    
+  cout << "  -g: Use guaranteed initialization spread (BNs)\n";
+  cout << "  -X: Maximum number of discretizations for continuous variables (BNs). Default: 9\n";
+  cout << "  -Y: Use an extra continuous variable per continuous node to indicate the number of bins (BNs)\n";
+  cout << "  -Q: Use population updates during GOM\n";
+  cout << "  -w: Write FOS to file\n";
+  cout << "  -e: Write elitists to file\n";
+  cout << "  -E: Print new elitists to console during optimization\n";
+  cout << "  -k: Don't use offspring population: Krzysztofs version based on pseudocode in 2014 paper\n";
+  cout << "  -s: Save all evaluations\n";
+  cout << "  -a: Input lower user range for initialization of continuous variables. Default: 0\n";
+  cout << "  -b: Input upper user range for initialization of continuous variables. Default: 1\n";
+  cout << "  -f: If -Y is passed, force the amount of boundaries used to be exactly equal to value of extra parameter\n";
+  cout << "  -r: Run index. Default: 0\n";
+  cout << "  -n: Base population size. Default: 100\n";
+  cout << "  -N: Maximum number of simultaneous optimizers for IMS. Default: 10\n";
+  cout << "  -P: Problem index. Default: 0\n";
+  cout << "  -p: Use parallel GOM. Default: 0\n";
+  cout << "  -F: FOS type, 0 - Univariate, 1 - MPM, 2 - Linkage Tree. Default: 2\n";
+  cout << "  -m: shortcut for setting method init params, 0 - Method 1, init 1, 1 - Method 1, init 2, 2 - Method 1, init 3, 3 - Method 2, init 1, 4 - Method 2, init 2, 5 - Method 2, init 3, 6 - Method 3, init 1, 7 - Method 3, init 2, 8 - Method 3, init 3. Default: 0\n";
+  cout << "  -M: Maximum number of generations. Default: -1\n";
+  cout << "  -u: Use normalized continuous variables\n";
+  cout << "  -l: Log some debug information\n";
+  cout << "  -L: Number of variables. Pass 1 value for equal discrete and continuous variables, 2 (separated by '_') for discrete and continuous different (in that order). Default: 10\n";
+  cout << "  -o: Use optimal solution: all solutions will be set to optimal solution, and code will thus converge soon after evaluating. (BNs)\n";
+  cout << "  -O: Output folder. Default: \"output\"\n";
+  cout << "  -t: Transform continuous variables from [0, 1] to [1, inf) domain.\n";
+  cout << "  -T: Maximum number of seconds to run. Default: -1\n";
+  cout << "  -V: Value to reach. Default: not set\n";
+  cout << "  -S: Random seed. Default: Random timestamp\n";
+  cout << "  -I: Path to problem instance (where data for BNs can be found). Default: \"\"\n";
   cout << "  -Z: Similarity Measure to build Linkage Tree, 0 - Mutual Information, 1 - Normalized Mutual Information, 2 - Problem specific. Default: Mutual Information\n";      
-  cout << "  -O: Output folder. Default: \"test\"\n";
-  cout << "  -M: maximumNumberOfGenerations. Default: -1\n";
-  cout << "  --instance: Path to problem instance. Default: \"\"\n";
-  cout << "  -V: Value to reach. Default: problem dependent\n";  
-  cout << "  --time: time limit for run in seconds. Default: 1\n";
-  cout << "  --seed: Random seed. Default: Random timestamp\n";  
+  cout << "  -G: NOT USED: GPU index to use for parallel GOM. Default: 0\n";
 }
 
 void Config::printOverview()

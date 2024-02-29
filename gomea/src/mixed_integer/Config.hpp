@@ -66,12 +66,10 @@ public:
 	int GPUIndex = -1;
 	int maximumFOSSetSize = -1;
 
-    string folder = "output"; //"discrete_gomea_output"; // RUBEN changed from "discrete_gomea_output" to "output" 
-    //string problemName,
+    string folder = "output";
     string FOSName;
     string problemInstancePath = "";
 
-    //long long timelimitMilliseconds = -1,
     bool fix_seed = false;
     long long randomSeed = 0;
 
@@ -86,7 +84,7 @@ public:
     
     size_t alphabetSize = 2;
     size_t maxArchiveSize = 1000000;
-    int maximumNumberOfGOMEAs   = 10, // RUBEN was 100
+    int maximumNumberOfGOMEAs   = 10,
         maximumNumberOfGAMBITs  = 10, 
         IMSsubgenerationFactor = 4,
         basePopulationSize     = 2,
