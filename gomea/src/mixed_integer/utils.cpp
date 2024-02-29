@@ -9,9 +9,6 @@ void prepareFolder(string &folder)
     {
 		filesystem::create_directories(folder);
     }
-    // TODO Ruben: temporarily removing the creation of these folders, since I don't use them currently.
-	// filesystem::create_directories(folder + "/fos");
-	// filesystem::create_directories(folder + "/output");
 }
 
 void initStatisticsFile(string &folder, bool useBN)
@@ -293,42 +290,6 @@ bool allBuildingBlocksStillExist(vec_t<solution_mixed*> population, int k)
         return false;
     }
     return true;
-    // set<int> blocks;
-    // for(int i = 0; i < population[0]->getNumberOfVariables() / k; i++)
-    // {
-    //     blocks.insert(i);
-    // }
-
-    // for(size_t i = 0; i < population.size(); i++)
-    // {
-    //     if(blocks.size() == 0)
-    //     {
-    //         return true;
-    //     }
-    //     vec_t<int> blocks_to_remove;
-    //     for(int block : blocks)
-    //     {
-    //         bool is_opt_block = true;
-    //         for(int j = block*k; j < (block+1)*k; j++)
-    //         {
-    //             if(population[i]->variables[j] == '\000')
-    //             {
-    //                 is_opt_block = false;
-    //                 break;
-    //             }
-    //         }
-    //         if(is_opt_block)
-    //         {
-    //             blocks_to_remove.push_back(block);
-    //         }
-    //     }
-    //     for(int block : blocks_to_remove)
-    //     {
-    //         blocks.erase(block);
-    //     }
-    // }
-
-    // return blocks.size() == 0;
 }
 
 string countBuildingBlocks(vec_t<solution_mixed*> population, int k)
@@ -458,11 +419,6 @@ void solutionsArchive::checkAlreadyEvaluated(vector<int> &genotype, archiveRecor
 
 void solutionsArchive::insertSolution(vector<int> &genotype, double fitness)
 {
-    // #if DEBUG
-    //  cout << "Inserting solution ";
-    //  for (size_t i = 0; i < solution.size(); ++i)
-    //      cout << solution[i];
-    // #endif
     if (archive.size() >= maxArchiveSize)
         return;
     archive.insert(pair<vector<int>, double> (genotype, fitness));
@@ -635,8 +591,8 @@ void writeParametersFile(string &folder, Config *config, const Density *fitnessF
     text += "Algorithm:pGAMBIT, ";
     text += "OptimizationType:SO, ";
     text += "Model:Linkage Tree - No Local Search, ";
-    text += "DiscretizationPolicy:" + config->optimizerName + ", "; // TODO placeholder, maybe extract this from config
-    text += "ProblemIndex:" + to_string(config->problemIndex) + ", "; // TODO if other problemindices are used, change this
+    text += "DiscretizationPolicy:" + config->optimizerName + ", ";
+    text += "ProblemIndex:" + to_string(config->problemIndex) + ", ";
     text += "ProblemName:BNStructureLearning, ";
     text += "FitnessFunction:Density, ";
     text += "PartialEvaluations:" + to_string(false) + ", ";
@@ -823,35 +779,9 @@ void write_single_solution_to_multi_start_scheme_solutions(string &folder, const
 }
 
 
-/////////////////////////////
-/// Statistical Functions ///
-/////////////////////////////
-// /**
-//  * Calculates the average best solution fitness
-//  * @return The average fitness over all elitist solutions
-//  */
-// double getAverageElitistFitness() {
-//     double sum_fitness = 0.0;
-//     for (const auto &optimizer : this->optimizers) {
-//         sum_fitness += optimizer->getElitistSolution()->getFitness();
-//     }
-
-//     return sum_fitness / (double) this->optimizers.size();
-// }
-
 ///////////////////////
 /// Other functions ///
 ///////////////////////
-// /**
-//  * Determines the current run time
-//  * @return The run time
-//  */
-// double determineRunTime() {
-//     // Determine time that has passed
-//     clock_t currentTime = clock();
-//     double result = double(currentTime - this->startingRunTime) / CLOCKS_PER_SEC;
-//     return result;
-// }
 
 /**
  * Converts a network to a string

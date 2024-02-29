@@ -3,7 +3,6 @@
 #include <vector>
 using namespace std;
 
-// #include "gomea/src/mixed_integer/gomeaIMS.hpp"
 #include "gomea/src/mixed_integer/config.hpp"
 #include "gomea/src/mixed_integer/iamalgam.hpp"
 #include "gomea/src/mixed_integer/Config.hpp"
@@ -20,8 +19,6 @@ namespace mixedinteger{
 class simpleGAMBIT
 {
     public:
-    // gomeaIMS *gomeaIMSInstance;
-    // iamalgam *iamalgamInstance;
     Config *config;
     vector<Population*> GAMBITs;
     sharedInformation *sharedInformationInstance = NULL;
@@ -39,7 +36,6 @@ class simpleGAMBIT
 
     time_t start_time;
     clock_t clock_start_time;
-    // output_statistics_t output;
 
     fitness_t *problemInstance = NULL;
 

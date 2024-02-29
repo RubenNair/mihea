@@ -13,7 +13,6 @@
 
 #include "gomea/src/utils/data_structure.h"
 #include "gomea/src/utils/data_matrix.h"
-// #include "../../../Continuous_Bayesian_Network_GOMEA/include/Random.h"
 
 using namespace std;
 

@@ -2,7 +2,6 @@
 
 #include "gomea/src/common/gomea_defs.hpp"
 #include "gomea/src/common/partial_solution.hpp"
-// #include "gomea/src/mixed_integer/Config.hpp"
 #include "gomea/src/common/solution_mixed.hpp"
 #include "gomea/src/utils/data_structure.h"
 #include "gomea/src/common/gomea_defs.hpp"
@@ -43,15 +42,12 @@ struct NetworkStructure {
 class solution_BN : public solution_mixed
 {
 	public:
-	// `variables` contains the discrete part of the solution: e.g.: [A_12, A13, A14, ..., A23, A24, ..., A34, ..., | D0, D1, ...]
-										// RUBEN -> instead of D0, D1, ... we store the bin width (normalized) for each node (in other variable, `c_variables`). Requires knowing max number of discretizations per node.
-    // solution_BN( int number_of_variables_, size_t alphabetSize_, int number_of_c_variables_ );
-    // solution_BN (vec_t<int> &variables, vec_t<double> &c_variables);
+	// `variables` contains the discrete part of the solution: e.g.: [A_12, A13, A14, ..., A23, A24, ..., A34, ..., | D0, D1, ...]*
+										// *instead of D0, D1, ... we store the bin width for each node (in other variable, `c_variables`). Requires knowing max number of discretizations per node.
     solution_BN( size_t numberOfVariables_, size_t alphabetSize_, size_t numberOfCVariables_, fitness_t<int> *problemInstance_ );
     solution_BN( size_t numberOfVariables_, 
                  size_t alphabetSize_, 
                  size_t numberOfCVariables_, 
-                //  vec_t<int> &unprocessedParameters,
                  vec_t<ColumnDataType> node_data_types,
                  const vec_t<size_t> &initialNumberOfInstantiations,
                  int discretizationPolicyIndex,
@@ -169,19 +165,6 @@ class solution_BN : public solution_mixed
     void setDiscretizationPolicy(const shared_ptr<DiscretizationPolicy> &discretizationPolicy);
 
     // Constructor for cloning (If you add something here make sure you're not just copying pointers).
-    /*solution_BN(vec_t<int> &variables, vec_t<double> fitness_buffers, vec_t<double> objective_values, double constraint_value, 
-                size_t alphabetSize, vec_t<double> &c_variables, fitness_t<int> *problemInstance,
-                const vec_t<ColumnDataType> &nodeDataTypes, int numberOfNodes,
-                size_t numberOfLinks, size_t numberOfNodesToDiscretize, int maximumNumberOfParents, double fitness,
-                double constraintValue,
-                size_t numberOfFullEvaluations, double numberOfEvaluations,
-                const vec_t<size_t> &numberOfParents, const vec_t<size_t> &numberOfChildren,
-                const vec_t<vec_t<int>> &childMatrix, const vec_t<vec_t<int>> &parentMatrix,
-                const vec_t<vec_t<int>> &adjacencyMatrix, const vec_t<vec_t<vec_t<size_t>>> &spouse_matrix,
-                const vec_t<size_t> &numberOfDiscretizationsperNode,
-                shared_ptr<DiscretizationPolicy> &discretizationPolicy,
-                vec_t<vec_t<double>> boundaries,
-                vec_t<double> maxValuesData, vec_t<double> minValuesData);*/
     solution_BN( const solution_BN &other );
 
 protected:
@@ -248,7 +231,7 @@ protected:
              vector<int> &preprocessedParameters);                                      // Does a depth first search to detect cycles
     void removeEdge(int currentNodeIndex, int u, vector<int> &preprocessedParameters);  // Removes edges that cause a cycle in the graph
 
-	// Discretization // RUBEN -> TODO: figure out how to make this work with my discretization policy / representation
+	// Discretization
     vec_t<size_t> numberOfDiscretizationsperNode;                       // The number of discretizations per node
     shared_ptr<DiscretizationPolicy> discretizationPolicy;              // The discretization policy
     vec_t<vec_t<double>> boundaries;                                    // Stores the boundaries of the discretization (per node) TODO RUBEN: Make sure this is updated if continuous variables are updated.
@@ -263,94 +246,6 @@ protected:
     int runIndex;                                                       
     
 
-
-// {
-// 	for (int i = 0; i < getNumberOfCVariables(); ++i)
-// 	{
-// 		cVariables[i] = problemInstance->getLowerRangeBound(i) + ((*rng)() / (double)(*rng).max()) * (problemInstance->getUpperRangeBound(i) - problemInstance->getLowerRangeBound(i));
-// 	}
-// }
-
-	
-	// 	solution_t( int number_of_variables );
-	// 	solution_t( vec_t<char> &variables );
-	// 	solution_t( size_t numberOfVariables_, size_t alphabetSize_ );
-	// 	solution_t(size_t numberOfDVariables_, size_t numberOfCVariables_, size_t alphabetSize_, fitness_t<xhar> *problemInstance_);
-	// 	// TODO RUBEN: need a solution_t initializer for continuous; will need to pass 
-
-	// 	bool operator==(const solution_t<T> &solutionB)
-	// 	{
-	// 		for (int i = 0; i < getNumberOfVariables(); ++i)
-	// 		{
-	// 			if (this->variables[i] != solutionB.variables[i])
-	// 				return false;
-	// 		}
-	// 		return true;
-	// 	}
-
-	// 	friend std::ostream &operator<<(std::ostream &out, const solution_t<T> &solution)
-	// 	{
-	// 		for (int i = 0; i < solution.getNumberOfVariables(); ++i)
-	// 			out << +solution.variables[i];
-	// 		out << " | " << solution.getObjectiveValue();
-	// 		return out;
-	// 	}
-		
-	// 	void randomInit(std::mt19937 *rng);
-
-	// 	void initMemory(int number_of_objectives, int number_of_fitness_buffers);
-	// 	void initObjectiveValues(int number_of_objectives);
-	// 	void initFitnessBuffers(int number_of_fitness_buffers);
-
-	// 	int getNumberOfVariables() const;
-	// 	int getNumberOfDVariables() const;
-	// 	int getNumberOfCVariables() const;
-	// 	int getNumberOfObjectives() const;
-	// 	double getObjectiveValue( int objective_value_index = 0 ) const;
-	// 	const vec_t<double> getObjectiveValues() const;
-	// 	double getPartialObjectiveValue( int subfunction_index ) const;
-	// 	double getConstraintValue() const;
-	// 	double getPartialConstraintValue( int subfunction_index ) const;
-
-	// 	void setObjectiveValue( double v );
-	// 	void setObjectiveValue( int objective_value_index, double v );
-	// 	void setObjectiveValues( const vec_t<double> &v );
-	// 	void setConstraintValue( double v );
-	// 	void setPartialObjectiveValue( int subfunction_index, double v );
-	// 	void setPartialConstraintValue( int subfunction_index, double v );
-
-	// 	double getFitnessBuffer( int buffer_index ) const;
-	// 	const vec_t<double> getFitnessBuffers() const;
-	// 	void addToFitnessBuffer( int buffer_index, double partial_fitness );
-	// 	void subtractFromFitnessBuffer( int buffer_index, double partial_fitness );
-	// 	void setFitnessBuffers( const vec_t<double> &buffers );
-	// 	void clearFitnessBuffers();
-
-	// 	partial_solution_t<T> getPartialCopy( const vec_t<int> &variable_indices ) const;
-	// 	const vec_t<T> getCopyOfVariables( const vec_t<int> &variable_indices = vec_t<int>()) const;
-	// 	void insertVariables( const vec_t<T> &vars_to_insert );
-	// 	void insertVariables(vec_t<T> vars_to_insert, vec_t<int> indices_to_insert);
-	// 	void insertSolution( solution_t<T> *solution );
-	// 	void insertPartialSolution( partial_solution_t<T> *solution );
-
-	// 	void print();
-
-	// 	size_t getAlphabetSize();
-		
-	// 	vec_t<T> variables;
-	// 	vec_t<double> fitness_buffers;
-	// 	vec_t<T> dVariables;
-	// 	bool is_MI_solution = false;
-	// 	fitness_t *problemInstance;
-
-	// private:
-	// 	vec_t<double> objective_values;
-	// 	double constraint_value;
-		
-	// 	vec_t<double> partial_objective_values;
-	// 	vec_t<double> partial_constraint_values;
-
-	// 	size_t alphabetSize = 0;
 };
 
 }

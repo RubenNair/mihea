@@ -11,8 +11,6 @@ namespace mixedinteger{
 
 simpleGAMBIT::simpleGAMBIT()
 {
-    // gomeaIMSInstance = new gomeaIMS();
-    // iamalgamInstance = new iamalgam();
     return;
 }
 
@@ -32,7 +30,6 @@ simpleGAMBIT::simpleGAMBIT(Config *config_): config(config_)
     {   
         utils::initializeRandomNumberGenerator();
     }
-    // iamalgamInstance = new iamalgam(config);
 }
 
 simpleGAMBIT::~simpleGAMBIT()
@@ -40,23 +37,16 @@ simpleGAMBIT::~simpleGAMBIT()
 
 void simpleGAMBIT::initialize()
 {
-    cout << "[DEBUGGING] We are here now (simpleGAMBIT::initialize)" << endl;
     utils::initStartTime();
     clock_start_time = clock();
     utils::clearTimers();
-    // output = output_statistics_t();
 
-    // if( config->AnalyzeFOS )
-    // {
     prepareFolder(config->folder);
-    // }
-
-    // gomeaIMSInstance = new gomeaIMS(config);
-    // iamalgamInstance = new iamalgam(config);
     initElitistFile(config->folder);
     initStatisticsFile(config->folder, config->useBN);
     initialize_multi_start_scheme_statistics_file(config->folder);
     initialize_multi_start_scheme_solutions_file(config->folder);
+
     if(config->logDebugInformation)
     {
         initLogFile(config->folder);
@@ -65,9 +55,6 @@ void simpleGAMBIT::initialize()
     {
         initBoundaryStatsFile(config->folder);
     }
-
-    // gomeaIMSInstance->initialize();
-    // iamalgamInstance->initialize();
 
     sharedInformationInstance = new sharedInformation(config->maxArchiveSize);
 
@@ -130,10 +117,7 @@ void simpleGAMBIT::run()
 	ezilaitini();
 }
 
-/**
- * Copied from gomea/src/mixed_integer/gomeaIMS.cpp, but seems to be unused. 
- * Instead, the overload (runGeneration(int GAMBITIndex)) method seems to be used.
-*/
+
 void simpleGAMBIT::runGeneration()
 {
 	if( !isInitialized )
@@ -165,19 +149,14 @@ void simpleGAMBIT::runGeneration()
 	catch( utils::customException const& )
 	{
 		hasTerminated = true;
-		// writeStatistics( currentGOMEAIndex );
 		ezilaitini();
 	}
 }
 
-// IMS version of running integrated algorithm: performs one generation for a GAMBIT instance.
-// Most of old run() functionality is moved here.
+
 void simpleGAMBIT::runGeneration(int GAMBITIndex)
 {
-    // TODO: move currently used run() functionality here (everything inside the while loop)
     Population *currGAMBIT = GAMBITs[GAMBITIndex];
-    // writePopulationToFile(config->folder, currGAMBIT->population->solutions, "initial population --------", config->logDebugInformation);
-    // writeMessageToLogFile(config->folder, countBuildingBlocks(currGAMBIT->population->solutions, 5), config->logDebugInformation);
 
     std::streamsize ss = std::cout.precision();
     cout << "[DEBUGGING] GEN: " << gen++ << "\t(probInst) Elitist Fitness: " << fixed << setprecision(7) << currGAMBIT->problemInstance->elitist_objective_value << setprecision(ss) << "\t(sharedInfoPointer) Elitist Fitness: " << currGAMBIT->sharedInformationPointer->elitistFitness  << "\tcurrGAMBIT popsize: " << currGAMBIT->populationSize << "\telitist discrete variables: ";
@@ -206,6 +185,7 @@ void simpleGAMBIT::runGeneration(int GAMBITIndex)
         }
     }
     cout << setprecision(ss) << endl;
+
     // Learn discrete model
     if(config->numberOfVariables > 0)
     {
@@ -214,17 +194,14 @@ void simpleGAMBIT::runGeneration(int GAMBITIndex)
         // Loop over discrete FOS elements
         currGAMBIT->determineFOSOrder();
     }
+    
     currGAMBIT->copyPopulationToOffspring();
 
     if(config->numberOfVariables > 0)
     {
         for(size_t i = 0; i < currGAMBIT->FOSInstance->size(); ++i)
         {
-            // writeMessageToLogFile(config->folder, "####### [GEN " + to_string(gen) + "] FOS element " + to_string(i) + " of " + to_string(currGAMBIT->FOSInstance->size()) +  " -> FOS_index " + to_string(currGAMBIT->FOSInstance->FOSorder[i]) + " #######", config->logDebugInformation);
-            
-            // Learn continuous model
-            //  Also generates new (continuous part of) population, evaluates all solutions and adapts distribution multipliers
-            //  Basically does what "makePopulations()" does in iAMaLGaM C code.
+            // Learn continuous model here if there are both discrete and continuous variables.
             if(config->numberOfcVariables > 0) 
             {
                 currGAMBIT->learnContinuousModel();
@@ -235,12 +212,10 @@ void simpleGAMBIT::runGeneration(int GAMBITIndex)
                 currGAMBIT->copyPopulationToOffspring();
             
             currGAMBIT->generateDiscretePopulation(i); // Generate discrete part of new population. Here, Single refers to a single FOS element, not single solution.
-            
-            // writePopulationToFile(config->folder, currGAMBIT->offspringPopulation->solutions, "OFFSPRING POPULATION After generating DISCRETE population ----------------------------------", config->logDebugInformation);
-            // writeMessageToLogFile(config->folder, "\n" + countBuildingBlocks(currGAMBIT->offspringPopulation->solutions, 5) + "\n", config->logDebugInformation);
         }
     } else if(config->numberOfcVariables > 0) 
     {
+        // If there are no discrete variables, but continuous variables, learn continuous model here.
         currGAMBIT->learnContinuousModel();
     }
     // update new population to previous offspringpopulation
@@ -250,7 +225,7 @@ void simpleGAMBIT::runGeneration(int GAMBITIndex)
     currGAMBIT->calculateAverageFitness();
     
     // check if improvement of elitist is found. If so, write elitist statistics to file.
-    if(!prevGenElitistInitialized || currGAMBIT->sharedInformationPointer->elitistFitness < prevGenElitistFitness) // ASSUMING MINIMIZATION
+    if(!prevGenElitistInitialized || currGAMBIT->sharedInformationPointer->elitistFitness < prevGenElitistFitness) // NOTE: assuming minimization
     {
         prevGenElitistFitness = currGAMBIT->sharedInformationPointer->elitistFitness;
         write_multi_start_scheme_statistics(config->folder, sharedInformationInstance->elitist, sharedInformationInstance->optimizerIndex, config->optimizerName, numberOfGenerationsGAMBIT, clock_start_time, getAverageElitistFitness(), config->data->getColumnType());
@@ -315,16 +290,11 @@ void simpleGAMBIT::initializeNewGAMBIT()
     if (numberOfGAMBITs == 0)
     {
         newPopulation = new Population(config, problemInstance, sharedInformationInstance, numberOfGAMBITs, basePopulationSize, numberOfGAMBITs, config->optimizerName);
-        // cout << "Initial population:" << endl;
-        // printPopulation(newPopulation->population);
-
     }
     else
-        newPopulation = new Population(config, problemInstance, sharedInformationInstance, numberOfGAMBITs, 2 * GAMBITs[numberOfGAMBITs-1]->populationSize, numberOfGAMBITs, config->optimizerName, GAMBITs[0]->FOSInstance ); // Removed population increase, since that complicates things for iAMaLGaM. TODO check if it is easy/useful to include.
+        newPopulation = new Population(config, problemInstance, sharedInformationInstance, numberOfGAMBITs, 2 * GAMBITs[numberOfGAMBITs-1]->populationSize, numberOfGAMBITs, config->optimizerName, GAMBITs[0]->FOSInstance );
     
     GAMBITs.push_back(newPopulation);
-    // // NOT IN GAMBIT: update iamalgam population with initial population
-    // iamalgamInstance->updatePopulation(numberOfGAMBITs, newPopulation);
     
     numberOfGAMBITs++;
 }
@@ -382,11 +352,6 @@ void simpleGAMBIT::FindCurrentGAMBIT()
 		if(!GAMBITs[currentGAMBITIndex]->terminated)
 			GAMBITs[currentGAMBITIndex]->terminated = checkTerminationGAMBIT(currentGAMBITIndex);
 		
-		// if(!GAMBITs[currentGAMBITIndex]->terminated)
-			// runGeneration( currentGAMBITIndex );
-
-		// if( GAMBITs[currentGAMBITIndex]->numberOfGenerations % iamalgamSubgenerationFactor == 0 )
-		// 	currentGOMEAIndex++;
 		else
         {
             // The next GAMBIT should be chosen (with larger population size), first make sure it exists.
@@ -400,7 +365,6 @@ void simpleGAMBIT::FindCurrentGAMBIT()
     {
         cout << "VTR has been hit, terminating the program. (VTR exception has been caught)" << endl;
         hasTerminated = true;
-        // writeStatistics( currentGAMBITIndex );
         ezilaitini();
     }
 }
@@ -420,8 +384,8 @@ bool simpleGAMBIT::checkTerminationGAMBIT(int GAMBITIndex)
 	if( numberOfGAMBITs > 1 )
 	{
 		for (int i = GAMBITIndex+1; i < numberOfGAMBITs; i++)
-		{        
-			if (GAMBITs[i]->averageFitness < GAMBITs[GAMBITIndex]->averageFitness) // ASSUMING MINIMIZATION!
+		{
+			if (GAMBITs[i]->averageFitness < GAMBITs[GAMBITIndex]->averageFitness) // NOTE: assuming minimization
 			{
 				minimumGAMBITIndex = GAMBITIndex+1;
 				return true;

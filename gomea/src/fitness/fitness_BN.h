@@ -17,7 +17,6 @@
 
 #include "gomea/src/common/solution_BN.hpp"
 #include "gomea/src/common/gomea_defs.hpp"
-// #include "../../../Continuous_Bayesian_Network_GOMEA/include/util.h"
 
 using namespace std;
 
@@ -25,15 +24,6 @@ namespace gomea {
 
 class Fitness_BN {
 public:
-    // Constructor for non data dependent problems
-//    Fitness_BN(int problem_index,
-//            string fitness_function_name,
-//            size_t number_of_nodes,
-//            size_t number_of_links,
-//            size_t number_of_nodes_to_discretize,
-//            size_t maximum_number_of_parents,
-//            size_t max_number_of_discretizations);
-
     // Constructor for data dependent problems
     Fitness_BN(int problem_index,
             string fitness_function_name,
@@ -218,20 +208,6 @@ protected:
     /// Fitness function
     // Implementation specific fitness computation
     virtual tuple<double, vector<double>, double> computeFitnessValue(solution_BN &solution);
-    // // Implementation specific partial fitness computation
-    // virtual tuple<double, vector<double>, double> computePartialFitnessValue(solution_BN &solution, vector<size_t> &nodesToUpdate, vector<size_t> &nodesToRediscretize);
-
-    // /// Partial evaluation functions
-    // // Computes the node indices which have changed their (parent) topology
-    // virtual void computeNodesThatHaveChangedTopology(solution_BN &solution, vector<size_t> &result);
-    // // Computes the nodes that have changed the number of discretizations
-    // void computeNodesThatHaveChangedDiscretization(solution_BN &solution,
-    //                                                vector<size_t> &resultNodesToUpdate,
-    //                                                vector<size_t> &resultNodesToRediscretize);
-    // // Saves the partial evaluation variables of the previous solution (in case the variables are reset)
-    // virtual void savePartialEvaluationVariablesOfPreviousSolution(vector<size_t> &nodesToUpdate, vector<size_t> &nodesToRediscretize);
-    // // Resets the partial evaluation variables to the previous solution's variables
-    // virtual void resetPartialEvaluationVariablesToPreviousSolution(vector<size_t> &nodesToUpdate, vector<size_t> &nodesToRediscretize);
 
 
     // Discretize data

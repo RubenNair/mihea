@@ -14,13 +14,10 @@ namespace gomea{
 
 
 
-// solution_BN::solution_BN( int number_of_variables_, size_t alphabetSize_, int number_of_c_variables_ ) : solution_t(number_of_variables_, alphabetSize_), c_variables(vec_t<double>(number_of_c_variables_)) {}
 
-// solution_BN::solution_BN( vec_t<int> &variables, vec_t<double> &c_variables ) : solution_mixed(variables), c_variables(vec_t<double>(c_variables)) {}
 
 solution_BN::solution_BN( size_t numberOfVariables_, size_t alphabetSize_, size_t numberOfCVariables_, fitness_t<int> *problemInstance_ ) : solution_mixed(numberOfVariables_, alphabetSize_, numberOfCVariables_)
 {
-	// solution_t(numberOfVariables_, alphabetSize_);
     fill(c_variables.begin(), c_variables.end(), 0);
     this->problemInstance = problemInstance_;
 }
@@ -29,7 +26,6 @@ solution_BN::solution_BN( size_t numberOfVariables_, size_t alphabetSize_, size_
 solution_BN::solution_BN(size_t numberOfVariables_, 
                          size_t alphabetSize_, 
                          size_t numberOfCVariables_,
-                        //  vec_t<int> &unprocessedParameters,
                          vec_t<ColumnDataType> node_data_types,
                          const vec_t<size_t> &initialNumberOfInstantiations,
                          int discretizationPolicyIndex,
@@ -83,8 +79,6 @@ solution_BN::solution_BN(size_t numberOfVariables_,
     this->fitness = numeric_limits<double>::min();              // Set to the lowest double
     this->constraintValue = numeric_limits<double>::max();      // Set to the highest value
 
-    // Perform check
-//    assert(number_of_links + number_of_nodes_to_discretize == unprocessedParameters.size());    // Check that all parameters are used
 
     // Initialize variables
     if(useOptimalSolution)
@@ -115,7 +109,6 @@ solution_BN::solution_BN(size_t numberOfVariables_,
 
     // Assign the results
     this->variables.resize(solutionInformation.processedParameters.size());
-    // this->variables = solutionInformation.processedParameters;
     transform(solutionInformation.processedParameters.begin(), solutionInformation.processedParameters.end(), this->variables.begin(), [](int i){return i;});
     this->number_of_parents = solutionInformation.nodeInfo.output_number_of_parents;
     this->number_of_children = solutionInformation.nodeInfo.output_number_of_children;
@@ -124,7 +117,6 @@ solution_BN::solution_BN(size_t numberOfVariables_,
     this->spouse_matrix.resize(0);  // Not set as not all algorithms need this
     this->adjacency_matrix = solutionInformation.adjacencyMatrix;
     this->numberOfDiscretizationsperNode = solutionInformation.discretizationPerNode;
-    // this->discretizationPolicy = solutionInformation.discretizationPolicy;
 
     // Store the boundaries
     updateBoundaries();
@@ -170,18 +162,9 @@ void solution_BN::randomInit(std::mt19937 *rng)
 		variables[i] = (*rng)() % getAlphabetSize();
 	}
 
-    // c_variables = {0.2000153015, 0.2000154391, 0.2000154391, 0.2000154391, 0.1999383812, 0, 0, 0};
-
-    // variables = {1, 2, 0, 2, 0, 1};
-    // c_variables = {0.1987034297, 0.2003387483, 0.2003387483, 0.2003387483, 0.2002803253, 0, 0, 0, 0,
-    //                 0.3343046869, 0.3344275367, 0.3312677764, 0, 0, 0, 0, 0, 0,
-    //                 0.4999268203, 0.5000731797, 0, 0, 0, 0, 0, 0, 0};
-
     for (int i = 0; i < getNumberOfCVariables(); ++i) 
     {
-        c_variables[i] += lower_user_range + ((*rng)() / (double)(*rng).max()) * (upper_user_range - lower_user_range); //(*rng)() / (double)(*rng).max() * 0.02 - 0.01; //
-		// // TODO RUBEN: hardcoded upper and lower bounds for now, should be read from config maybe?
-		// c_variables[i] = -10 + ((*rng)() / (double)(*rng).max()) * 20; 
+        c_variables[i] += lower_user_range + ((*rng)() / (double)(*rng).max()) * (upper_user_range - lower_user_range);
     }
 
     if(useNormalizedCVars)
@@ -317,8 +300,6 @@ void solution_BN::randomInit(std::mt19937 *rng, double populationIndexRatio)
             double newUpperBound = minUpperRangeBound + populationIndexRatio * (upper_user_range - minUpperRangeBound);
             assert(newUpperBound >= lower_user_range);
             c_variables[i] = lower_user_range + ((*rng)() / (double)(*rng).max()) * (newUpperBound - lower_user_range);
-            // // TODO RUBEN: hardcoded upper and lower bounds for now, should be read from config maybe?
-            // c_variables[i] = -10 + ((*rng)() / (double)(*rng).max()) * 20; 
         }
     }
 
@@ -422,7 +403,7 @@ void solution_BN::updateBoundariesBasedOnNumberOfDataSamples()
                         boundary = (data_matrix.getElement(sorted_indices[data_samples_up_to_curr_boundary], i) + data_matrix.getElement(sorted_indices[data_samples_up_to_curr_boundary + 1], i)) / 2.0;
                     } else
                     {  
-                        // Boundary would create a bin without datapoints in it, or be after the last sample in data, so ignore it instead (still adding to binwidthUsed)? (TODO: figure out if that is correct interpretation)
+                        // Boundary would create a bin without datapoints in it, or be after the last sample in data, so ignore it instead.
                         binwidthUsed += curr_c_val;            
                         continue;
                     }
@@ -573,8 +554,6 @@ void solution_BN::insertSolution( solution_mixed *solution )
 	setFitnessBuffers( casted_solution->fitness_buffers );
 
     assert(0); // TODO
-    // // Store the boundaries
-    // updateBoundaries();
 }
 
 void solution_BN::print()
@@ -651,7 +630,6 @@ void solution_BN::reProcessParametersSolution(vector<int> newParameters)
 
     // Assign the results
     this->variables.resize(solutionInformation.processedParameters.size());
-    // this->variables = solutionInformation.processedParameters;
     transform(solutionInformation.processedParameters.begin(), solutionInformation.processedParameters.end(), this->variables.begin(), [](int i){return i;});
     this->number_of_parents = solutionInformation.nodeInfo.output_number_of_parents;
     this->number_of_children = solutionInformation.nodeInfo.output_number_of_children;
@@ -659,8 +637,6 @@ void solution_BN::reProcessParametersSolution(vector<int> newParameters)
     this->child_matrix = solutionInformation.nodeInfo.output_child_matrix;
     this->spouse_matrix.resize(0);  // Not set as not all algorithms need this
     this->adjacency_matrix = solutionInformation.adjacencyMatrix;
-    // this->numberOfDiscretizationsperNode = solutionInformation.discretizationPerNode;
-    // this->discretizationPolicy = solutionInformation.discretizationPolicy;
 }
 
 /**
@@ -723,40 +699,6 @@ NetworkStructure solution_BN::processDiscretization(NetworkStructure result,
     // For now, no discretization policy (since we will learn discretizations with iAMaLGaM), so just set discretizationsPerNode to parameter value and then return.
     result.discretizationPerNode = initialNumberOfInstantiations; // NOTE: only values for discrete nodes are correct and should be used.
     return result;
-
-    // // Generate an empty policy
-    // shared_ptr<DiscretizationPolicy> policySettings = generateDiscretizationPolicyForSettings(discretizationPolicyIndex);
-
-    // // Retrieve the number of instantiations from the solution.
-    // // Todo: Make sure that the number of instantiations are set
-    // size_t rawSolutionPointerIndex = this->number_of_links - 1; // Keeps track which parameters from the raw solution have been processed
-    // vec_t<size_t> desiredNumberOfInstantiationsPerNode;
-    // if (policySettings->getNeedsNumberOfInstantiationsInAdvance()) {
-    //     desiredNumberOfInstantiationsPerNode = determineNumberOfDiscretizationsFromSolution(result, rawSolutionPointerIndex, initialNumberOfInstantiations);
-    // }
-
-    // // Initialize the discretization policy objects
-    // shared_ptr<DiscretizationPolicy> policy = generateDiscretizationPolicy(discretizationPolicyIndex, this->node_data_types, desiredNumberOfInstantiationsPerNode);
-
-    // // Add the network to the policy if it needs the policy
-    // if (policy->getNeedsNetworkStructure()) {
-    //     // Determine the spouse nodes
-    //     NodeInformation nodeInformation = result.nodeInfo;
-    //     vec_t<size_t> numberOfParents = nodeInformation.output_number_of_parents;
-    //     vec_t<size_t> numberOfChildren = nodeInformation.output_number_of_children;
-    //     vec_t<vec_t<int>> parentMatrix = nodeInformation.output_parent_matrix;
-    //     vec_t<vec_t<int>> childMatrix = nodeInformation.output_child_matrix;
-    //     this->determineSpouseNodes(numberOfParents, numberOfChildren, parentMatrix, childMatrix);
-    //     // Pass the network structure
-    //     policy->initializeNetworkStructure(numberOfParents, numberOfChildren, childMatrix, parentMatrix, this->spouse_matrix);
-    // }
-
-
-    // // Append the results
-    // result.discretizationPolicy = policy;
-    // result.discretizationPerNode = policy->getNumberOfInstantiations();
-
-    // return result;
 }
 
 /**
@@ -890,35 +832,6 @@ bool solution_BN::operator!=(const solution_BN &rhs) const {
  * @return A clone of this solution
  */
 solution_BN *solution_BN::clone() {
-    // shared_ptr<DiscretizationPolicy> copyOfDiscretizationPolicy = this->discretizationPolicy->clone();
-    /*solution_BN *result = new solution_BN(this->variables, 
-                                          this->fitness_buffers, 
-                                          getObjectiveValues(), 
-                                          getConstraintValue(), 
-                                          getAlphabetSize(), 
-                                          this->c_variables, 
-                                          this->problemInstance,
-                                          this->node_data_types,
-                                          this->number_of_nodes,
-                                          this->number_of_links,
-                                          this->number_of_nodes_to_discretize,
-                                          this->maximum_number_of_parents,
-                                          this->fitness,
-                                          this->constraintValue,
-                                          this->numberOfFullEvaluations,
-                                          this->numberOfEvaluations,
-                                          this->number_of_parents,
-                                          this->number_of_children,
-                                          this->child_matrix,
-                                          this->parent_matrix,
-                                          this->adjacency_matrix,
-                                          this->spouse_matrix,
-                                          this->numberOfDiscretizationsperNode,
-                                          this->discretizationPolicy, //copyOfDiscretizationPolicy,
-                                          this->boundaries,
-                                          this->maxValuesData,
-                                          this->minValuesData);
-    return result;*/
     return new solution_BN(*this);
 }
 
@@ -926,29 +839,6 @@ solution_BN *solution_BN::clone() {
 /**
  * Constructor for cloning things
  */
-/*solution_BN::solution_BN(vec_t<int> &variables, vec_t<double> fitness_buffers, vec_t<double> objective_values, double constraint_value, 
-    size_t alphabetSize, vec_t<double> &c_variables, fitness_t<int> *problemInstance,
-    const vec_t<ColumnDataType> &nodeDataTypes, int numberOfNodes,
-    size_t numberOfLinks, size_t numberOfNodesToDiscretize, int maximumNumberOfParents,
-    double fitness, double constraintValue,
-    size_t numberOfFullEvaluations, double numberOfEvaluations,
-    const vec_t<size_t> &numberOfParents, const vec_t<size_t> &numberOfChildren,
-    const vec_t<vec_t<int>> &childMatrix, const vec_t<vec_t<int>> &parentMatrix,
-    const vec_t<vec_t<int>> &adjacencyMatrix, const vec_t<vec_t<vec_t<size_t>>> &spouse_matrix,
-    const vec_t<size_t> &numberOfDiscretizationsperNode,
-    shared_ptr<DiscretizationPolicy> &discretizationPolicy,
-    vec_t<vec_t<double>> boundaries, 
-    vec_t<double> maxValuesData, vec_t<double> minValuesData) : solution_mixed(variables, fitness_buffers, objective_values, constraint_value, alphabetSize, c_variables, problemInstance),
-    node_data_types(nodeDataTypes), number_of_nodes(numberOfNodes), number_of_links(numberOfLinks),
-    number_of_nodes_to_discretize(numberOfNodesToDiscretize), maximum_number_of_parents(maximumNumberOfParents),
-    fitness(fitness), constraintValue(constraintValue),
-    numberOfFullEvaluations(numberOfFullEvaluations), numberOfEvaluations(numberOfEvaluations),
-    number_of_parents(numberOfParents), number_of_children(numberOfChildren),
-    child_matrix(childMatrix), parent_matrix(parentMatrix),
-    adjacency_matrix(adjacencyMatrix), spouse_matrix(spouse_matrix),
-    numberOfDiscretizationsperNode(numberOfDiscretizationsperNode), discretizationPolicy(discretizationPolicy),
-    boundaries(boundaries), maxValuesData(maxValuesData), minValuesData(minValuesData) {}*/
-
 solution_BN::solution_BN( const solution_BN &other ) : solution_mixed(other),
     node_data_types(other.node_data_types), number_of_nodes(other.number_of_nodes), number_of_links(other.number_of_links),
     number_of_nodes_to_discretize(other.number_of_nodes_to_discretize), maximum_number_of_parents(other.maximum_number_of_parents),
@@ -964,31 +854,6 @@ solution_BN::solution_BN( const solution_BN &other ) : solution_mixed(other),
     useOptimalSolution(other.useOptimalSolution), guaranteedInitSpread(other.guaranteedInitSpread), extraCVarForNumberOfBins(other.extraCVarForNumberOfBins),
     forceNBoundariesUsed(other.forceNBoundariesUsed), problemInstancePath(other.problemInstancePath), runIndex(other.runIndex)  {}
 
-
-/*solution_BN::solution_BN( const solution_BN &other ) : solution_mixed(other.variables, other.fitness_buffers, objective_values, constraint_value, alphabetSize, c_variables, problemInstance)
-{
-    this->node_data_types = other.nodeDataTypes;
-    this->number_of_nodes = other.numberOfNodes;
-    this->number_of_links = other.numberOfLinks;
-    this->number_of_nodes_to_discretize = other.numberOfNodesToDiscretize;
-    this->maximum_number_of_parents = other.maximumNumberOfParents;
-    this->fitness = other.fitness;
-    this->constraintValue = other.constraintValue;
-    this->numberOfFullEvaluations = other.numberOfFullEvaluations; 
-    this->numberOfEvaluations = other.numberOfEvaluations;
-    this->number_of_parents = other.numberOfParents;
-    this->number_of_children other.numberOfChildren;
-    this->child_matrix = other.childMatrix;
-    this->parent_matrix = other.parentMatrix;
-    this->adjacency_matrix = other.adjacencyMatrix;
-    this->spouse_matrix = other.spouse_matrix;
-    this->numberOfDiscretizationsperNode = other.numberOfDiscretizationsperNode;
-    this->discretizationPolicy = other.discretizationPolicy;
-    this->boundaries = other.boundaries;
-    this->maxValuesData = other.maxValuesData;
-    this->minValuesData = other.minValuesData;
-}
-*/
 }
 
 

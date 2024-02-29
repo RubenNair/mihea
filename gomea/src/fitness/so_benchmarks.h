@@ -9,13 +9,6 @@
 #include <fstream>
 #include <algorithm>
 
-// #include "fitness.h"
-// #include "bdeu.h"
-// #include "mdl.h"
-// #include "bic.h"
-// #include "combined_likelihood.h"
-// #include "bayesian_score.h"
-// #include "density.h"
 #include "gomea/src/utils/data_structure.h"
 
 

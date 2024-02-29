@@ -4,7 +4,6 @@
 
 #include "gomea/src/fitness/fitness_BN.h"
 #include "gomea/src/utils/data_structure.h"
-// #include "../../../Continuous_Bayesian_Network_GOMEA/include/Random.h"
 
 #include <iostream>
 #include <memory>

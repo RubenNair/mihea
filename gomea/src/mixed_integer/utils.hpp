@@ -15,7 +15,6 @@
 
 using namespace std;
 
-// #include "gomea/src/common/solution_mixed.hpp"
 #include "gomea/src/common/solution_BN.hpp"
 #include "gomea/src/common/gomea_defs.hpp"
 #include "gomea/src/fitness/density.h"
