@@ -1757,7 +1757,10 @@ void iamalgam::learnContinuousModel(int population_index)
 {
   // First, make sure there is only 1 population by checking the number_of_populations and population_index
   assert(number_of_populations == 1 && population_index == 0);
-  writePopulationBoundaryStatsToFile(config->folder, population->solutions, "GEN " + to_string(number_of_generations) + " - POPULATION");
+  if(config->useBN)
+  {
+    writePopulationBoundaryStatsToFile(config->folder, population->solutions, "GEN " + to_string(number_of_generations) + " - POPULATION");
+  }
 
   // checkForDuplicate("IAMALGAM 1");
   computeRanksForOnePopulation(population_index); // Moved from where comment // computeRanks(); is.
@@ -1765,7 +1768,10 @@ void iamalgam::learnContinuousModel(int population_index)
   // TODO figure out if this is correct placement for making selections
   makeSelectionsForOnePopulation(population_index);
   writePopulationToFile(config->folder, selections, "SELECTIONS in iamalgam ----------------------------------", config->logDebugInformation);  
-  writePopulationBoundaryStatsToFile(config->folder, selections, "GEN " + to_string(number_of_generations) + " - SELECTIONS");
+  if(config->useBN)
+  {
+    writePopulationBoundaryStatsToFile(config->folder, selections, "GEN " + to_string(number_of_generations) + " - SELECTIONS");
+  }
   // checkForDuplicate("IAMALGAM 3");
   // estimateParametersAllPopulations();
   estimateParameters(population_index);

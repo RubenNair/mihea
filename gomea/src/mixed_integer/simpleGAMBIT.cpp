@@ -109,7 +109,7 @@ void simpleGAMBIT::run()
 	hasTerminated = true;
 	if(config->useBN)
     {
-        if(config->useOptimalSolution)
+        if(config->useOptimalSolution && config->useBN)
         {
             // Write the optimal solution to MSS_statistics and MSS_solutions files
             write_multi_start_scheme_statistics(config->folder, sharedInformationInstance->elitist, sharedInformationInstance->optimizerIndex, config->optimizerName, numberOfGenerationsGAMBIT, clock_start_time, getAverageElitistFitness(), config->data->getColumnType());
@@ -253,7 +253,11 @@ void simpleGAMBIT::runGeneration(int GAMBITIndex)
     if(!prevGenElitistInitialized || currGAMBIT->sharedInformationPointer->elitistFitness < prevGenElitistFitness) // ASSUMING MINIMIZATION
     {
         prevGenElitistFitness = currGAMBIT->sharedInformationPointer->elitistFitness;
-        write_multi_start_scheme_statistics(config->folder, sharedInformationInstance->elitist, sharedInformationInstance->optimizerIndex, config->optimizerName, numberOfGenerationsGAMBIT, clock_start_time, getAverageElitistFitness(), config->data->getColumnType());
+
+        if(config->useBN)
+        {
+            write_multi_start_scheme_statistics(config->folder, sharedInformationInstance->elitist, sharedInformationInstance->optimizerIndex, config->optimizerName, numberOfGenerationsGAMBIT, clock_start_time, getAverageElitistFitness(), config->data->getColumnType());
+        }
         prevGenElitistInitialized = true;
     }
 

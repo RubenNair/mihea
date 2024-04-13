@@ -185,31 +185,31 @@ void writePopulationToFile(string &folder, vec_t<solution_mixed*> population, st
 
 void writePopulationBoundaryStatsToFile(string &folder, vec_t<solution_mixed*> population, string message)
 {
-    // ofstream outFile(folder + "/boundaryStats.txt", ofstream::app);
-    // if (outFile.fail())
-    // {
-    //     cerr << "Problems with opening file " << folder + "/boundaryStats.txt!\n";
-    //     exit(0);
-    // }
+    ofstream outFile(folder + "/boundaryStats.txt", ofstream::app);
+    if (outFile.fail())
+    {
+        cerr << "Problems with opening file " << folder + "/boundaryStats.txt!\n";
+        exit(0);
+    }
 
-    // outFile << message << endl;
-    // for(size_t i = 0; i < population.size(); i++)
-    // {
-    //     solution_BN *solution = (solution_BN*)population[i];
-    //     // Check if cast went well
-    //     if(solution == NULL)
-    //     {
-    //         cerr << "Cast to solution_BN failed in writing boundary stats (utils.cpp)!" << endl;
-    //         exit(0);
-    //     }
+    outFile << message << endl;
+    for(size_t i = 0; i < population.size(); i++)
+    {
+        solution_BN *solution = (solution_BN*)population[i];
+        // Check if cast went well
+        if(solution == NULL)
+        {
+            cerr << "Cast to solution_BN failed in writing boundary stats (utils.cpp)!" << endl;
+            exit(0);
+        }
 
-    //     for(size_t j = 0; j < solution->getBoundaries().size(); j++)
-    //     {
-    //         outFile << solution->getBoundaries()[j].size() << " ";
-    //     }
-    //     outFile << ", ";
-    //     outFile << solution->getObjectiveValue() << endl;
-    // }
+        for(size_t j = 0; j < solution->getBoundaries().size(); j++)
+        {
+            outFile << solution->getBoundaries()[j].size() << " ";
+        }
+        outFile << ", ";
+        outFile << solution->getObjectiveValue() << endl;
+    }
 }
 
 void writeBuildingBlocksToFile(string &folder, vec_t<solution_mixed*> population, string message, int k, bool doLog)

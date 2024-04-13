@@ -196,7 +196,7 @@ def make_F5_plot(results, currF, title, fn, gambit, a_values):
 
 def make_alt_F5_plot(results, currF, title, fn, gambit, a_values):
     fig, (ax1, ax2) = plt.subplots(2)
-    fig.suptitle(title)
+    fig.suptitle("Original MIHEA: F5 Trap Block Ellipse" if "GAMBIT_K" in title else "Modified MIHEA: F5 Trap Block Ellipse")
     x = [20, 40, 60]
     ys, popsizes, _ = get_ys_F5(results, x, gambit, a_values, currF)
     print(f"ys: {ys}")
@@ -233,7 +233,7 @@ def make_alt_F5_plot(results, currF, title, fn, gambit, a_values):
     ax2.legend()
 
     # plt.show()
-    fig.savefig(f"plots/remake_for_thesis/{fn}.png", bbox_inches='tight', dpi=300)
+    fig.savefig(f"plots/remake_for_thesis/{fn}_fixed_title.png", bbox_inches='tight', dpi=300)
 
 
 def make_all_plots(results, gambit, a_values):
@@ -246,14 +246,14 @@ def make_all_plots(results, gambit, a_values):
     # title_gambit = f"{gambit}: "
     title_gambit = ""
 
-    # F1
-    make_plot(results, "F1", f'{title_gambit}F1 OneMaxSphere', f"{gambit}_F1_OneMaxSphere", gambit)
-    # F2
-    make_plot(results, "F2", f'{title_gambit}F2 OneMaxEllipse', f"{gambit}_F2_OneMaxEllipse", gambit)
-    # F3
-    make_plot(results, "F3", f'{title_gambit}F3 TrapSphere', f"{gambit}_F3_TrapSphere", gambit)
-    # F4
-    make_plot(results, "F4", f'{title_gambit}F4 TrapEllipse', f"{gambit}_F4_TrapEllipse", gambit)
+    # # F1
+    # make_plot(results, "F1", f'{title_gambit}F1 OneMaxSphere', f"{gambit}_F1_OneMaxSphere", gambit)
+    # # F2
+    # make_plot(results, "F2", f'{title_gambit}F2 OneMaxEllipse', f"{gambit}_F2_OneMaxEllipse", gambit)
+    # # F3
+    # make_plot(results, "F3", f'{title_gambit}F3 TrapSphere', f"{gambit}_F3_TrapSphere", gambit)
+    # # F4
+    # make_plot(results, "F4", f'{title_gambit}F4 TrapEllipse', f"{gambit}_F4_TrapEllipse", gambit)
 
     # F5 alt
     make_alt_F5_plot(results, "F5", f'{gambit}: F5 Trap Block Ellipse', f"{gambit}_F5_TrapBlockEllipse_alt", gambit, a_values)
